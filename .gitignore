@@ -1,0 +1,4 @@
+*.json
+*.sh
+.terraform*
+__pycache__/*
