@@ -24,11 +24,10 @@ def get_price(client,asset):
     return current_price
 
 
-def buy_asset(client,asset,amount):
+def buy_asset(client,asset,amount,price):
     print("Buying", asset)
-    position = amount / get_price(client,asset)
+    position = amount / price
     position_to_use = str(position)[:-13]
-    #order = client.create_test_order(
     order = client.create_order(
         symbol=asset+"GBP",
         side="buy",
@@ -39,8 +38,28 @@ def buy_asset(client,asset,amount):
 def sell_asset(client,asset,amount):
     print("Selling", asset)
     position_to_use = str(amount)[:-2]
-    #order = client.create_test_order(
     order = client.create_order(
+        symbol=asset+"GBP",
+        side="sell",
+        type="market",
+        quantity=position_to_use)
+    return order
+
+def buy_asset(client,asset,amount,price):
+    print("Buying", asset)
+    position = amount / price
+    position_to_use = str(position)[:-13]
+    order = client.create_test_order(
+        symbol=asset+"GBP",
+        side="buy",
+        type="market",
+        quantity=position_to_use)
+    return order
+
+def sell_asset(client,asset,amount):
+    print("Selling", asset)
+    position_to_use = str(amount)[:-2]
+    order = client.create_test_order(
         symbol=asset+"GBP",
         side="sell",
         type="market",
