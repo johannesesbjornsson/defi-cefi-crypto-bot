@@ -2,6 +2,7 @@ import logic
 import binance_client
 import logging
 import time
+import traceback
 
 current_holdings = {}
 buy_amount = 50
@@ -28,6 +29,7 @@ def look_to_buy(client,asset,current_price,last_hours_data=None,last_weeks_data=
     if is_buy_time and for_real:
         current_price = binance_client.get_price(client,asset)
         order = binance_client.buy_asset(client,asset,buy_amount,current_price)
+        logic.send_email_update("I bought some "+asset+" for you!")
     elif is_buy_time:
         current_price = binance_client.get_price(client,asset)
         order = binance_client.test_buy_asset(client,asset,buy_amount,current_price)
@@ -41,6 +43,7 @@ def look_to_sell(client,asset,current_price,asset_amount,for_real=True):
 
     if time_to_sell and for_real:
         order = binance_client.sell_asset(client,asset,asset_amount)
+        logic.send_email_update("I sold some "+asset+ " for you!")
     elif time_to_sell:
         order = binance_client.test_sell_asset(client,asset,asset_amount)
     
@@ -68,6 +71,11 @@ def main(client):
 
 if __name__ == '__main__':
     client = binance_client.get_client()
-    while True:
-        main(client)
-        time.sleep(30)
+    try:
+        while True:
+            main(client)
+            time.sleep(30)
+    except Exception as e:
+        tb = traceback.format_exc()
+        print(tb)
+        logic.send_email_update("I crashed :(")

@@ -1,6 +1,7 @@
 import os
 import json
 import main
+import logic
 import binance_client
 
 
@@ -17,20 +18,36 @@ def get_price(data,asset):
     return data[len(data)-1][4]
 
 
+symbol = "BTCUSDT"
+#symbol = "XRPUSDT"
 client = binance_client.get_client()
-depth = client.get_order_book(symbol='XRPGBP', limit=5000)
-current_price = float(client.get_symbol_ticker(symbol="BTCGBP").get("price"))
-total_bids = 0.00
+depth = client.get_order_book(symbol=symbol, limit=5000)
+current_price = float(client.get_symbol_ticker(symbol=symbol).get("price"))
+total_bid_volume = 0.00
+i = 0
 for trade in depth["bids"]:
-    total_bids += float(trade[0])
     
+    if float(trade[0]) < (current_price * 1.05) and float(trade[0]) > (current_price * 0.95):
+        total_bid_volume += float(trade[0]) * float(trade[1])
+        print(trade)
+        i += 1
 
-print("---")
+print("--------------")
+
+total_ask_volume = 0.00
+ii = 0
 for trade in depth["asks"]:
-    ask_evalutation = float(trade[0]) / float(trade[1])
-    if ask_evalutation > current_price:
-        print(ask_evalutation)
-print(total_bids)
+    
+    if float(trade[0]) < (current_price * 1.05) and float(trade[0]) > (current_price * 0.95):
+        total_ask_volume += float(trade[0]) * float(trade[1])
+        print(trade)
+        ii += 1
+
+print(i, ii)
 print(current_price)
-print(len(depth["asks"]))
+print(total_bid_volume)
+print(total_ask_volume)
 print(len(depth["bids"]))
+print(len(depth["asks"]))
+
+logic.send_email_update("Sold BTCGBP")

@@ -1,5 +1,21 @@
 import datetime
 import logging
+import smtplib
+from email.message import EmailMessage
+
+def send_email_update(message):
+    sender = 'joho@cryptotime.com'
+    receivers = ['johannes.esbjornsson@gmail.com']
+
+    msg = EmailMessage()
+    msg.set_content(message)
+    msg['From'] = '<joho@cryptotime.com>'
+    msg['To'] = '<johannes.esbjornsson@gmail.com>'
+    msg['Subject'] = 'Crypto Update'
+
+    smtpObj = smtplib.SMTP('127.0.0.1',26)
+    smtpObj.send_message(msg)
+    smtpObj.quit()         
 
 def get_average_price(data):
     total_price = 0.00 
