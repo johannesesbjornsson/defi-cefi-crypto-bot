@@ -1,6 +1,7 @@
 import os
 import json
 from binance.client import Client
+import math
 
 
 
@@ -24,10 +25,10 @@ def get_price(client,asset):
     return current_price
 
 
-def buy_asset(client,asset,amount,price):
+def buy_asset(client,asset,amount,price,decimals=6):
     print("Buying", asset)
     position = amount / price
-    position_to_use = str(position)[:-13]
+    position_to_use = str(round_down(position,decimals))
     order = client.create_order(
         symbol=asset+"GBP",
         side="buy",
@@ -37,18 +38,19 @@ def buy_asset(client,asset,amount,price):
 
 def sell_asset(client,asset,amount):
     print("Selling", asset)
-    position_to_use = str(amount)[:-2]
     order = client.create_order(
         symbol=asset+"GBP",
         side="sell",
         type="market",
-        quantity=position_to_use)
+        quantity=amount)
     return order
 
-def buy_asset(client,asset,amount,price):
+def test_buy_asset(client,asset,amount,price,decimals=6):
     print("Buying", asset)
     position = amount / price
-    position_to_use = str(position)[:-13]
+    print(position)
+    position_to_use = str(round_down(position,decimals))
+    print(position_to_use)
     order = client.create_test_order(
         symbol=asset+"GBP",
         side="buy",
@@ -56,18 +58,25 @@ def buy_asset(client,asset,amount,price):
         quantity=position_to_use)
     return order
 
-def sell_asset(client,asset,amount):
+def test_sell_asset(client,asset,amount):
     print("Selling", asset)
-    position_to_use = str(amount)[:-2]
     order = client.create_test_order(
         symbol=asset+"GBP",
         side="sell",
         type="market",
-        quantity=position_to_use)
+        quantity=amount)
     return order
 
-def get_asset_amount(client, asset):
+def get_asset_amount(client, asset,decimals=6):
     asset = float(client.get_asset_balance(asset=asset).get("free"))
-    return asset
+    return round_down(asset,decimals)
 
+def round_down(n, decimals):
+    multiplier = 10 ** decimals
+    return math.floor(n * multiplier) / multiplier
+
+def get_orders(client, asset):
+    orders = client.get_all_orders(symbol=asset+'GBP', limit=10)
+
+    return orders
 

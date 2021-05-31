@@ -1,21 +1,19 @@
 import datetime
 import logging
-import smtplib
-from email.message import EmailMessage
+
+import sendgrid
+import os
+from sendgrid.helpers.mail import *
 
 def send_email_update(message):
-    sender = 'joho@cryptotime.com'
-    receivers = ['johannes.esbjornsson@gmail.com']
-
-    msg = EmailMessage()
-    msg.set_content(message)
-    msg['From'] = '<joho@cryptotime.com>'
-    msg['To'] = '<johannes.esbjornsson@gmail.com>'
-    msg['Subject'] = 'Crypto Update'
-
-    smtpObj = smtplib.SMTP('127.0.0.1',26)
-    smtpObj.send_message(msg)
-    smtpObj.quit()         
+    email_api_key = os.environ.get('email_api_key')
+    sg = sendgrid.SendGridAPIClient(api_key=email_api_key)
+    from_email = Email("johannes.esbjornsson@gmail.com")
+    to_email = To("johannes.esbjornsson@gmail.com")
+    subject = "Crypto Update"
+    content = Content("text/plain", message)
+    mail = Mail(from_email, to_email, subject, content)
+    response = sg.client.mail.send.post(request_body=mail.get())      
 
 def get_average_price(data):
     total_price = 0.00 
@@ -72,3 +70,10 @@ def is_sell_time(current_price, asset_amount, buy_amount):
 
 
     return is_sell_time
+
+def get_active_orders(orders):
+    active_order_exist = False
+    for order in orders:
+        if order["status"] == "ACTIVE":
+            active_order_exist = True
+    return active_order_exist
