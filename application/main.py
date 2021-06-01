@@ -61,13 +61,14 @@ def main(client):
     for asset in assets_to_check:
         asset_settings = assets_to_check[asset]
 
-        orders = binance_client.get_orders(client, asset)
-        active_order = logic.get_active_orders(orders)
+        asset = binance_client.Asset(client,asset,asset_settings["precision"])
 
-        if active_order:
+
+        if asset.has_active_orders:
             print("Order of "+asset+", in progress")
             continue
-
+        break
+        
         asset_amount = binance_client.get_asset_amount(client, asset)
         
         current_price = binance_client.get_price(client,asset)
