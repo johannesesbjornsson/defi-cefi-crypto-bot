@@ -32,8 +32,8 @@ class Asset(object):
         balance = float(self.client.get_asset_balance(asset=asset).get("free"))
         return balance
 
-    def round_down(self,n):
-        multiplier = 10 ** self.precision
+    def round_down(self, n, precision):
+        multiplier = 10 ** precision
         return math.floor(n * multiplier) / multiplier
 
     def get_last_hours_of_data(self):
@@ -54,9 +54,9 @@ class Asset(object):
     def test_buy_asset(self,amount):
         self.update_price()
         position = amount / self.price
-        position_to_buy = self.round_down(position)
+        position_to_buy = self.round_down(position, self.precision)
         
-        price_to_use = round_down((self.price * 0.996),2)
+        price_to_use = self.round_down((self.price * 0.996),2)
 
         order = self.client.create_test_order(
             symbol=self.symbol,
@@ -70,8 +70,8 @@ class Asset(object):
 
     def test_sell_asset(self):
         self.update_price()
-        price_to_use = round_down((self.price * 1.004),2)
-        position_to_sell = self.round_down(self.asset_holdings)
+        price_to_use = self.round_down((self.price * 1.004),2)
+        position_to_sell = self.round_down(self.asset_holdings, self.precision)
 
         order = self.client.create_test_order(
             symbol=self.symbol,
