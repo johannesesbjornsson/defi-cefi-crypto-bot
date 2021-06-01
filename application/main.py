@@ -5,10 +5,10 @@ import time
 import traceback
 
 assets_to_check = {
-    "BTC": {
-        "precision" : 6,
-        "gbp_amount" : 50
-    },
+    #"BTC": {
+    #    "precision" : 6,
+    #    "gbp_amount" : 50
+    #},
     "ETH": {
         "precision" : 5,
         "gbp_amount" : 50
@@ -44,12 +44,13 @@ def look_to_buy(client,asset,current_price,asset_settings):
 
 def look_to_sell(client,asset,current_price,asset_amount,asset_settings):
     sell_amount = asset_settings["gbp_amount"]
+    precision = asset_settings["precision"]
 
     time_to_sell = logic.is_sell_time(current_price, asset_amount, sell_amount)
     order = None
 
     if time_to_sell:
-        order = binance_client.sell_asset(client,asset,asset_amount)
+        order = binance_client.sell_asset(client,asset,asset_amount,current_price,precision)
         logic.send_email_update("I sold some "+asset+ " for you!")
     
     return order

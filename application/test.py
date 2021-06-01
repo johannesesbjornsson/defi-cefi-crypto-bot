@@ -52,13 +52,16 @@ def get_price(data,asset):
 # print(len(depth["asks"]))
 
 asset = "ETH"
-#symbol = "XRPGBP"
-amount = 0.001809
-amount = 0.02697
+
+
 
 client = binance_client.get_client()
+depth = client.get_order_book(symbol=asset+"GBP", limit=10)
+for trade in depth["bids"]:
+    print(trade)
 current_price = binance_client.get_price(client,asset)
-order = binance_client.test_buy_asset(client,asset,50,current_price,5)
-print(order)
-print(client.get_symbol_info("ETHGBP"))
+asset_amount = 50
+#print(client.get_symbol_info('BTCGBP'))
 
+binance_client.test_buy_asset(client,asset,asset_amount,current_price,5)
+binance_client.test_sell_asset(client,asset,asset_amount,current_price,5)

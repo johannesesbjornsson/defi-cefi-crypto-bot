@@ -2,6 +2,8 @@ import os
 import json
 from binance.client import Client
 import math
+from binance.enums import *
+from binance.helpers import round_step_size
 
 
 
@@ -25,46 +27,66 @@ def get_price(client,asset):
     return current_price
 
 
-def buy_asset(client,asset,amount,price,decimals=6):
+def buy_asset(client,asset,amount,current_price,decimals=6):
     print("Buying", asset)
-    position = amount / price
-    position_to_use = str(round_down(position,decimals))
+    position = amount / current_price
+    position_to_use = round_down(position,decimals)
+    
+    price_to_use = round_down((current_price * 0.996),2)
+
     order = client.create_order(
         symbol=asset+"GBP",
-        side="buy",
-        type="market",
-        quantity=position_to_use)
+        side=SIDE_BUY,
+        type=ORDER_TYPE_LIMIT,
+        timeInForce=TIME_IN_FORCE_GTC,
+        quantity=str(position_to_use),
+        price=str(price_to_use))
+        
     return order
 
-def sell_asset(client,asset,amount):
+def sell_asset(client,asset,amount,current_price,decimals=6):
     print("Selling", asset)
+    price_to_use = round_down((current_price * 1.004),2)
+
     order = client.create_order(
         symbol=asset+"GBP",
-        side="sell",
-        type="market",
-        quantity=amount)
+        side=SIDE_BUY,
+        type=ORDER_TYPE_LIMIT,
+        timeInForce=TIME_IN_FORCE_GTC,
+        quantity=amount,
+        price=str(price_to_use))
+
     return order
 
-def test_buy_asset(client,asset,amount,price,decimals=6):
+def test_buy_asset(client,asset,amount,current_price,decimals=6):
     print("Buying", asset)
-    position = amount / price
-    print(position)
-    position_to_use = str(round_down(position,decimals))
-    print(position_to_use)
+    position = amount / current_price
+    position_to_use = round_down(position,decimals)
+    
+    price_to_use = round_down((current_price * 0.996),2)
+
     order = client.create_test_order(
         symbol=asset+"GBP",
-        side="buy",
-        type="market",
-        quantity=position_to_use)
+        side=SIDE_BUY,
+        type=ORDER_TYPE_LIMIT,
+        timeInForce=TIME_IN_FORCE_GTC,
+        quantity=str(position_to_use),
+        price=str(price_to_use))
+        
     return order
 
-def test_sell_asset(client,asset,amount):
+def test_sell_asset(client,asset,amount,current_price,decimals=6):
     print("Selling", asset)
+    price_to_use = round_down((current_price * 1.004),2)
+
     order = client.create_test_order(
         symbol=asset+"GBP",
-        side="sell",
-        type="market",
-        quantity=amount)
+        side=SIDE_BUY,
+        type=ORDER_TYPE_LIMIT,
+        timeInForce=TIME_IN_FORCE_GTC,
+        quantity=amount,
+        price=str(price_to_use))
+
     return order
 
 def get_asset_amount(client, asset,decimals=6):
