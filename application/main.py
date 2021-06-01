@@ -46,7 +46,7 @@ def look_to_sell(asset_object,sell_amount):
 
     time_to_sell = logic.is_sell_time(asset_object.price, asset_object.asset_holdings, sell_amount)
     order = None
-    time_to_sell = True
+    
     if time_to_sell:
         order = asset_object.test_sell_asset()
     
