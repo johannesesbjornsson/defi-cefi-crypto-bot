@@ -5,38 +5,38 @@ import time
 import traceback
 
 assets_to_check = {
-    #"BTC": {
-    #    "precision" : 6,
-    #    "gbp_amount" : 50
-    #},
+    "BTC": {
+        "precision" : 6,
+        "gbp_amount" : 50
+    },
     "ETH": {
-        "precision" : 5,
+        "precision" : 4,
         "gbp_amount" : 50
     },
     "XRP": {
-        "precision" : 5,
+        "precision" : 1,
         "gbp_amount" : 50
     }
 }
 
 
-def look_to_buy(client,asset,current_price,asset_settings):
-    buy_amount = asset_settings["gbp_amount"]
-    precision = asset_settings["precision"]
+def look_to_buy(asset_object,gbp_amount):
     is_buy_time = False
     order = None
 
-    last_hours_data = binance_client.get_last_hours_of_data(client,asset)
-    last_weeks_data = binance_client.get_last_weeks_of_data(client,asset)
+
+    # Move this logic into asset object
+    last_hours_data = asset_object.get_last_hours_of_data()
+    last_weeks_data = asset_object.get_last_weeks_of_data()
 
     market_good, average_price_last_period = logic.get_maket_status(last_hours_data,last_weeks_data)
-
-    if market_good:
-        is_buy_time = logic.is_buy_time(average_price_last_period,current_price)
     
-    if is_buy_time:
-        current_price = binance_client.get_price(client,asset)
-        order = binance_client.buy_asset(client,asset,buy_amount,current_price,precision)
+    if market_good:
+        asset_object.update_price()
+        is_buy_time = logic.is_buy_time(average_price_last_period, asset_object.price)
+    
+    if is_buy_time and asset_object.avaiable_cash > gbp_amount: 
+        order = asset_object.test_buy_asset(gbp_amount)
         logic.send_email_update("I bought some "+asset+" for you!")
 
     return order
@@ -44,6 +44,8 @@ def look_to_buy(client,asset,current_price,asset_settings):
 
 def look_to_sell(asset_object,sell_amount):
 
+    # TODO move is_sell_time into asset object
+    asset_object.update_price()
     time_to_sell = logic.is_sell_time(asset_object.price, asset_object.asset_holdings, sell_amount)
     order = None
     
@@ -68,26 +70,22 @@ def main(client):
         if (asset_object.asset_holdings * asset_object.price) > 20:
             print("Already have "+asset+", looking to sell")
             order = look_to_sell(asset_object,gbp_amount)
-        #else:
-        #    gbp_available = binance_client.get_asset_amount(client, "GBP")
-        #    if gbp_available > asset_settings["gbp_amount"]:
-        #        print("Don't have "+asset+", looking to buy")
-        #        order = look_to_buy(client,asset,current_price,asset_settings)
-        #    else:
-        #        print("Only have "+str(gbp_available)+"to play with, cannot buy "+asset)
-        #if order is not None:
-        #    print(order)
+        else:
+            print("Don't have "+asset+", looking to buy")
+            order = look_to_buy(asset_object,gbp_amount)
+
+        if order is not None:
+            print(order)
 
 
 
 if __name__ == '__main__':
     client = binance_client.get_client()
-    main(client)
-    #try:
-    #    while True:
-    #        main(client)
-    #        time.sleep(30)
-    #except Exception as e:
-    #    tb = traceback.format_exc()
-    #    print(tb)
-    #    logic.send_email_update("I crashed :(")
+    try:
+        while True:
+            main(client)
+            time.sleep(30)
+    except Exception as e:
+        tb = traceback.format_exc()
+        print(tb)
+        logic.send_email_update("I crashed :(")

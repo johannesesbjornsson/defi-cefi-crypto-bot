@@ -32,8 +32,8 @@ class Asset(object):
         balance = float(self.client.get_asset_balance(asset=asset).get("free"))
         return balance
 
-    def round_down(self, n, precision):
-        multiplier = 10 ** precision
+    def round_down(self, n):
+        multiplier = 10 ** self.precision
         return math.floor(n * multiplier) / multiplier
 
     def get_last_hours_of_data(self):
@@ -52,34 +52,34 @@ class Asset(object):
         return active_order_exist
 
     def test_buy_asset(self,amount):
-        self.update_price()
+        #self.update_price()
         position = amount / self.price
-        position_to_buy = self.round_down(position, self.precision)
+        position_to_buy = self.round_down(position)
         
-        price_to_use = self.round_down((self.price * 0.996),2)
+        #price_to_use = self.round_down((self.price * 0.996),2)
 
         order = self.client.create_test_order(
             symbol=self.symbol,
             side=SIDE_BUY,
             type=ORDER_TYPE_LIMIT,
-            timeInForce=TIME_IN_FORCE_GTC,
+            timeInForce=TIME_IN_FORCE_FOK,
             quantity=position_to_buy,
-            price=price_to_use)
+            price=self.price)
             
         return order
 
     def test_sell_asset(self):
-        self.update_price()
-        price_to_use = self.round_down((self.price * 1.004),2)
-        position_to_sell = self.round_down(self.asset_holdings, self.precision)
+        #self.update_price()
+        #price_to_use = self.round_down((self.price * 1.004),2)
+        position_to_sell = self.round_down(self.asset_holdings)
 
         order = self.client.create_test_order(
             symbol=self.symbol,
             side=SIDE_BUY,
             type=ORDER_TYPE_LIMIT,
-            timeInForce=TIME_IN_FORCE_GTC,
+            timeInForce=TIME_IN_FORCE_FOK,
             quantity=position_to_sell,
-            price=price_to_use)
+            price=self.price)
 
         return order
 

@@ -63,11 +63,20 @@ def get_price(data,asset):
 #binance_client.test_sell_asset(client,asset,asset_amount,current_price,5)
 
 
-asset = "ETH"
+asset = "XRP"
 
 client = binance_client.get_client()
 
-asset = binance_client.Asset(client,asset,5)
+asset = binance_client.Asset(client,asset,6)
 
-print(asset.test_sell_asset())
-print(asset.test_buy_asset(50))
+orders = client.get_all_orders(symbol="XRPGBP")
+#orders = client.get_open_orders(symbol="XRPGBP")
+for order in orders:
+    print(order)
+
+#result = client.cancel_order(
+#    symbol='XRPGBP',
+#    orderId='73919573')
+#print(result)
+#print(asset.test_sell_asset())
+#print(asset.test_buy_asset(50))
