@@ -44,14 +44,7 @@ import application_config as cfg
 
 client = binance_client.get_client(cfg.api_key,cfg.api_secret)
 
-asset_object = binance_client.Asset(client,"BTC",6)
+asset_object = binance_client.Asset(client,"ADA",2)
 
-#client.get_open_orders(symbol='ETHUSDT')
-orders =  [
-{'symbol': 'BTCGBP', 'orderId': 204045611, 'orderListId': -1, 'clientOrderId': 'riPN2pYRDmASabWV17nDKr', 'price': '0.00000000', 'origQty': '0.00181100', 'executedQty': '0.00181100', 'cummulativeQuoteQty': '49.99792501', 'status': 'FILLED', 'timeInForce': 'GTC', 'type': 'MARKET', 'side': 'BUY', 'stopPrice': '0.00000000', 'icebergQty': '0.00000000', 'time': 1622141089336, 'updateTime': 1622141089336, 'isWorking': True, 'origQuoteOrderQty': '0.00000000'},
-{'symbol': 'BTCGBP', 'orderId': 214101301, 'orderListId': -1, 'clientOrderId': 'rMhQhBCg989aSgn9JGnrqN', 'price': '25334.80000000', 'origQty': '0.00197300', 'executedQty': '0.00197300', 'cummulativeQuoteQty': '49.98556040', 'status': 'FILLED', 'timeInForce': 'GTC', 'type': 'LIMIT', 'side': 'BUY', 'stopPrice': '0.00000000', 'icebergQty': '0.00000000', 'time': 1623008997289, 'updateTime': 1623009060979, 'isWorking': True, 'origQuoteOrderQty': '0.00000000'}
-]
-symbol = "ETH"
-asset_object = binance_client.Asset(client,symbol,2)
 for order in asset_object.orders:
     print(order)

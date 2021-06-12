@@ -53,7 +53,7 @@ class Asset(object):
     def test_buy_asset(self):
         position = self.purchase_amount / self.price
         position_to_buy = self.round_down(position)
-        price_to_use = self.round_down(self.price * 1.002)
+        #price_to_use = self.round_down(self.price * 1.002)
 
         order = self.client.create_test_order(
             symbol=self.symbol,
@@ -61,13 +61,13 @@ class Asset(object):
             type=ORDER_TYPE_LIMIT,
             timeInForce=TIME_IN_FORCE_GTC,
             quantity=position_to_buy,
-            price=price_to_use)
+            price=self.price)
             
         return order
 
     def test_sell_asset(self):
         position_to_sell = self.round_down(self.asset_holdings)
-        price_to_use = self.round_down(self.price * 0.998)
+        #price_to_use = self.round_down(self.price * 0.998)
 
         order = self.client.create_test_order(
             symbol=self.symbol,
@@ -75,14 +75,14 @@ class Asset(object):
             type=ORDER_TYPE_LIMIT,
             timeInForce=TIME_IN_FORCE_GTC,
             quantity=position_to_sell,
-            price=price_to_use)
+            price=self.price)
 
         return order
 
     def buy_asset(self):
         position = self.purchase_amount / self.price
         position_to_buy = self.round_down(position)
-        price_to_use = self.round_down(self.price * 1.002)
+        #price_to_use = self.round_down(self.price * 1.002)
 
         order = self.client.create_order(
             symbol=self.symbol,
@@ -90,13 +90,13 @@ class Asset(object):
             type=ORDER_TYPE_LIMIT,
             timeInForce=TIME_IN_FORCE_GTC,
             quantity=position_to_buy,
-            price=price_to_use)
+            price=self.price)
             
         return order
 
     def sell_asset(self):
         position_to_sell = self.round_down(self.asset_holdings)
-        price_to_use = self.round_down(self.price * 0.998)
+        #price_to_use = self.round_down(self.price * 0.998)
 
         order = self.client.create_order(
             symbol=self.symbol,
@@ -104,7 +104,7 @@ class Asset(object):
             type=ORDER_TYPE_LIMIT,
             timeInForce=TIME_IN_FORCE_GTC,
             quantity=position_to_sell,
-            price=price_to_use)
+            price=self.price)
 
         return order
 
