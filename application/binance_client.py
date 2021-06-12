@@ -53,6 +53,7 @@ class Asset(object):
     def test_buy_asset(self):
         position = self.purchase_amount / self.price
         position_to_buy = self.round_down(position)
+        price_to_use = self.round_down(self.price * 1.002)
 
         order = self.client.create_test_order(
             symbol=self.symbol,
@@ -60,12 +61,13 @@ class Asset(object):
             type=ORDER_TYPE_LIMIT,
             timeInForce=TIME_IN_FORCE_GTC,
             quantity=position_to_buy,
-            price=self.price)
+            price=price_to_use)
             
         return order
 
     def test_sell_asset(self):
         position_to_sell = self.round_down(self.asset_holdings)
+        price_to_use = self.round_down(self.price * 0.998)
 
         order = self.client.create_test_order(
             symbol=self.symbol,
@@ -73,13 +75,14 @@ class Asset(object):
             type=ORDER_TYPE_LIMIT,
             timeInForce=TIME_IN_FORCE_GTC,
             quantity=position_to_sell,
-            price=self.price)
+            price=price_to_use)
 
         return order
 
     def buy_asset(self):
         position = self.purchase_amount / self.price
         position_to_buy = self.round_down(position)
+        price_to_use = self.round_down(self.price * 1.002)
 
         order = self.client.create_order(
             symbol=self.symbol,
@@ -87,12 +90,13 @@ class Asset(object):
             type=ORDER_TYPE_LIMIT,
             timeInForce=TIME_IN_FORCE_GTC,
             quantity=position_to_buy,
-            price=self.price)
+            price=price_to_use)
             
         return order
 
     def sell_asset(self):
         position_to_sell = self.round_down(self.asset_holdings)
+        price_to_use = self.round_down(self.price * 0.998)
 
         order = self.client.create_order(
             symbol=self.symbol,
@@ -100,7 +104,7 @@ class Asset(object):
             type=ORDER_TYPE_LIMIT,
             timeInForce=TIME_IN_FORCE_GTC,
             quantity=position_to_sell,
-            price=self.price)
+            price=price_to_use)
 
         return order
 
@@ -126,7 +130,7 @@ class Asset(object):
     def is_sell_time(self):
         is_sell_time = False
         price_to_compare = self.get_purchase_price()
-        print("Needs to be above 1.03 ---",self.price / price_to_compare)
+        #print("Needs to be above 1.03 ---",self.price / price_to_compare)
         if (self.price / price_to_compare) > 1.03:
             is_sell_time = True
 
@@ -142,7 +146,7 @@ class Asset(object):
         double_down = False
         price_to_compare = self.get_purchase_price()
         unsold_orders = len(self.get_unsold_orders())
-        if unsold_orders < 3 and self.enough_avaiable_cash():
+        if unsold_orders < 5 and self.enough_avaiable_cash():
             price_threshold = (100 - (unsold_orders * 4 )) * 0.01
             if (self.price / price_to_compare) < price_threshold:
                 double_down = True
@@ -195,7 +199,7 @@ class Market(Asset):
         if (self.average_price_thee_hour/self.average_price_last_week) < 1.06:
             high_compared_to_last_week = False
 
-        print("Needs to be below 0.99 and 0.995 respectivly ---", self.asset_object.price/self.average_price_thee_hour, self.asset_object.price/self.average_price_last_period)
+        #print("Needs to be below 0.99 and 0.995 respectivly ---", self.asset_object.price/self.average_price_thee_hour, self.asset_object.price/self.average_price_last_period)
         if market_too_tot == False and high_compared_to_last_week == False and self.asset_object.enough_avaiable_cash():
             
             # Checks that the price is 0.5% lower now compared to last 10 mins
