@@ -146,8 +146,8 @@ class Asset(object):
         double_down = False
         price_to_compare = self.get_purchase_price()
         unsold_orders = len(self.get_unsold_orders())
-        if unsold_orders < 5 and self.enough_avaiable_cash():
-            price_threshold = (100 - (unsold_orders * 4 )) * 0.01
+        if self.enough_avaiable_cash():
+            price_threshold = (100 - unsold_orders) * 0.01
             if (self.price / price_to_compare) < price_threshold:
                 double_down = True
             
@@ -192,7 +192,7 @@ class Market(Asset):
         high_compared_to_last_week = True
 
         # Checks if the price is 1% last 10 mins compared to last 3 hours
-        if (self.asset_object.price/self.average_price_thee_hour) < 0.99:
+        if (self.asset_object.price/self.average_price_thee_hour) < 0.98:
             market_too_tot = False
         
         # Checking that the price isn't more than 6% more expensive compared to last week
@@ -213,3 +213,14 @@ class Market(Asset):
 def get_client(api_key,api_secret):
     client = Client(api_key, api_secret)
     return client
+
+#@catch_exception
+#
+#def catch_exception(f):
+#    @functools.wraps(f)
+#    def func(*args, **kwargs):
+#        try:
+#            return f(*args, **kwargs)
+#        except Exception as e:
+#            print('Caught an exception in', f.__name__)
+#    return func

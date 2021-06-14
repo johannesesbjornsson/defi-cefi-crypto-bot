@@ -36,8 +36,8 @@ class TestingMarket(unittest.TestCase):
     def test_market_good(self):
         self.market_object.average_price_last_week =100
         self.market_object.average_price_thee_hour = 100
-        self.market_object.average_price_last_period = 98.9
-        self.market_object.asset_object.price = 98.2
+        self.market_object.average_price_last_period = 97.9
+        self.market_object.asset_object.price = 97.2
         self.market_object.asset_object.avaiable_cash = 1000
 
         self.assertTrue(self.market_object.is_buy_time())
@@ -45,9 +45,9 @@ class TestingMarket(unittest.TestCase):
     def test_market_good_1(self):
         self.market_object.average_price_last_week =100
         self.market_object.average_price_thee_hour = 100
-        self.market_object.average_price_last_period = 98.9
+        self.market_object.average_price_last_period = 95.9
         self.market_object.asset_object.price = 98.2
-        self.market_object.asset_object.avaiable_cash = 49
+        self.market_object.asset_object.avaiable_cash = 51
 
         self.assertFalse(self.market_object.is_buy_time())
 
@@ -55,11 +55,11 @@ class TestingMarket(unittest.TestCase):
         self.market_object.average_price_last_week = 100
         self.market_object.average_price_thee_hour = 100
         self.market_object.average_price_last_period = 99.1
-        self.market_object.asset_object.price = 98
+        self.market_object.asset_object.price = 97.99
         self.market_object.asset_object.avaiable_cash = 1000
         self.assertTrue(self.market_object.is_buy_time())
 
-    def test_market_bad(self):
+    def test_market_good_3(self):
         self.market_object.average_price_last_week = 100
         self.market_object.average_price_thee_hour = 100
         self.market_object.average_price_last_period = 99.1
@@ -67,7 +67,24 @@ class TestingMarket(unittest.TestCase):
         self.market_object.asset_object.avaiable_cash = 1000
         self.assertFalse(self.market_object.is_buy_time())
 
-    def test_market_price_to_high(self):
+    def test_market_good_4(self):
+        self.market_object.average_price_last_week = 90
+        self.market_object.average_price_thee_hour = 100
+        self.market_object.average_price_last_period = 99.1
+        self.market_object.asset_object.price = 97.99
+        self.market_object.asset_object.avaiable_cash = 1000
+        self.assertFalse(self.market_object.is_buy_time())
+
+    def test_market_good_5(self):
+        self.market_object.average_price_last_week =100
+        self.market_object.average_price_thee_hour = 100
+        self.market_object.average_price_last_period = 97.9
+        self.market_object.asset_object.price = 92.2
+        self.market_object.asset_object.avaiable_cash = 49
+
+        self.assertFalse(self.market_object.is_buy_time())
+
+    def test_market_good_6(self):
         self.market_object.average_price_last_week = 100
         self.market_object.average_price_thee_hour = 100
         self.market_object.average_price_last_period = 98.9

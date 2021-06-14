@@ -24,7 +24,7 @@ def sell(asset_object):
 
 
 def look_to_buy(asset_object,market_object):
-    #print("--- Don't have "+asset_object.asset+", looking to buy ---")
+    print("--- Don't have "+asset_object.asset+", looking to buy ---")
     is_buy_time = False
     order = None
 
@@ -39,7 +39,7 @@ def look_to_buy(asset_object,market_object):
 
 
 def look_to_sell(asset_object):
-    #print("--- Already have "+asset_object.asset+", looking to sell ---")
+    print("--- Already have "+asset_object.asset+", looking to sell ---")
     asset_object.update_price()
     time_to_sell = asset_object.is_sell_time()
     order = None
@@ -65,7 +65,7 @@ def main(client,assets_to_check):
         market_object = binance_client.Market(asset_object)
 
         if asset_object.has_active_orders():
-            #print("Order of "+asset+", in progress")
+            print("Order of "+asset+", in progress")
             continue
         
         if (asset_object.asset_holdings * asset_object.price) > 20:
@@ -85,8 +85,12 @@ if __name__ == '__main__':
         print("Starting application")
         while True:
             main(client,cfg.assets_to_check)
-            time.sleep(30)
+            time.sleep(20)
     except Exception as e:
         tb = traceback.format_exc()
         print(tb)
         logic.send_email_update("I crashed :(",cfg.email_api_key)
+
+# Fix this
+#requests.exceptions.ReadTimeout: HTTPSConnectionPool(host='api.binance.com', port=443): Read timed out. (read timeout=10)
+#requests.exceptions.ConnectionError: ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))

@@ -13,10 +13,14 @@ assets_to_check = {
         "precision" : 4,
         "gbp_amount" : 50
     },
-    "XRP": {
-        "precision" : 1,
-        "gbp_amount" : 50
-    },
+    #"XRP": {
+    #    "precision" : 1,
+    #    "gbp_amount" : 50
+    #},
+    #"ADA": {
+    #    "precision" : 1,
+    #    "gbp_amount" : 50
+    #},    
 }
 
 #api_key = os.environ.get('binance_api')
