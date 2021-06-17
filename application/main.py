@@ -5,6 +5,8 @@ import time
 import traceback
 import application_config as cfg
 
+from requests.exceptions import ReadTimeout, ConnectionError
+
 
 def buy(asset_object):
     order = asset_object.buy_asset()
@@ -81,15 +83,22 @@ def main(client,assets_to_check):
 
 if __name__ == '__main__':
     client = binance_client.get_client(cfg.api_key,cfg.api_secret)
-    try:
-        print("Starting application")
-        while True:
+    print("Starting application")
+    
+    while True:
+        try:
             main(client,cfg.assets_to_check)
-            time.sleep(20)
-    except Exception as e:
-        tb = traceback.format_exc()
-        print(tb)
-        logic.send_email_update("I crashed :(",cfg.email_api_key)
+        except ReadTimeout as e:
+            print("Got connection timout, conntinuing")
+        except ConnectionError as e:
+            print("Got connection error, conntinuing")
+        except Exception as e:
+            tb = traceback.format_exc()
+            print(tb)
+            logic.send_email_update("I crashed :(",cfg.email_api_key)
+            break
+
+        time.sleep(20)
 
 # Fix this
 #requests.exceptions.ReadTimeout: HTTPSConnectionPool(host='api.binance.com', port=443): Read timed out. (read timeout=10)
