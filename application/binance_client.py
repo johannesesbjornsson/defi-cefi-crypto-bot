@@ -129,12 +129,19 @@ class Asset(object):
 
     def is_sell_time(self):
         is_sell_time = False
-        price_to_compare = self.get_purchase_price()
-        #print("Needs to be above 1.03 ---",self.price / price_to_compare)
-        if (self.price / price_to_compare) > 1.03:
-            is_sell_time = True
+
+        if self.get_asset_holding_worth() > 20: 
+            price_to_compare = self.get_purchase_price()
+            #print("Needs to be above 1.03 ---",self.price / price_to_compare)
+
+            if (self.price / price_to_compare) > 1.03:
+                is_sell_time = True
 
         return is_sell_time
+
+    def get_asset_holding_worth(self):
+        asset_worth = self.asset_holdings * self.price
+        return asset_worth
 
     def enough_avaiable_cash(self):
         enough_avaiable_cash = False
@@ -153,6 +160,14 @@ class Asset(object):
             
 
         return double_down
+
+    def get_total_buy_in_amount(self):
+        unsold_orders = self.get_unsold_orders()
+        total_buy_in_amount = 0.00
+        for order in unsold_orders:
+            total_buy_in_amount = total_buy_in_amount + ( float(order["price"]) *  float(order["executedQty"]) )
+
+        return round_step_size(total_buy_in_amount, 0.0001 )
 
 class Market(Asset):
 
@@ -174,7 +189,7 @@ class Market(Asset):
         #    print(timestamp, entry[4])
         #print("---")
 
-        average_price = total_price / len(data)
+        average_price = round_step_size (total_price / len(data), 0.000001 )
         return average_price
         
 
@@ -186,26 +201,37 @@ class Market(Asset):
         self.average_price_last_period = self.get_average_price(last_hours_data[-10:])
         self.average_price_last_week = self.get_average_price(last_weeks_data)
 
-    def is_buy_time(self):
+    def market_good_for_buying(self):
         is_buy_time = False
-        market_too_tot = True
+        market_too_hot = True
         high_compared_to_last_week = True
+        price_to_high_last_period = True
 
-        # Checks if the price is 1% last 10 mins compared to last 3 hours
         if (self.asset_object.price/self.average_price_thee_hour) < 0.98:
-            market_too_tot = False
-        
-        # Checking that the price isn't more than 6% more expensive compared to last week
+            market_too_hot = False        
         if (self.average_price_thee_hour/self.average_price_last_week) < 1.06:
             high_compared_to_last_week = False
+        if self.asset_object.price/self.average_price_last_period < 0.995:
+            price_to_high_last_period = False
 
-        #print("Needs to be below 0.99 and 0.995 respectivly ---", self.asset_object.price/self.average_price_thee_hour, self.asset_object.price/self.average_price_last_period)
-        if market_too_tot == False and high_compared_to_last_week == False and self.asset_object.enough_avaiable_cash():
-            
-            # Checks that the price is 0.5% lower now compared to last 10 mins
-            
-            if self.asset_object.price/self.average_price_last_period < 0.995:
-                is_buy_time =  True
+        if price_to_high_last_period == False and high_compared_to_last_week == False and market_too_hot == False:
+            is_buy_time = True
+
+        return is_buy_time
+
+
+
+    def is_buy_time(self):
+        is_buy_time = False
+        enough_avaiable_cash = self.asset_object.enough_avaiable_cash()
+
+        if enough_avaiable_cash and self.asset_object.get_asset_holding_worth() > 20:
+
+            is_buy_time = self.asset_object.double_down()
+        
+        elif enough_avaiable_cash:
+            is_buy_time = self.market_good_for_buying()
+
 
         return is_buy_time
 
