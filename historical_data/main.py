@@ -31,7 +31,7 @@ def get_figure(dates, values, action_dates, total_profits, avaiable_cash, postio
     fig = go.Figure(data=[go.Scatter(x=dates, y=values)])
     
     fig.update_layout(
-        title_text="Total sales profits: "+ str(total_profits)+" <br>Avaiable cash: " +str(avaiable_cash)+" <br>Position worth: " +str( avaiable_cash+ postion_worth)
+        title_text="Total sales profits: "+ str(total_profits)+" <br>Avaiable cash: " +str(avaiable_cash)+" <br>Portfolio worth: " +str( avaiable_cash+ postion_worth)
     )
     for action in action_dates:
         if action["action"] == "BUY":
@@ -49,13 +49,14 @@ def get_figure(dates, values, action_dates, total_profits, avaiable_cash, postio
             borderwidth=0.1,
             borderpad=0.1,
             arrowwidth=1,
+            arrowhead=1,
             ay=-80,
             ax=-10,
             bgcolor=color,
             )
     return fig
 
-#def main(dataset,asset_object,market_object):
+
 def main(dataset,market_object,avaiable_cash=1500):
     orders = []
     total_profits = 0
@@ -106,32 +107,24 @@ def main(dataset,market_object,avaiable_cash=1500):
                 "date": timestamp
             })
 
-        #if len(asset_object.orders) > 1:
-        #    break
-
     postion_worth = market_object.asset_object.asset_holdings * asset_object.price
     return dates, values, action_dates, total_profits, market_object.asset_object.avaiable_cash, postion_worth
 
 
-        
 
+if __name__ == '__main__':
+    starting_cash = 1500
+    currency = "BTC"
+    purchase_amount = 50
+    precision = 6
 
+    client = binance_client.get_client(cfg.api_key,cfg.api_secret)
+    asset_object = binance_client.Asset(client,currency, precision=precision, purchase_amount=purchase_amount)
+    market_object = binance_client.Market(asset_object)
+    dataset = get_dataset()
 
+    dates, values, action_dates, total_profits, avaiable_cash, postion_worth = main(dataset,market_object,starting_cash)
 
+    fig = get_figure(dates, values, action_dates, total_profits, avaiable_cash, postion_worth)
 
-
-client = binance_client.get_client(cfg.api_key,cfg.api_secret)
-
-#asset_object = binance_client.Asset(client,"BTC",6,currency="USDT")
-asset_object = binance_client.Asset(client,"BTC",6)
-market_object = binance_client.Market(asset_object)
-dataset = get_dataset()
-
-dates, values, action_dates, total_profits, avaiable_cash, postion_worth = main(dataset,market_object,500)
-
-fig = get_figure(dates, values, action_dates, total_profits, avaiable_cash, postion_worth)
-
-# Use datetime objects to set xaxis range
-#fig.update_layout(xaxis_range=[datetime.datetime(2013, 10, 17),
- #                              datetime.datetime(2013, 11, 20)])
-fig.show()
+    fig.show()

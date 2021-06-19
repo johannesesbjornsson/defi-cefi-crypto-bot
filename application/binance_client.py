@@ -132,16 +132,17 @@ class Asset(object):
 
         if self.get_asset_holding_worth() > 20: 
             price_to_compare = self.get_purchase_price()
-            #print("Needs to be above 1.03 ---",self.price / price_to_compare)
 
             if (self.price / price_to_compare) > 1.03:
+                is_sell_time = True
+            elif (self.get_asset_holding_worth() / self.get_total_buy_in_amount()) > 1.1 :
                 is_sell_time = True
 
         return is_sell_time
 
     def get_asset_holding_worth(self):
         asset_worth = self.asset_holdings * self.price
-        return asset_worth
+        return round_step_size(asset_worth, 0.0001 )
 
     def enough_avaiable_cash(self):
         enough_avaiable_cash = False
