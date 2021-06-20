@@ -4,6 +4,8 @@ import sys
 import datetime
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+
 
 sys.path.append('../application')
 import binance_client
@@ -27,8 +29,17 @@ def get_price(entry):
     return float(entry[4])
 
 
-def get_figure(dates, values, action_dates, total_profits, avaiable_cash, postion_worth):
-    fig = go.Figure(data=[go.Scatter(x=dates, y=values)])
+def get_figure(dates, values, action_dates, total_profits, avaiable_cash, postion_worth, starting_cash):
+    fig = make_subplots(rows=2, cols=1,
+                shared_xaxes=False,
+                vertical_spacing=0.2,
+                specs=[[{"type": "scatter"}],
+                    [{"type": "table"}]
+                ]
+           )
+    
+    trace1 = go.Scatter(x=dates, y=values)
+    fig.add_trace(trace1,row=1, col=1)
     
     fig.update_layout(
         title_text="Total sales profits: "+ str(total_profits)+" <br>Avaiable cash: " +str(avaiable_cash)+" <br>Portfolio worth: " +str( avaiable_cash+ postion_worth)
@@ -54,6 +65,38 @@ def get_figure(dates, values, action_dates, total_profits, avaiable_cash, postio
             ax=-10,
             bgcolor=color,
             )
+
+    cells = [[],[],[],[],[]]
+    colors = [] 
+    for action in action_dates:
+        cells[0].append(action["action"])
+        cells[1].append(action["date"])
+        cells[2].append(action["price"])
+        cells[4].append(action["avaiable_cash"])
+        
+        if action["action"] == "BUY":
+            cells[3].append("N/A")
+            colors.append("orange")
+        elif action["action"] == "SELL":
+            cells[3].append(action["order_profit"]) 
+            colors.append("lightgreen")            
+
+
+    fig.add_trace(
+        go.Table(
+        header=dict(
+            values=["Action","Date","Price", "Sales Profits", "Avaiable cash"],
+            font=dict(size=10),
+            align="left"
+        ),
+        cells=dict(
+            fill_color=[colors],
+            values=cells,
+            align = "left")
+    ),
+    row=2, col=1)
+
+    fig['layout'].update(height=1500)
     return fig
 
 
@@ -64,10 +107,12 @@ def main(dataset,market_object,avaiable_cash=1500):
     values = []
     action_dates = []
     market_object.asset_object.avaiable_cash = avaiable_cash
+    market_object.asset_object.orders = []
     for i in range(180,len(dataset)):
         entry = dataset[i]
         timestamp = datetime.datetime.fromtimestamp(int(entry[0]/1000)).strftime('%c')
         order = None
+        order_profit = 0
 
 
         market_object.average_price_last_week = get_average_price(dataset[i-180:i])
@@ -82,10 +127,10 @@ def main(dataset,market_object,avaiable_cash=1500):
         time_to_sell = market_object.asset_object.is_sell_time() 
         if time_to_sell:
             order = {"status" : "FILLED", 'side': 'SELL', 'price': market_object.asset_object.price, "executedQty" : market_object.asset_object.asset_holdings }
-            total_profits =  total_profits + ((market_object.asset_object.asset_holdings * asset_object.price ) - asset_object.get_total_buy_in_amount())
+            order_profit = (market_object.asset_object.asset_holdings * asset_object.price ) - asset_object.get_total_buy_in_amount()
+            total_profits =  total_profits + order_profit
             market_object.asset_object.avaiable_cash = market_object.asset_object.avaiable_cash + (market_object.asset_object.asset_holdings * asset_object.price )
             market_object.asset_object.asset_holdings = 0
-            print("sell", market_object.asset_object.avaiable_cash)
         else:
             time_to_buy = market_object.is_buy_time()
             if time_to_buy:
@@ -93,18 +138,19 @@ def main(dataset,market_object,avaiable_cash=1500):
                 order = {"status" : "FILLED", 'side': 'BUY', 'price': market_object.asset_object.price, "executedQty" : position }
                 market_object.asset_object.asset_holdings = market_object.asset_object.asset_holdings + order["executedQty"]
                 market_object.asset_object.avaiable_cash = market_object.asset_object.avaiable_cash - (position * asset_object.price )
-                print("buy", market_object.asset_object.avaiable_cash)
                 
 
 
         if order is not None:
             timestamp = datetime.datetime.fromtimestamp(int(entry[0]/1000)).strftime('%c')
 
-            asset_object.orders.append(order)
+            market_object.asset_object.orders.append(order)
             action_dates.append({
                 "action": order["side"],
                 "price": order["price"],
-                "date": timestamp
+                "date": timestamp,
+                "avaiable_cash": market_object.asset_object.avaiable_cash,
+                "order_profit": order_profit,
             })
 
     postion_worth = market_object.asset_object.asset_holdings * asset_object.price
@@ -113,7 +159,7 @@ def main(dataset,market_object,avaiable_cash=1500):
 
 
 if __name__ == '__main__':
-    starting_cash = 1500
+    starting_cash = 1200
     currency = "BTC"
     purchase_amount = 50
     precision = 6
@@ -125,6 +171,6 @@ if __name__ == '__main__':
 
     dates, values, action_dates, total_profits, avaiable_cash, postion_worth = main(dataset,market_object,starting_cash)
 
-    fig = get_figure(dates, values, action_dates, total_profits, avaiable_cash, postion_worth)
+    fig = get_figure(dates, values, action_dates, total_profits, avaiable_cash, postion_worth, starting_cash)
 
     fig.show()
