@@ -29,7 +29,7 @@ def get_price(entry):
     return float(entry[4])
 
 
-def get_figure(dates, values, action_dates, total_profits, avaiable_cash, postion_worth, starting_cash):
+def get_figure(dates, values, action_dates, total_profits, avaiable_cash, postion_worth, starting_cash,asset):
     fig = make_subplots(rows=2, cols=1,
                 shared_xaxes=False,
                 vertical_spacing=0.2,
@@ -42,7 +42,11 @@ def get_figure(dates, values, action_dates, total_profits, avaiable_cash, postio
     fig.add_trace(trace1,row=1, col=1)
     
     fig.update_layout(
-        title_text="Total sales profits: "+ str(total_profits)+" <br>Avaiable cash: " +str(avaiable_cash)+" <br>Portfolio worth: " +str( avaiable_cash+ postion_worth)
+        title_text="<b>"+asset+"</b>"+
+        "<br>Total sales profits: "+ str(total_profits)+
+        "<br>Starting cash:" + str(starting_cash) + "          "+
+        "Portfolio worth: " +str( avaiable_cash+ postion_worth) 
+        
     )
     for action in action_dates:
         if action["action"] == "BUY":
@@ -152,6 +156,8 @@ def main(dataset,market_object,avaiable_cash=1500):
                 "avaiable_cash": market_object.asset_object.avaiable_cash,
                 "order_profit": order_profit,
             })
+        #if len(action_dates) > 2:
+        #    break
 
     postion_worth = market_object.asset_object.asset_holdings * asset_object.price
     return dates, values, action_dates, total_profits, market_object.asset_object.avaiable_cash, postion_worth
@@ -159,7 +165,7 @@ def main(dataset,market_object,avaiable_cash=1500):
 
 
 if __name__ == '__main__':
-    starting_cash = 1200
+    starting_cash = 1500
     currency = "BTC"
     purchase_amount = 50
     precision = 6
@@ -171,6 +177,6 @@ if __name__ == '__main__':
 
     dates, values, action_dates, total_profits, avaiable_cash, postion_worth = main(dataset,market_object,starting_cash)
 
-    fig = get_figure(dates, values, action_dates, total_profits, avaiable_cash, postion_worth, starting_cash)
+    fig = get_figure(dates, values, action_dates, total_profits, avaiable_cash, postion_worth, starting_cash,asset_object.asset)
 
     fig.show()

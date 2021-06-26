@@ -23,6 +23,27 @@ assets_to_check = {
     #},    
 }
 
+precision_dict = {
+    "BTC": {
+        "precision" : 6
+    },
+    "ETH": {
+        "precision" : 4
+    },
+    "BNB": {
+        "precision" : 4
+    },
+    "XRP": {
+        "precision" : 1
+    },
+    "ADA": {
+        "precision" : 1
+    },    
+    "MATIC": {
+        "precision" : 1
+    }, 
+}
+
 #api_key = os.environ.get('binance_api')
 #api_secret = os.environ.get('binance_secret')
 #email_api_key = os.environ.get('email_api_key')

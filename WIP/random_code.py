@@ -42,21 +42,14 @@ import application_config as cfg
 # current_price = float(client.get_symbol_ticker(symbol=symbol).get("price"))
 # print(current_price)
 
+
+
 client = binance_client.get_client(cfg.api_key,cfg.api_secret)
+#asset_object = binance_client.Asset(client,"BTC")
+asset_object = binance_client.Asset(client,"BNB",4)
+#asset_object = binance_client.Asset(client,"ETH",4)
 
-asset_object = binance_client.Asset(client,"ADA",2)
-
-import functools
-
-
-
-class Test(object):
-    def __init__(self, val):
-        self.val = val
-
-    @catch_exception
-    def calc():
-        return self.val / 0
-
-t = Test(3)
-t.calc()
+asset_object.update_price()
+#order = asset_object.sell_asset()
+#order = asset_object.buy_asset()
+print(order)
