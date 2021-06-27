@@ -39,7 +39,8 @@ def validate_price_to_use(currency,price,price_input_raw,action):
 
     price_gbp = float(client.get_symbol_ticker(symbol=currency+"GBP").get("price"))
     
-    price_to_use = round_step_size(price_gbp * price_position, 0.000001)
+    price_precision = cfg.precision_dict[currency]["price_precision"]
+    price_to_use = round_step_size(price_gbp * price_position, price_precision)
 
     return price_to_use
 
@@ -55,15 +56,16 @@ def validate_amount_to_use(amount_worth_input,currency):
 
     price_gbp = float(client.get_symbol_ticker(symbol=currency+"GBP").get("price"))
     position =  amount_worth / price_gbp
-    
-    position_to_buy = round_down(position,cfg.precision_dict[currency]["precision"])
+    precision = cfg.precision_dict[currency]["precision"]
+    position_to_buy = round_down(position, precision)
     return position_to_buy
 
 def create_order(client,currency,action,amount,price_to_use):
-    print(price_to_use)
-    print(amount)
-    print(action)
-    order = client.create_test_order(
+    print("-----------------------------------")
+    print("Creating limit order at price:",price_to_use)
+    print("Creating limit order for amount:",amount)
+    print("-----------------------------------")
+    order = client.create_order(
         symbol=currency+"GBP",
         side=action,
         type=ORDER_TYPE_LIMIT,

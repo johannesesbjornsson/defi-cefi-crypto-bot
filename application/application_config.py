@@ -25,22 +25,28 @@ assets_to_check = {
 
 precision_dict = {
     "BTC": {
-        "precision" : 6
+        "precision" : 6,
+        "price_precision": 0.01
     },
     "ETH": {
-        "precision" : 4
+        "precision" : 4,
+        "price_precision": 0.01
     },
     "BNB": {
-        "precision" : 4
+        "precision" : 4,
+        "price_precision": 0.01
     },
     "XRP": {
-        "precision" : 1
+        "precision" : 1,
+        "price_precision": 0.000001
     },
     "ADA": {
-        "precision" : 1
+        "precision" : 1,
+        "price_precision": 0.000001
     },    
     "MATIC": {
-        "precision" : 1
+        "precision" : 1,
+        "price_precision": 0.000001
     }, 
 }
 
