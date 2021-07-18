@@ -22,41 +22,7 @@ def sell(asset_object):
     if order is not None:
         logic.send_email_update("I sold "+asset_object.asset+" for you!",cfg.email_api_key)
         print("I sold "+asset_object.asset+" for you!")
-    return order 
-
-
-#def look_to_buy(asset_object,market_object):
-#    print("--- Don't have "+asset_object.asset+", looking to buy ---")
-#    is_buy_time = False
-#    order = None
-#
-#    market_object.set_market_data()
-#    market_object.asset_object.update_price()
-#    is_buy_time = market_object.is_buy_time()
-#    
-#    if is_buy_time:
-#        order = buy(asset_object)
-#    
-#    return order
-#
-#
-#def look_to_sell(asset_object):
-#    print("--- Already have "+asset_object.asset+", looking to sell ---")
-#    asset_object.update_price()
-#    time_to_sell = asset_object.is_sell_time()
-#    order = None
-#
-#    if time_to_sell:
-#        order = sell(asset_object)
-#    else:
-#        asset_object.update_price()
-#        if asset_object.double_down() == True:
-#            print("Doubling down on "+asset_object.asset)
-#            order = buy(asset_object)
-#                
-#    
-#    return order
-
+    return order
     
 
 def main(client,assets_to_check):

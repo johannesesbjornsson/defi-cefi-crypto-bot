@@ -7,12 +7,13 @@ from binance.exceptions import BinanceAPIException
 
 class Asset(object):
 
-    def __init__(self, client, asset, precision=6, purchase_amount=50, currency="GBP"):
+    def __init__(self, client, asset, precision=6, purchase_amount=50, currency="GBP",number_of_double_downs=30):
         self.client = client
         self.asset = asset
         self.currency = currency
         self.symbol = asset+currency
         self.precision = precision
+        self.number_of_double_downs = number_of_double_downs
         self.purchase_amount = purchase_amount
         self.avaiable_cash = self.get_asset_amount(currency)
         self.asset_holdings = self.get_asset_amount(asset)
@@ -129,8 +130,10 @@ class Asset(object):
 
     def is_sell_time(self):
         is_sell_time = False
+        unsold_orders = self.get_unsold_orders()
+        
 
-        if self.get_asset_holding_worth() > 20: 
+        if len(unsold_orders) > 0: 
             price_to_compare = self.get_purchase_price()
 
             if (self.price / price_to_compare) > 1.03:
@@ -154,7 +157,7 @@ class Asset(object):
         double_down = False
         price_to_compare = self.get_purchase_price()
         unsold_orders = len(self.get_unsold_orders())
-        if self.enough_avaiable_cash():
+        if self.enough_avaiable_cash() and self.number_of_double_downs > unsold_orders:
             price_threshold = (100 - unsold_orders) * 0.01
             if (self.price / price_to_compare) < price_threshold:
                 double_down = True
@@ -170,9 +173,17 @@ class Asset(object):
 
         return round_step_size(total_buy_in_amount, 0.0001 )
 
+    def get_total_buy_quantity(self):
+        unsold_orders = self.get_unsold_orders()
+        total_quantity = 0.00
+        for order in unsold_orders:
+            total_quantity = total_quantity + float(order["executedQty"])
+
+        return round_step_size(total_quantity, 0.000001 )
+
 class Market(Asset):
 
-    def __init__(self, asset_object):
+    def __init__(self, asset_object, holding_threshold=20):
         if type(asset_object) != Asset:
             raise ValueError("Argument must be object type Asset")
         self.symbol = asset_object.symbol
@@ -181,6 +192,7 @@ class Market(Asset):
         self.average_price_thee_hour = None
         self.average_price_last_period = None
         self.average_price_last_week = None
+        self.holding_threshold = holding_threshold
 
     def get_average_price(self,data):
         total_price = 0.00 
@@ -225,9 +237,8 @@ class Market(Asset):
     def is_buy_time(self):
         is_buy_time = False
         enough_avaiable_cash = self.asset_object.enough_avaiable_cash()
-
-        if enough_avaiable_cash and self.asset_object.get_asset_holding_worth() > 20:
-
+        unsold_orders = self.asset_object.get_unsold_orders()
+        if enough_avaiable_cash and len(unsold_orders) > 0:
             is_buy_time = self.asset_object.double_down()
         
         elif enough_avaiable_cash:

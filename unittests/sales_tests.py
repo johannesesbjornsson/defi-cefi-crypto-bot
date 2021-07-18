@@ -99,6 +99,7 @@ class TestingAsset(unittest.TestCase):
         self.asset_object.price = 0.61199000
         self.asset_object.asset_holdings = 153.3
         
+        self.assertTrue(self.asset_object.get_total_buy_quantity() == 153.3)
         self.assertTrue(self.asset_object.get_asset_holding_worth() == 93.8181 )
         self.assertFalse(self.asset_object.is_sell_time())
 
@@ -109,6 +110,7 @@ class TestingAsset(unittest.TestCase):
         ]
         self.asset_object.price = 0.71199000
         self.asset_object.asset_holdings = 72.2
+        self.assertTrue(self.asset_object.get_total_buy_quantity() == 72.2)
         self.assertTrue(self.asset_object.get_asset_holding_worth() == 51.4057 )
         self.assertFalse(self.asset_object.is_sell_time())
 

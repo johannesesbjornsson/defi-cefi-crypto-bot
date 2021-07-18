@@ -166,7 +166,8 @@ class TestingAsset(unittest.TestCase):
         self.market_object.asset_object.price = 0.951
         self.market_object.asset_object.asset_holdings = 100
         self.market_object.asset_object.avaiable_cash = 51
-
+        
+        self.assertTrue(self.asset_object.get_total_buy_quantity() == 203.85)
         self.assertFalse(self.market_object.is_buy_time())
         self.assertFalse(self.market_object.asset_object.double_down())
 
@@ -186,6 +187,8 @@ class TestingAsset(unittest.TestCase):
             {'symbol': 'ADAGBP', 'orderId': 19693373, 'orderListId': -1, 'clientOrderId': 'EZPskD7ciqhgokM3j1xdxE', 'price': '1.20000000', 'origQty': '81.46000000', 'executedQty': '40.1000000', 'cummulativeQuoteQty': '99.68260200', 'status': 'FILLED', 'timeInForce': 'GTC', 'type': 'LIMIT', 'side': 'BUY', 'stopPrice': '0.00000000', 'icebergQty': '0.00000000', 'time': 1622886438499, 'updateTime': 1622886445108, 'isWorking': True, 'origQuoteOrderQty': '0.00000000'},
             {'symbol': 'ADAGBP', 'orderId': 19693590, 'orderListId': -1, 'clientOrderId': 'dqirtCnmPRb34djiEEn6a6', 'price': '1.10000000', 'origQty': '40.75000000', 'executedQty': '40.3000000', 'cummulativeQuoteQty': '49.98802500', 'status': 'FILLED', 'timeInForce': 'GTC', 'type': 'LIMIT', 'side': 'BUY', 'stopPrice': '0.00000000', 'icebergQty': '0.00000000', 'time': 1622886472913, 'updateTime': 1622886472913, 'isWorking': True, 'origQuoteOrderQty': '0.00000000'}
         ]
+        
+        self.assertTrue(self.asset_object.get_total_buy_quantity() == 160.9)
         self.assertTrue(self.asset_object.get_total_buy_in_amount() == 201.12)
 
     def test_get_total_buy_in_amount_2(self):
@@ -195,6 +198,7 @@ class TestingAsset(unittest.TestCase):
             {'symbol': 'ADAGBP', 'orderId': 19693373, 'orderListId': -1, 'clientOrderId': 'EZPskD7ciqhgokM3j1xdxE', 'price': '2.0000000', 'origQty': '11.00000000', 'executedQty': '2.00000000', 'cummulativeQuoteQty': '99.68260200', 'status': 'FILLED', 'timeInForce': 'GTC', 'type': 'LIMIT', 'side': 'BUY', 'stopPrice': '0.00000000', 'icebergQty': '0.00000000', 'time': 1622886438499, 'updateTime': 1622886445108, 'isWorking': True, 'origQuoteOrderQty': '0.00000000'},
             {'symbol': 'ADAGBP', 'orderId': 19693590, 'orderListId': -1, 'clientOrderId': 'dqirtCnmPRb34djiEEn6a6', 'price': '1.0000000', 'origQty': '5.00000000', 'executedQty': '1.00000000', 'cummulativeQuoteQty': '49.98802500', 'status': 'FILLED', 'timeInForce': 'GTC', 'type': 'LIMIT', 'side': 'BUY', 'stopPrice': '0.00000000', 'icebergQty': '0.00000000', 'time': 1622886472913, 'updateTime': 1622886472913, 'isWorking': True, 'origQuoteOrderQty': '0.00000000'}
         ]
+        self.assertTrue(self.asset_object.get_total_buy_quantity() == 10)
         self.assertTrue(self.asset_object.get_total_buy_in_amount() == 30)
 
 if __name__ == '__main__':

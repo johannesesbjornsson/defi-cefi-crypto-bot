@@ -3,15 +3,15 @@ import json
 import datetime
 sys.path.append('../application')
 import binance_client
+import application_config as cfg
 import time
 from binance.helpers import round_step_size
 
 
-client = binance_client.get_client()
-
+client = binance_client.get_client(cfg.api_key,cfg.api_secret)
 
 res = client.get_exchange_info()
-currency_to_check = ["DOGE", "DOT", "LTC", "MATIC"]
+currency_to_check = ["DOGE", "ETH", "BTC", "MATIC"]
 #currency_to_check = ["DOGE"]
 fiat = "GBP"
 
@@ -22,15 +22,14 @@ for currency in currency_to_check:
     for info in res["symbols"]:
         symbol = info["symbol"]
         if symbol.startswith(currency) and symbol in crypto_exchanges_to_check and info["status"] == "TRADING":
-            print(info)
             available_exchanges.append(symbol)
             
     
     all_available_exchanges[currency] = available_exchanges
 
-for exchanges in all_available_exchanges:
-    print(exchanges)
-    print(all_available_exchanges[exchanges])
+# for exchanges in all_available_exchanges:
+#     print(exchanges)
+#     print(all_available_exchanges[exchanges])
 
 
 
