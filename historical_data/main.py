@@ -110,6 +110,7 @@ def main(dataset,market_object,avaiable_cash=1500):
     dates = []
     values = []
     action_dates = []
+    market_object.asset_object.asset_holdings = 0
     market_object.asset_object.avaiable_cash = avaiable_cash
     market_object.asset_object.orders = []
     for i in range(180,len(dataset)):
