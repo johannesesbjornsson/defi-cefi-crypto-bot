@@ -10,7 +10,7 @@ from requests.exceptions import ReadTimeout, ConnectionError
 
 def buy(asset_object):
     #order = asset_object.buy_asset()
-    #order = asset_object.test_buy_asset()
+    order = asset_object.test_buy_asset()
     if order is not None:
         logic.send_email_update("I bought some "+asset_object.asset+" for you!",cfg.email_api_key)
         print("I bought some "+asset_object.asset+" for you!")
@@ -18,7 +18,7 @@ def buy(asset_object):
 
 def sell(asset_object):
     #order = asset_object.sell_asset()
-    #order = asset_object.test_sell_asset()
+    order = asset_object.test_sell_asset()
     if order is not None:
         logic.send_email_update("I sold "+asset_object.asset+" for you!",cfg.email_api_key)
         print("I sold "+asset_object.asset+" for you!")
@@ -39,7 +39,7 @@ def main(client,assets_to_check):
             )
         market_object = binance_client.Market(asset_object)
 
-        print("Looking at "+ asset_object.asset)
+        print("Looking at "+ asset)
 
         if asset_object.has_active_orders():
             print("Order of "+asset+", in progress")
@@ -79,7 +79,7 @@ if __name__ == '__main__':
             tb = traceback.format_exc()
             print(tb)
             print("Sending email crash update")
-            logic.send_email_update("I crashed :(",cfg.email_api_key)
+            #logic.send_email_update("I crashed :(",cfg.email_api_key)
             break
 
         time.sleep(20)

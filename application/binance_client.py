@@ -67,8 +67,10 @@ class Asset(object):
         return order
 
     def test_sell_asset(self):
-        position_to_sell = self.round_down(self.asset_holdings)
+        position_to_sell = self.get_total_buy_quantity()
         #price_to_use = self.round_down(self.price * 0.998)
+        print("Buy price", self.get_purchase_price())
+        print("Sell price", self.price)
 
         order = self.client.create_test_order(
             symbol=self.symbol,
@@ -144,7 +146,7 @@ class Asset(object):
         return is_sell_time
 
     def get_asset_holding_worth(self):
-        asset_worth = self.asset_holdings * self.price
+        asset_worth = self.get_total_buy_quantity() * self.price
         return round_step_size(asset_worth, 0.0001 )
 
     def enough_avaiable_cash(self):
@@ -158,7 +160,7 @@ class Asset(object):
         price_to_compare = self.get_purchase_price()
         unsold_orders = len(self.get_unsold_orders())
         if self.enough_avaiable_cash() and self.number_of_double_downs > unsold_orders:
-            price_threshold = (100 - unsold_orders) * 0.01
+            price_threshold = (100 - unsold_orders * 2) * 0.01
             if (self.price / price_to_compare) < price_threshold:
                 double_down = True
             
@@ -219,7 +221,7 @@ class Market(Asset):
         market_too_hot = True
         high_compared_to_last_week = True
         price_to_high_last_period = True
-
+        
         if (self.asset_object.price/self.average_price_thee_hour) < 0.98:
             market_too_hot = False        
         if (self.average_price_thee_hour/self.average_price_last_week) < 1.06:

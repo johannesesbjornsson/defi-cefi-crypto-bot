@@ -97,7 +97,6 @@ class TestingAsset(unittest.TestCase):
             {'symbol': 'XRPGBP', 'orderId': 74741223, 'orderListId': -1, 'clientOrderId': 'UjWILxew4BkBTAtANYYY3X', 'price': '0.51199000', 'origQty': '72.20000000', 'executedQty': '72.20000000', 'cummulativeQuoteQty': '49.86276400', 'status': 'FILLED', 'timeInForce': 'FOK', 'type': 'LIMIT', 'side': 'BUY', 'stopPrice': '0.00000000', 'icebergQty': '0.00000000', 'time': 1622783728327, 'updateTime': 1622783728327, 'isWorking': True, 'origQuoteOrderQty': '0.00000000'}
         ]
         self.asset_object.price = 0.61199000
-        self.asset_object.asset_holdings = 153.3
         
         self.assertTrue(self.asset_object.get_total_buy_quantity() == 153.3)
         self.assertTrue(self.asset_object.get_asset_holding_worth() == 93.8181 )
@@ -109,7 +108,7 @@ class TestingAsset(unittest.TestCase):
             {'symbol': 'XRPGBP', 'orderId': 74741223, 'orderListId': -1, 'clientOrderId': 'UjWILxew4BkBTAtANYYY3X', 'price': '0.71199000', 'origQty': '72.20000000', 'executedQty': '72.20000000', 'cummulativeQuoteQty': '49.86276400', 'status': 'FILLED', 'timeInForce': 'FOK', 'type': 'LIMIT', 'side': 'BUY', 'stopPrice': '0.00000000', 'icebergQty': '0.00000000', 'time': 1622783728327, 'updateTime': 1622783728327, 'isWorking': True, 'origQuoteOrderQty': '0.00000000'}
         ]
         self.asset_object.price = 0.71199000
-        self.asset_object.asset_holdings = 72.2
+
         self.assertTrue(self.asset_object.get_total_buy_quantity() == 72.2)
         self.assertTrue(self.asset_object.get_asset_holding_worth() == 51.4057 )
         self.assertFalse(self.asset_object.is_sell_time())
@@ -122,10 +121,9 @@ class TestingAsset(unittest.TestCase):
             {'symbol': 'XRPGBP', 'orderId': 74741223, 'orderListId': -1, 'clientOrderId': 'UjWILxew4BkBTAtANYYY3X', 'price': '0.51199000', 'origQty': '72.20000000', 'executedQty': '72.20000000', 'cummulativeQuoteQty': '49.86276400', 'status': 'PARTIALLY_FILLED', 'timeInForce': 'FOK', 'type': 'LIMIT', 'side': 'SELL', 'stopPrice': '0.00000000', 'icebergQty': '0.00000000', 'time': 1622783728327, 'updateTime': 1622783728327, 'isWorking': True, 'origQuoteOrderQty': '0.00000000'}
         ]
         self.asset_object.price = 0.71199000
-        self.asset_object.asset_holdings = 153.3
 
         self.assertTrue(len(self.asset_object.get_unsold_orders()) == 3)
-        self.assertTrue(self.asset_object.get_asset_holding_worth() == 109.1481 )
+        self.assertTrue(self.asset_object.get_asset_holding_worth() == 160.5537 )
         self.assertTrue(self.asset_object.is_sell_time())
         self.assertTrue(self.asset_object.get_purchase_price() == 0.68)
 
@@ -137,7 +135,6 @@ class TestingAsset(unittest.TestCase):
             {'symbol': 'XRPGBP', 'orderId': 74741223, 'orderListId': -1, 'clientOrderId': 'UjWILxew4BkBTAtANYYY3X', 'price': '0.50000000', 'origQty': '72.20000000', 'executedQty': '81.00000000', 'cummulativeQuoteQty': '49.86276400', 'status': 'FILLED', 'timeInForce': 'FOK', 'type': 'LIMIT', 'side': 'BUY', 'stopPrice': '0.00000000', 'icebergQty': '0.00000000', 'time': 1622783728327, 'updateTime': 1622783728327, 'isWorking': True, 'origQuoteOrderQty': '0.00000000'}
         ]
         self.asset_object.price = 0.65
-        self.asset_object.asset_holdings = 243
 
         self.assertTrue(len(self.asset_object.get_unsold_orders()) == 3)
         self.assertTrue(self.asset_object.get_asset_holding_worth() == 157.95 )
@@ -153,7 +150,7 @@ class TestingAsset(unittest.TestCase):
             {'symbol': 'XRPGBP', 'orderId': 74741223, 'orderListId': -1, 'clientOrderId': 'UjWILxew4BkBTAtANYYY3X', 'price': '0.50000000', 'origQty': '72.20000000', 'executedQty': '81.00000000', 'cummulativeQuoteQty': '49.86276400', 'status': 'FILLED', 'timeInForce': 'FOK', 'type': 'LIMIT', 'side': 'BUY', 'stopPrice': '0.00000000', 'icebergQty': '0.00000000', 'time': 1622783728327, 'updateTime': 1622783728327, 'isWorking': True, 'origQuoteOrderQty': '0.00000000'}
         ]
         self.asset_object.price = 0.66
-        self.asset_object.asset_holdings = 243
+        
 
         self.assertTrue(len(self.asset_object.get_unsold_orders()) == 3)
         self.assertTrue(self.asset_object.get_asset_holding_worth() == 160.38)
