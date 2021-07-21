@@ -143,7 +143,9 @@ class Asset(object):
 
     def enough_avaiable_cash(self):
         enough_avaiable_cash = False
-        if self.purchase_amount < self.avaiable_cash:
+        purchase_amount_required = self.purchase_amount * self.price
+
+        if purchase_amount_required < self.avaiable_cash:
             enough_avaiable_cash = True
         return enough_avaiable_cash
             

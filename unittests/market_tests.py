@@ -42,7 +42,9 @@ class TestingMarket(unittest.TestCase):
         self.market_object.asset_object.orders = [
             {'symbol': 'ADAGBP', 'orderId': 19692858, 'orderListId': -1, 'clientOrderId': 'xCJh7QDEH5AeC3liBomaej', 'price': '0.98990000', 'origQty': '40.77000000', 'executedQty': '40.77000000', 'cummulativeQuoteQty': '49.99217400', 'status': 'FILLED', 'timeInForce': 'GTC', 'type': 'LIMIT', 'side': 'SELL', 'stopPrice': '0.00000000', 'icebergQty': '0.00000000', 'time': 1622886369535, 'updateTime': 1622886403711, 'isWorking': True, 'origQuoteOrderQty': '0.00000000'}
         ]
+        self.market_object.asset_object.purchase_amount = 5
 
+        self.assertTrue(self.market_object.asset_object.enough_avaiable_cash())
         self.assertTrue(self.market_object.market_good_for_buying())
         self.assertTrue(self.market_object.is_buy_time())
 
@@ -51,11 +53,13 @@ class TestingMarket(unittest.TestCase):
         self.market_object.average_price_thee_hour = 100
         self.market_object.average_price_last_period = 95.9
         self.market_object.asset_object.price = 98.2
-        self.market_object.asset_object.avaiable_cash = 51
+        self.market_object.asset_object.avaiable_cash = 500
         self.market_object.asset_object.orders = [
             {'symbol': 'ADAGBP', 'orderId': 19692858, 'orderListId': -1, 'clientOrderId': 'xCJh7QDEH5AeC3liBomaej', 'price': '0.98990000', 'origQty': '40.77000000', 'executedQty': '40.77000000', 'cummulativeQuoteQty': '49.99217400', 'status': 'FILLED', 'timeInForce': 'GTC', 'type': 'LIMIT', 'side': 'SELL', 'stopPrice': '0.00000000', 'icebergQty': '0.00000000', 'time': 1622886369535, 'updateTime': 1622886403711, 'isWorking': True, 'origQuoteOrderQty': '0.00000000'}
         ]
+        self.market_object.asset_object.purchase_amount = 5
 
+        self.assertTrue(self.market_object.asset_object.enough_avaiable_cash())
         self.assertFalse(self.market_object.market_good_for_buying())
         self.assertFalse(self.market_object.is_buy_time())
 
@@ -68,7 +72,9 @@ class TestingMarket(unittest.TestCase):
         self.market_object.asset_object.orders = [
             {'symbol': 'ADAGBP', 'orderId': 19692858, 'orderListId': -1, 'clientOrderId': 'xCJh7QDEH5AeC3liBomaej', 'price': '0.98990000', 'origQty': '40.77000000', 'executedQty': '40.77000000', 'cummulativeQuoteQty': '49.99217400', 'status': 'FILLED', 'timeInForce': 'GTC', 'type': 'LIMIT', 'side': 'SELL', 'stopPrice': '0.00000000', 'icebergQty': '0.00000000', 'time': 1622886369535, 'updateTime': 1622886403711, 'isWorking': True, 'origQuoteOrderQty': '0.00000000'}
         ]
+        self.market_object.asset_object.purchase_amount = 5
 
+        self.assertTrue(self.market_object.asset_object.enough_avaiable_cash())
         self.assertTrue(self.market_object.market_good_for_buying())
         self.assertTrue(self.market_object.is_buy_time())
 
@@ -81,7 +87,9 @@ class TestingMarket(unittest.TestCase):
         self.market_object.asset_object.orders = [
             {'symbol': 'ADAGBP', 'orderId': 19692858, 'orderListId': -1, 'clientOrderId': 'xCJh7QDEH5AeC3liBomaej', 'price': '0.98990000', 'origQty': '40.77000000', 'executedQty': '40.77000000', 'cummulativeQuoteQty': '49.99217400', 'status': 'FILLED', 'timeInForce': 'GTC', 'type': 'LIMIT', 'side': 'SELL', 'stopPrice': '0.00000000', 'icebergQty': '0.00000000', 'time': 1622886369535, 'updateTime': 1622886403711, 'isWorking': True, 'origQuoteOrderQty': '0.00000000'}
         ]
+        self.market_object.asset_object.purchase_amount = 5
 
+        self.assertTrue(self.market_object.asset_object.enough_avaiable_cash())
         self.assertFalse(self.market_object.is_buy_time())
         self.assertFalse(self.market_object.market_good_for_buying())
 
@@ -94,7 +102,9 @@ class TestingMarket(unittest.TestCase):
         self.market_object.asset_object.orders = [
             {'symbol': 'ADAGBP', 'orderId': 19692858, 'orderListId': -1, 'clientOrderId': 'xCJh7QDEH5AeC3liBomaej', 'price': '0.98990000', 'origQty': '40.77000000', 'executedQty': '40.77000000', 'cummulativeQuoteQty': '49.99217400', 'status': 'FILLED', 'timeInForce': 'GTC', 'type': 'LIMIT', 'side': 'SELL', 'stopPrice': '0.00000000', 'icebergQty': '0.00000000', 'time': 1622886369535, 'updateTime': 1622886403711, 'isWorking': True, 'origQuoteOrderQty': '0.00000000'}
         ]
+        self.market_object.asset_object.purchase_amount = 5
 
+        self.assertTrue(self.market_object.asset_object.enough_avaiable_cash())
         self.assertFalse(self.market_object.is_buy_time())
         self.assertFalse(self.market_object.market_good_for_buying())
 
@@ -103,11 +113,13 @@ class TestingMarket(unittest.TestCase):
         self.market_object.average_price_thee_hour = 100
         self.market_object.average_price_last_period = 97.9
         self.market_object.asset_object.price = 92.2
-        self.market_object.asset_object.avaiable_cash = 49
+        self.market_object.asset_object.avaiable_cash = 400
         self.market_object.asset_object.orders = [
             {'symbol': 'ADAGBP', 'orderId': 19692858, 'orderListId': -1, 'clientOrderId': 'xCJh7QDEH5AeC3liBomaej', 'price': '0.98990000', 'origQty': '40.77000000', 'executedQty': '40.77000000', 'cummulativeQuoteQty': '49.99217400', 'status': 'FILLED', 'timeInForce': 'GTC', 'type': 'LIMIT', 'side': 'SELL', 'stopPrice': '0.00000000', 'icebergQty': '0.00000000', 'time': 1622886369535, 'updateTime': 1622886403711, 'isWorking': True, 'origQuoteOrderQty': '0.00000000'}
         ]
+        self.market_object.asset_object.purchase_amount = 5
 
+        self.assertFalse(self.market_object.asset_object.enough_avaiable_cash())
         self.assertFalse(self.market_object.is_buy_time())
         self.assertTrue(self.market_object.market_good_for_buying())
 
@@ -120,7 +132,9 @@ class TestingMarket(unittest.TestCase):
         self.market_object.asset_object.orders = [
             {'symbol': 'ADAGBP', 'orderId': 19692858, 'orderListId': -1, 'clientOrderId': 'xCJh7QDEH5AeC3liBomaej', 'price': '0.98990000', 'origQty': '40.77000000', 'executedQty': '40.77000000', 'cummulativeQuoteQty': '49.99217400', 'status': 'FILLED', 'timeInForce': 'GTC', 'type': 'LIMIT', 'side': 'SELL', 'stopPrice': '0.00000000', 'icebergQty': '0.00000000', 'time': 1622886369535, 'updateTime': 1622886403711, 'isWorking': True, 'origQuoteOrderQty': '0.00000000'}
         ]
+        self.market_object.asset_object.purchase_amount = 5
 
+        self.assertTrue(self.market_object.asset_object.enough_avaiable_cash())
         self.assertFalse(self.market_object.is_buy_time())
         self.assertFalse(self.market_object.market_good_for_buying())
 
@@ -139,7 +153,9 @@ class TestingMarket(unittest.TestCase):
         self.market_object.asset_object.price = 0.8799
         self.market_object.asset_object.avaiable_cash = 1000
         self.market_object.asset_object.asset_holdings = 51
+        self.market_object.asset_object.purchase_amount = 5
 
+        self.assertTrue(self.market_object.asset_object.enough_avaiable_cash())
         self.assertTrue(self.market_object.asset_object.double_down())
         self.assertTrue(self.market_object.is_buy_time())
         self.assertTrue(self.market_object.market_good_for_buying())
