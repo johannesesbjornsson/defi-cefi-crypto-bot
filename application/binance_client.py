@@ -52,9 +52,7 @@ class Asset(object):
         return active_order_exist
 
     def test_buy_asset(self):
-        position = self.purchase_amount / self.price
-        position_to_buy = self.round_down(position)
-        #price_to_use = self.round_down(self.price * 1.002)
+        position_to_buy = self.purchase_amount
 
         order = self.client.create_test_order(
             symbol=self.symbol,
@@ -68,9 +66,7 @@ class Asset(object):
 
     def test_sell_asset(self):
         position_to_sell = self.get_total_buy_quantity()
-        #price_to_use = self.round_down(self.price * 0.998)
-        print("Buy price", self.get_purchase_price())
-        print("Sell price", self.price)
+        print(position_to_sell)
 
         order = self.client.create_test_order(
             symbol=self.symbol,
@@ -83,9 +79,7 @@ class Asset(object):
         return order
 
     def buy_asset(self):
-        position = self.purchase_amount / self.price
-        position_to_buy = self.round_down(position)
-        #price_to_use = self.round_down(self.price * 1.002)
+        position_to_buy = self.purchase_amount
 
         order = self.client.create_order(
             symbol=self.symbol,
@@ -98,15 +92,15 @@ class Asset(object):
         return order
 
     def sell_asset(self):
-        position_to_sell = self.round_down(self.asset_holdings)
-        #price_to_use = self.round_down(self.price * 0.998)
+        position_to_sell = self.get_total_buy_quantity()
+        print(position_to_sell)
 
         order = self.client.create_order(
             symbol=self.symbol,
             side=SIDE_SELL,
             type=ORDER_TYPE_LIMIT,
             timeInForce=TIME_IN_FORCE_GTC,
-            quantity=position_to_sell,
+            quantity=77, #position_to_sell,
             price=self.price)
 
         return order
@@ -134,10 +128,8 @@ class Asset(object):
         is_sell_time = False
         unsold_orders = self.get_unsold_orders()
         
-
         if len(unsold_orders) > 0: 
             price_to_compare = self.get_purchase_price()
-
             if (self.price / price_to_compare) > 1.03:
                 is_sell_time = True
             elif (self.get_asset_holding_worth() / self.get_total_buy_in_amount()) > 1.1 :
@@ -147,7 +139,7 @@ class Asset(object):
 
     def get_asset_holding_worth(self):
         asset_worth = self.get_total_buy_quantity() * self.price
-        return round_step_size(asset_worth, 0.0001 )
+        return round_step_size(asset_worth, 0.0000001 )
 
     def enough_avaiable_cash(self):
         enough_avaiable_cash = False
@@ -173,7 +165,7 @@ class Asset(object):
         for order in unsold_orders:
             total_buy_in_amount = total_buy_in_amount + ( float(order["price"]) *  float(order["executedQty"]) )
 
-        return round_step_size(total_buy_in_amount, 0.0001 )
+        return round_step_size(total_buy_in_amount, 0.0000001 )
 
     def get_total_buy_quantity(self):
         unsold_orders = self.get_unsold_orders()
@@ -181,7 +173,7 @@ class Asset(object):
         for order in unsold_orders:
             total_quantity = total_quantity + float(order["executedQty"])
 
-        return round_step_size(total_quantity, 0.000001 )
+        return round_step_size(total_quantity, 0.0000001 )
 
 class Market(Asset):
 

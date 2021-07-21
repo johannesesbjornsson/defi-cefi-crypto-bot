@@ -2,16 +2,22 @@ import os
 
 assets_to_check = {
     "BTC": {
+        "crypto": "BTC",
+        "currency": "GBP",
         "precision" : 6,
-        "gbp_amount" : 50
+        "amount": 0.005 
     },
     "ETH": {
+        "crypto": "ETH",
+        "currency": "GBP",
         "precision" : 4,
-        "gbp_amount" : 50
+        "amount": 0.05 
     },
     "BNB": {
+        "crypto": "BNB",
+        "currency": "GBP",
         "precision" : 4,
-        "gbp_amount" : 50
+        "amount": 0.05 
     },   
 }
 
@@ -26,7 +32,13 @@ cryptopairs = {
         "crypto": "BNB",
         "currency": "BTC",
         "precision" : 7,
-        "amount": 0.005 
+        "amount": 0.05 
+    },
+    "ADABNB": {
+        "crypto": "ADA",
+        "currency": "BNB",
+        "precision" : 7,
+        "amount": 70 
     },
     #"ETHBTC": {
     #    "precision" : 4,
