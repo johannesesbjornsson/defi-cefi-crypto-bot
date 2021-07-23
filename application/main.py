@@ -35,9 +35,12 @@ def main(client,assets_to_check):
             precision=asset_settings["precision"],
             purchase_amount=asset_settings["amount"],
             currency=asset_settings["currency"],
-            number_of_double_downs=3
+            number_of_double_downs=asset_settings["double_downs"]
             )
-        market_object = binance_client.Market(asset_object)
+        market_object = binance_client.Market(asset_object,
+            short_time_compare_mins=asset_settings["short_period_to_compare"], 
+            medium_time_compare_hours=asset_settings["medium_period_to_compare"]
+        )
 
         print("Looking at "+ asset)
 

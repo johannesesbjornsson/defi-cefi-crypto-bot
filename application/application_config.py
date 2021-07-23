@@ -23,33 +23,68 @@ assets_to_check = {
 
 cryptopairs = {
     "BNBETH": {
+        "medium_period_to_compare": 6,
+        "short_period_to_compare": 30,
         "crypto": "BNB",
         "currency": "ETH",
         "precision" : 5,
-        "amount": 0.05 
+        "double_downs": 3,
+        "amount": 0.1 
     },
     "BNBBTC": {
+        "medium_period_to_compare": 6,
+        "short_period_to_compare": 30,
         "crypto": "BNB",
         "currency": "BTC",
         "precision" : 7,
-        "amount": 0.05 
+        "double_downs": 3,
+        "amount": 0.1 
     },
     "ADABNB": {
+        "medium_period_to_compare": 6,
+        "short_period_to_compare": 30,
         "crypto": "ADA",
         "currency": "BNB",
         "precision" : 7,
-        "amount": 50 
+        "double_downs": 3,
+        "amount": 20 
+    },
+    "ADABTC": {
+        "medium_period_to_compare": 6,
+        "short_period_to_compare": 30,
+        "crypto": "ADA",
+        "currency": "BTC",
+        "precision" : 7,
+        "double_downs": 3,
+        "amount": 20 
     },
     "MATICBNB": {
+        "medium_period_to_compare": 6,
+        "short_period_to_compare": 30,
         "crypto": "MATIC",
         "currency": "BNB",
         "precision" : 7,
-        "amount": 50 
+        "double_downs": 3,
+        "amount": 20 
     },
-    #"ETHBTC": {
-    #    "precision" : 4,
-    #    "gbp_amount" : 50
-    #},   
+    "MATICBTC": {
+        "medium_period_to_compare": 6,
+        "short_period_to_compare": 30,
+        "crypto": "MATIC",
+        "currency": "BTC",
+        "precision" : 7,
+        "double_downs": 3,
+        "amount": 20 
+    },
+    "ETHBTC": {
+        "medium_period_to_compare": 6,
+        "short_period_to_compare": 30,
+        "crypto": "ETH",
+        "currency": "BTC",
+        "precision" : 7,
+        "double_downs": 3,
+        "amount": 0.015 
+    },   
 }
 
 precision_dict = {
