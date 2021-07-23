@@ -38,7 +38,13 @@ cryptopairs = {
         "crypto": "ADA",
         "currency": "BNB",
         "precision" : 7,
-        "amount": 70 
+        "amount": 50 
+    },
+    "MATICBNB": {
+        "crypto": "MATIC",
+        "currency": "BNB",
+        "precision" : 7,
+        "amount": 50 
     },
     #"ETHBTC": {
     #    "precision" : 4,

@@ -108,17 +108,23 @@ class Asset(object):
     def get_unsold_orders(self):
         orders_not_sold = []
         for order in reversed(self.orders):
-            if order["status"] != "FILLED":
+            if order["status"] != "FILLED" and order["status"] != "PARTIALLY_FILLED":
                 continue
-            if order["side"] == "SELL":
+            if order["status"] == "FILLED" and order["side"] == "SELL":
                 break
             orders_not_sold.append(order)
         return orders_not_sold
 
     def get_purchase_price(self):
-        order_to_compare = self.get_unsold_orders()[-1]
+        #order_to_compare = self.get_unsold_orders()[-1]
+        unsold_orders = self.get_unsold_orders()
+        order_to_compare = {}
+        for order in reversed(unsold_orders):
+            if order["status"] == "FILLED":
+                order_to_compare = order
+                break
 
-        if order_to_compare["price"] != "0.00000000": 
+        if order_to_compare["price"] != "0.00000000":
             price_to_compare = float(order_to_compare["price"])
         else:
             price_to_compare = float(order_to_compare["cummulativeQuoteQty"]) / float(order_to_compare["executedQty"])
@@ -127,9 +133,10 @@ class Asset(object):
     def is_sell_time(self):
         is_sell_time = False
         unsold_orders = self.get_unsold_orders()
-        
+
         if len(unsold_orders) > 0: 
             price_to_compare = self.get_purchase_price()
+
             if (self.price / price_to_compare) > 1.03:
                 is_sell_time = True
             elif (self.get_asset_holding_worth() / self.get_total_buy_in_amount()) > 1.1 :
@@ -165,7 +172,10 @@ class Asset(object):
         unsold_orders = self.get_unsold_orders()
         total_buy_in_amount = 0.00
         for order in unsold_orders:
-            total_buy_in_amount = total_buy_in_amount + ( float(order["price"]) *  float(order["executedQty"]) )
+            if order["side"] == "BUY":
+                total_buy_in_amount = total_buy_in_amount + ( float(order["price"]) *  float(order["executedQty"]) )
+            elif order["side"] == "SELL":
+                total_buy_in_amount = total_buy_in_amount - ( float(order["price"]) *  float(order["executedQty"]) )
 
         return round_step_size(total_buy_in_amount, 0.0000001 )
 
@@ -173,22 +183,26 @@ class Asset(object):
         unsold_orders = self.get_unsold_orders()
         total_quantity = 0.00
         for order in unsold_orders:
-            total_quantity = total_quantity + float(order["executedQty"])
+            if order["side"] == "BUY":
+                total_quantity = total_quantity + float(order["executedQty"])
+            elif order["side"] == "SELL":
+                total_quantity = total_quantity - float(order["executedQty"])
 
         return round_step_size(total_quantity, 0.0000001 )
 
 class Market(Asset):
 
-    def __init__(self, asset_object, holding_threshold=20):
+    def __init__(self, asset_object, short_time_compare_mins=10, medium_time_compare_hours=3):
         if type(asset_object) != Asset:
             raise ValueError("Argument must be object type Asset")
         self.symbol = asset_object.symbol
         self.client = asset_object.client
         self.asset_object = asset_object
-        self.average_price_thee_hour = None
+        self.average_price_last_hours = None
         self.average_price_last_period = None
         self.average_price_last_week = None
-        self.holding_threshold = holding_threshold
+        self.short_time_compare_mins = short_time_compare_mins
+        self.medium_time_compare_hours = str(medium_time_compare_hours)
 
     def get_average_price(self,data):
         total_price = 0.00 
@@ -203,11 +217,11 @@ class Market(Asset):
         
 
     def set_market_data(self):
-        last_hours_data = self.client.get_historical_klines(self.symbol, '1m', "3 hours ago GMT")
+        last_hours_data = self.client.get_historical_klines(self.symbol, '1m', self.medium_time_compare_hours+" hours ago GMT")
         last_weeks_data = self.client.get_historical_klines(self.symbol, '1h', "7 days ago GMT")
         
-        self.average_price_thee_hour = self.get_average_price(last_hours_data)
-        self.average_price_last_period = self.get_average_price(last_hours_data[-10:])
+        self.average_price_last_hours = self.get_average_price(last_hours_data)
+        self.average_price_last_period = self.get_average_price(last_hours_data[-self.short_time_compare_mins:])
         self.average_price_last_week = self.get_average_price(last_weeks_data)
 
     def market_good_for_buying(self):
@@ -216,9 +230,9 @@ class Market(Asset):
         high_compared_to_last_week = True
         price_to_high_last_period = True
         
-        if (self.asset_object.price/self.average_price_thee_hour) < 0.98:
+        if (self.asset_object.price/self.average_price_last_hours) < 0.98:
             market_too_hot = False        
-        if (self.average_price_thee_hour/self.average_price_last_week) < 1.06:
+        if (self.average_price_last_hours/self.average_price_last_week) <= 1:
             high_compared_to_last_week = False
         if self.asset_object.price/self.average_price_last_period < 0.995:
             price_to_high_last_period = False
