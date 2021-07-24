@@ -27,45 +27,35 @@ cryptopairs = {
         "short_period_to_compare": 30,
         "crypto": "BNB",
         "currency": "ETH",
-        "precision" : 5,
         "double_downs": 3,
-        "amount": 0.1 
     },
     "BNBBTC": {
         "medium_period_to_compare": 6,
         "short_period_to_compare": 30,
         "crypto": "BNB",
         "currency": "BTC",
-        "precision" : 7,
         "double_downs": 3,
-        "amount": 0.1 
     },
     "ADABNB": {
         "medium_period_to_compare": 6,
         "short_period_to_compare": 30,
         "crypto": "ADA",
         "currency": "BNB",
-        "precision" : 7,
         "double_downs": 3,
-        "amount": 20 
     },
     "ADABTC": {
         "medium_period_to_compare": 6,
         "short_period_to_compare": 30,
         "crypto": "ADA",
         "currency": "BTC",
-        "precision" : 7,
-        "double_downs": 3,
-        "amount": 20 
+        "double_downs": 3
     },
     "MATICBNB": {
         "medium_period_to_compare": 6,
         "short_period_to_compare": 30,
         "crypto": "MATIC",
         "currency": "BNB",
-        "precision" : 7,
-        "double_downs": 3,
-        "amount": 20 
+        "double_downs": 3
     },
     "MATICBTC": {
         "medium_period_to_compare": 6,
@@ -73,17 +63,14 @@ cryptopairs = {
         "crypto": "MATIC",
         "currency": "BTC",
         "precision" : 7,
-        "double_downs": 3,
-        "amount": 20 
+        "double_downs": 3
     },
     "ETHBTC": {
         "medium_period_to_compare": 6,
         "short_period_to_compare": 30,
         "crypto": "ETH",
         "currency": "BTC",
-        "precision" : 7,
-        "double_downs": 3,
-        "amount": 0.015 
+        "double_downs": 3
     },   
 }
 

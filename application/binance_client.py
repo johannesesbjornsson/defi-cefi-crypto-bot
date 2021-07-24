@@ -7,18 +7,40 @@ from binance.exceptions import BinanceAPIException
 
 class Asset(object):
 
-    def __init__(self, client, asset, precision=6, purchase_amount=50, currency="GBP",number_of_double_downs=30):
+    def __init__(self, client, asset, purchase_amount=50, currency="GBP",number_of_double_downs=30):
         self.client = client
         self.asset = asset
         self.currency = currency
         self.symbol = asset+currency
-        self.precision = precision
         self.number_of_double_downs = number_of_double_downs
-        self.purchase_amount = purchase_amount
+        self.gbp_price = self.get_gbp_price()
+        self.quantity_precision = self.get_quantity_precision()
+        self.purchase_amount = self.get_purchase_amount(purchase_amount)
         self.avaiable_cash = self.get_asset_amount(currency)
         self.asset_holdings = self.get_asset_amount(asset)
         self.update_price()
         self.update_orders()
+        
+
+    def get_quantity_precision(self):
+        exhange_info = self.client.get_exchange_info()
+        for symbol in exhange_info["symbols"]:
+            if symbol["symbol"] == self.symbol:
+                lot_size = dict(("lot_size", item["stepSize"]) for item in symbol["filters"] if item["filterType"] == "LOT_SIZE")["lot_size"]
+
+        return float(lot_size)
+
+    def get_gbp_price(self):
+        gbp_price = self.client.get_symbol_ticker(symbol=self.asset+"GBP").get("price")
+        return float(gbp_price)
+
+    def get_purchase_amount(self,purchase_amount_in_gbp):
+        quantity = purchase_amount_in_gbp / self.gbp_price
+        precise_quantity = round_step_size(quantity, self.quantity_precision )
+
+        return precise_quantity
+
+        
 
     def update_price(self):
         current_price = self.client.get_symbol_ticker(symbol=self.symbol).get("price")
@@ -31,11 +53,6 @@ class Asset(object):
     def get_asset_amount(self, asset):
         balance = float(self.client.get_asset_balance(asset=asset).get("free"))
         return balance
-
-    def round_down(self, n):
-        multiplier = 10 ** self.precision
-        return math.floor(n * multiplier) / multiplier
-
     
     def has_active_orders(self):
         active_order_exist = False
@@ -60,13 +77,12 @@ class Asset(object):
             type=ORDER_TYPE_LIMIT,
             timeInForce=TIME_IN_FORCE_GTC,
             quantity=position_to_buy,
-            price=self.price)
+            price="{:.8f}".format(self.price))
             
         return order
 
     def test_sell_asset(self):
         position_to_sell = self.get_total_buy_quantity()
-        print(position_to_sell)
 
         order = self.client.create_test_order(
             symbol=self.symbol,
@@ -74,7 +90,7 @@ class Asset(object):
             type=ORDER_TYPE_LIMIT,
             timeInForce=TIME_IN_FORCE_GTC,
             quantity=position_to_sell,
-            price=self.price)
+            price="{:.8f}".format(self.price))
 
         return order
 
@@ -87,21 +103,20 @@ class Asset(object):
             type=ORDER_TYPE_LIMIT,
             timeInForce=TIME_IN_FORCE_GTC,
             quantity=position_to_buy,
-            price=self.price)
+            price="{:.8f}".format(self.price))
             
         return order
 
     def sell_asset(self):
         position_to_sell = self.get_total_buy_quantity()
-        print(position_to_sell)
 
         order = self.client.create_order(
             symbol=self.symbol,
             side=SIDE_SELL,
             type=ORDER_TYPE_LIMIT,
             timeInForce=TIME_IN_FORCE_GTC,
-            quantity=77, #position_to_sell,
-            price=self.price)
+            quantity=position_to_sell,
+            price="{:.8f}".format(self.price))
 
         return order
 
@@ -136,7 +151,6 @@ class Asset(object):
 
         if len(unsold_orders) > 0: 
             price_to_compare = self.get_purchase_price()
-            print(self.price / price_to_compare)
             if (self.price / price_to_compare) > 1.03:
                 is_sell_time = True
             elif (self.get_asset_holding_worth() / self.get_total_buy_in_amount()) > 1.1 :

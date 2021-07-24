@@ -5,6 +5,7 @@ import datetime
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from binance.helpers import round_step_size
 
 
 sys.path.append('../../application')
@@ -104,7 +105,7 @@ def get_figure(dates, values, action_dates, total_profits, avaiable_cash, postio
     return fig
 
 
-def main(dataset,market_object,avaiable_cash=1500):
+def main(dataset,market_object,avaiable_cash=1500,gbp_purchase_amount=50):
     orders = []
     total_profits = 0
     dates = []
@@ -125,6 +126,7 @@ def main(dataset,market_object,avaiable_cash=1500):
         market_object.average_price_last_period = get_average_price(dataset[i-10:i])
         
         market_object.asset_object.price = get_price(entry)
+        market_object.asset_object.gbp_price = get_price(entry)
 
         dates.append(timestamp)
         values.append(market_object.asset_object.price)
@@ -139,7 +141,7 @@ def main(dataset,market_object,avaiable_cash=1500):
         else:
             time_to_buy = market_object.is_buy_time()
             if time_to_buy:
-                position = market_object.asset_object.purchase_amount #market_object.asset_object.purchase_amount / market_object.asset_object.price
+                position = market_object.asset_object.get_purchase_amount(gbp_purchase_amount)
                 order = {"status" : "FILLED", 'side': 'BUY', 'price': market_object.asset_object.price, "executedQty" : position }
                 market_object.asset_object.asset_holdings = market_object.asset_object.asset_holdings + order["executedQty"]
                 market_object.asset_object.avaiable_cash = market_object.asset_object.avaiable_cash - (position * market_object.asset_object.price )
@@ -162,22 +164,21 @@ def main(dataset,market_object,avaiable_cash=1500):
         #    break
 
     postion_worth = market_object.asset_object.asset_holdings * market_object.asset_object.price
-    return dates, values, action_dates, total_profits, market_object.asset_object.avaiable_cash, postion_worth
+    return dates, values, action_dates, round_step_size(total_profits, 0.00001), round_step_size(market_object.asset_object.avaiable_cash, 0.00001), round_step_size(postion_worth, 0.00001)
 
 
 
 if __name__ == '__main__':
     starting_cash = 1500
     currency = "BTC"
-    purchase_amount = 0.005
-    precision = 6
+    purchase_amount = 50
 
     client = binance_client.get_client(cfg.api_key,cfg.api_secret)
-    asset_object = binance_client.Asset(client,currency, precision=precision, purchase_amount=purchase_amount)            
+    asset_object = binance_client.Asset(client,currency, purchase_amount=purchase_amount)            
     market_object = binance_client.Market(asset_object)
     dataset = get_dataset()
 
-    dates, values, action_dates, total_profits, avaiable_cash, postion_worth = main(dataset,market_object,starting_cash)
+    dates, values, action_dates, total_profits, avaiable_cash, postion_worth = main(dataset,market_object,starting_cash,purchase_amount)
 
     fig = get_figure(dates, values, action_dates, total_profits, avaiable_cash, postion_worth, starting_cash,asset_object.asset)
 

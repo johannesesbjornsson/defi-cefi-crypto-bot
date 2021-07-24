@@ -22,7 +22,7 @@ class TestingAsset(unittest.TestCase):
     def setUpClient(self):
         warnings.simplefilter('ignore', category=ImportWarning)
         self.client = binance_client.get_client(cfg.api_key,cfg.api_secret)
-        self.asset_object = binance_client.Asset(self.client,"ADA",2)
+        self.asset_object = binance_client.Asset(self.client,"ADA")
 
     def test_purchase_price_1(self):
         self.asset_object.orders = [
