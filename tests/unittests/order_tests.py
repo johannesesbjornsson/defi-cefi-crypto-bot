@@ -207,8 +207,8 @@ class TestingAsset(unittest.TestCase):
         # Won't buy to lack of price decrase
         self.assertTrue(self.market_object.asset_object.get_purchase_amount(50) == 54.88)
         self.market_object.asset_object.purchase_amount = 54.88
-        self.assertTrue(self.asset_object.get_asset_holding_worth() == 185.70735)
-        self.assertTrue(self.asset_object.get_total_buy_quantity() == 203.85)
+        self.assertTrue(self.market_object.asset_object.get_asset_holding_worth() == 185.70735)
+        self.assertTrue(self.market_object.asset_object.get_total_buy_quantity() == 203.85)
         self.assertFalse(self.market_object.is_buy_time())
         self.assertFalse(self.market_object.asset_object.double_down())
 
@@ -247,6 +247,44 @@ class TestingAsset(unittest.TestCase):
         self.assertTrue(self.asset_object.get_asset_holding_worth() == 8.9)
         self.assertTrue(self.asset_object.get_total_buy_quantity() == 10)
         self.assertTrue(self.asset_object.get_total_buy_in_amount() == 30)
+
+    def test_using_the_correct_buy_order(self):
+        self.market_object.asset_object.orders = [
+            {'symbol': 'BNBETH', 'orderId': 483624319, 'orderListId': -1, 'clientOrderId': 'ios_8469b5e852364c02b8ad7a948a33b634', 'price': '0.16333000', 'origQty': '0.25000000', 'executedQty': '0.25000000', 'cummulativeQuoteQty': '0.04084250', 'status': 'FILLED', 'timeInForce': 'GTC', 'type': 'LIMIT', 'side': 'SELL', 'stopPrice': '0.00000000', 'icebergQty': '0.00000000', 'time': 1626417893487, 'updateTime': 1626417893487, 'isWorking': True, 'origQuoteOrderQty': '0.00000000'},
+            {'symbol': 'BNBETH', 'orderId': 483625487, 'orderListId': -1, 'clientOrderId': 'ios_c97834485ab149fcbdd6077ba5a412e8', 'price': '0.16331000', 'origQty': '0.50000000', 'executedQty': '0.50000000', 'cummulativeQuoteQty': '0.08165500', 'status': 'FILLED', 'timeInForce': 'GTC', 'type': 'LIMIT', 'side': 'SELL', 'stopPrice': '0.00000000', 'icebergQty': '0.00000000', 'time': 1626418065238, 'updateTime': 1626418082122, 'isWorking': True, 'origQuoteOrderQty': '0.00000000'},
+            {'symbol': 'BNBETH', 'orderId': 485564877, 'orderListId': -1, 'clientOrderId': 'ios_1fa60f227c994f3880b6fdefe6bd3df6', 'price': '0.15629000', 'origQty': '0.50000000', 'executedQty': '0.50000000', 'cummulativeQuoteQty': '0.07814500', 'status': 'FILLED', 'timeInForce': 'GTC', 'type': 'LIMIT', 'side': 'BUY', 'stopPrice': '0.00000000', 'icebergQty': '0.00000000', 'time': 1626709072453, 'updateTime': 1626709072520, 'isWorking': True, 'origQuoteOrderQty': '0.00000000'},
+            {'symbol': 'BNBETH', 'orderId': 487340587, 'orderListId': -1, 'clientOrderId': 'YiWvWU9ktNVRoUfEsWLCkP', 'price': '0.14820000', 'origQty': '0.05000000', 'executedQty': '0.05000000', 'cummulativeQuoteQty': '0.00741000', 'status': 'FILLED', 'timeInForce': 'GTC', 'type': 'LIMIT', 'side': 'BUY', 'stopPrice': '0.00000000', 'icebergQty': '0.00000000', 'time': 1626940972516, 'updateTime': 1626940978981, 'isWorking': True, 'origQuoteOrderQty': '0.00000000'},
+            {'symbol': 'BNBETH', 'orderId': 487341125, 'orderListId': -1, 'clientOrderId': 'S5KmgKaIgnpDJAoivwiHB2', 'price': '0.14812000', 'origQty': '0.05000000', 'executedQty': '0.00000000', 'cummulativeQuoteQty': '0.00000000', 'status': 'CANCELED', 'timeInForce': 'GTC', 'type': 'LIMIT', 'side': 'BUY', 'stopPrice': '0.00000000', 'icebergQty': '0.00000000', 'time': 1626941031493, 'updateTime': 1626941220285, 'isWorking': True, 'origQuoteOrderQty': '0.00000000'},
+            {'symbol': 'BNBETH', 'orderId': 487342653, 'orderListId': -1, 'clientOrderId': 'h1fzgykrFyaGiacorSsoS6', 'price': '0.14829000', 'origQty': '0.05000000', 'executedQty': '0.05000000', 'cummulativeQuoteQty': '0.00741450', 'status': 'FILLED', 'timeInForce': 'GTC', 'type': 'LIMIT', 'side': 'BUY', 'stopPrice': '0.00000000', 'icebergQty': '0.00000000', 'time': 1626941222260, 'updateTime': 1626941224591, 'isWorking': True, 'origQuoteOrderQty': '0.00000000'},
+            {'symbol': 'BNBETH', 'orderId': 488182139, 'orderListId': -1, 'clientOrderId': '9jf1ck6Y0wzqZnlTAkmZJf', 'price': '0.14022000', 'origQty': '0.10000000', 'executedQty': '0.10000000', 'cummulativeQuoteQty': '0.01402200', 'status': 'FILLED', 'timeInForce': 'GTC', 'type': 'LIMIT', 'side': 'BUY', 'stopPrice': '0.00000000', 'icebergQty': '0.00000000', 'time': 1627059137903, 'updateTime': 1627059140974, 'isWorking': True, 'origQuoteOrderQty': '0.00000000'},
+        ]
+        self.market_object.asset_object.price = 0.14829
+        self.market_object.asset_object.gbp_price = 215
+        self.market_object.asset_object.avaiable_cash = 51
+
+        # Make sure that the ordering of orders are correct
+        unsold_orders = self.market_object.asset_object.get_unsold_orders()
+        self.assertTrue(self.market_object.asset_object.get_purchase_amount(50) == 0.23)
+        self.market_object.asset_object.purchase_amount = 0.23
+        self.assertTrue(self.market_object.asset_object.get_asset_holding_worth() == 0.103803)
+        self.assertTrue(self.market_object.asset_object.get_total_buy_quantity() == 0.7   )  
+        self.assertFalse(self.market_object.asset_object.is_sell_time()) 
+        self.assertTrue(len(unsold_orders) == 4) 
+        self.assertFalse(self.market_object.asset_object.double_down())
+        self.assertTrue(self.market_object.asset_object.get_purchase_price() == 0.15629)
+
+        # Make sure that the the order to compare is the last in list 
+        original_order_time = datetime.datetime.fromtimestamp(int(unsold_orders[-1]["time"]/1000))
+        for order in unsold_orders[:-1]:
+            order_time = datetime.datetime.fromtimestamp(int(order["time"]/1000))
+            self.assertTrue(order_time > original_order_time)
+
+        # Make sure that the the order to compare is the fist in list 
+        orders = self.market_object.asset_object.orders
+        original_order_time = datetime.datetime.fromtimestamp(int(orders[0]["time"]/1000))
+        for order in orders[1:]:
+            order_time = datetime.datetime.fromtimestamp(int(order["time"]/1000))
+            self.assertTrue(order_time > original_order_time)
 
 if __name__ == '__main__':
     unittest.main()

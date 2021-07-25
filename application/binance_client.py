@@ -13,12 +13,12 @@ class Asset(object):
         self.currency = currency
         self.symbol = asset+currency
         self.number_of_double_downs = number_of_double_downs
+        self.update_price()
         self.gbp_price = self.get_gbp_price()
         self.quantity_precision = self.get_quantity_precision()
         self.purchase_amount = self.get_purchase_amount(purchase_amount)
         self.avaiable_cash = self.get_asset_amount(currency)
         self.asset_holdings = self.get_asset_amount(asset)
-        self.update_price()
         self.update_orders()
         
 

@@ -19,14 +19,7 @@ client = binance_client.get_client(cfg.api_key,cfg.api_secret)
 #print(gbp_ust_price)
 #print(sell_usdt_price/gbp_ust_price)
 #print(buy_gbp_price)
-print(client.get_symbol_ticker(symbol="BTCGBP"))   
-exhange_info = client.get_exchange_info()
-for symbol in exhange_info["symbols"]:
-    
-    if symbol["symbol"] == "ADABTC":
-        #print(symbol)
-        lot_size = dict(("lot_size", item["stepSize"]) for item in symbol["filters"] if item["filterType"] == "LOT_SIZE")["lot_size"]
-        
-        print(lot_size)
-        #keys = [item['id'] for item in initial_list]
-        print(json.dumps(symbol, indent=4, sort_keys=True))
+
+asset_object = binance_client.Asset(client,"BNB",purchase_amount=50,currency="ETH")
+for order in asset_object.orders:
+    print(order) 
