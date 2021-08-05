@@ -13,8 +13,8 @@ import binance_client
 import application_config as cfg
 
 
-def get_dataset():
-    with open('dataset.json') as f:
+def get_dataset(dataset):
+    with open(dataset+'.json') as f:
         d = json.load(f)
     return d
 
@@ -133,7 +133,8 @@ def main(dataset,market_object,avaiable_cash=1500,gbp_purchase_amount=50):
 
         time_to_sell = market_object.asset_object.is_sell_time() 
         if time_to_sell:
-            order = {"status" : "FILLED", 'side': 'SELL', 'price': market_object.asset_object.price, "executedQty" : market_object.asset_object.asset_holdings }
+            #order = {"status" : "FILLED", 'side': 'SELL', 'price': market_object.asset_object.price, "executedQty" : market_object.asset_object.asset_holdings }
+            order = market_object.asset_object.test_sell_asset()
             order_profit = (market_object.asset_object.asset_holdings * market_object.asset_object.price ) - market_object.asset_object.get_total_buy_in_amount()
             total_profits =  total_profits + order_profit
             market_object.asset_object.avaiable_cash = market_object.asset_object.avaiable_cash + (market_object.asset_object.asset_holdings * market_object.asset_object.price )
@@ -141,10 +142,11 @@ def main(dataset,market_object,avaiable_cash=1500,gbp_purchase_amount=50):
         else:
             time_to_buy = market_object.is_buy_time()
             if time_to_buy:
-                position = market_object.asset_object.get_purchase_amount(gbp_purchase_amount)
-                order = {"status" : "FILLED", 'side': 'BUY', 'price': market_object.asset_object.price, "executedQty" : position }
+                #position = market_object.asset_object.get_purchase_amount(gbp_purchase_amount)
+                #order = {"status" : "FILLED", 'side': 'BUY', 'price': market_object.asset_object.price, "executedQty" : position }
+                order = market_object.asset_object.test_buy_asset()
                 market_object.asset_object.asset_holdings = market_object.asset_object.asset_holdings + order["executedQty"]
-                market_object.asset_object.avaiable_cash = market_object.asset_object.avaiable_cash - (position * market_object.asset_object.price )
+                market_object.asset_object.avaiable_cash = market_object.asset_object.avaiable_cash - (order["executedQty"] * market_object.asset_object.price )
                 
 
 
@@ -176,7 +178,7 @@ if __name__ == '__main__':
     client = binance_client.get_client(cfg.api_key,cfg.api_secret)
     asset_object = binance_client.Asset(client,currency, purchase_amount=purchase_amount)            
     market_object = binance_client.Market(asset_object)
-    dataset = get_dataset()
+    dataset = get_dataset("first_week_aug")
 
     dates, values, action_dates, total_profits, avaiable_cash, postion_worth = main(dataset,market_object,starting_cash,purchase_amount)
 

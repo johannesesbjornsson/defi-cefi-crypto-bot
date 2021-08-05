@@ -78,6 +78,12 @@ class Asset(object):
             timeInForce=TIME_IN_FORCE_GTC,
             quantity=position_to_buy,
             price="{:.8f}".format(self.price))
+
+        order = {
+            "status" : "FILLED", 
+            'side': 'BUY', 
+            'price': self.price, 
+            "executedQty" : position_to_buy }
             
         return order
 
@@ -92,6 +98,13 @@ class Asset(object):
             quantity=position_to_sell,
             price="{:.8f}".format(self.price))
 
+        order = {
+            "status" : "FILLED", 
+            'side': 'SELL', 
+            'price': self.price, 
+            "executedQty" : position_to_sell 
+        }
+        
         return order
 
     def buy_asset(self):
