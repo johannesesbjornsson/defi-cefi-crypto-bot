@@ -1,5 +1,6 @@
 import logic
 import binance_client
+import binance_market_client
 import logging
 import time
 import traceback
@@ -36,7 +37,7 @@ def main(client,assets_to_check):
             purchase_amount=20,
             currency=asset_settings["currency"]
             )
-        market_object = binance_client.Market(asset_object,
+        market_object = binance_market_client.Market(asset_object,
             number_of_double_downs=asset_settings["double_downs"],
             short_time_compare_mins=asset_settings["short_period_to_compare"], 
             medium_time_compare_hours=asset_settings["medium_period_to_compare"]

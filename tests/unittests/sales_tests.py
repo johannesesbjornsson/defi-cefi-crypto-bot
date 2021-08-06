@@ -2,6 +2,7 @@ import sys, os
 import unittest
 sys.path.append('../../application')
 import binance_client
+import binance_market_client
 import warnings
 import datetime
 import json
@@ -23,7 +24,7 @@ class TestingAsset(unittest.TestCase):
         warnings.simplefilter('ignore', category=ImportWarning)
         self.client = binance_client.get_client(cfg.api_key,cfg.api_secret)
         self.asset_object = binance_client.Asset(self.client,"ADA")
-        self.market_object = binance_client.Market(self.asset_object)
+        self.market_object = binance_market_client.Market(self.asset_object)
 
     def test_purchase_price_1(self):
         self.market_object.asset_object.orders = [

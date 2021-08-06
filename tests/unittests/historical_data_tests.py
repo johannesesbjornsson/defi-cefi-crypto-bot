@@ -3,6 +3,7 @@ import unittest
 sys.path.append('../../application')
 sys.path.append('../historical_data')
 import binance_client
+import binance_market_client
 import warnings
 import datetime
 import json
@@ -27,7 +28,7 @@ class TestingAsset(unittest.TestCase):
         currency = "BTC"
         purchase_amount = 50
         asset_object = binance_client.Asset(self.client,currency, purchase_amount=purchase_amount) 
-        self.market_object = binance_client.Market(asset_object)
+        self.market_object = binance_market_client.Market(asset_object)
 
 
     def test_average_price_of_historical_data(self):

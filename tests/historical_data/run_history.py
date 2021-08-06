@@ -10,6 +10,7 @@ from binance.helpers import round_step_size
 
 sys.path.append('../../application')
 import binance_client
+import binance_market_client
 import application_config as cfg
 
 
@@ -174,7 +175,7 @@ if __name__ == '__main__':
 
     client = binance_client.get_client(cfg.api_key,cfg.api_secret)
     asset_object = binance_client.Asset(client,currency, purchase_amount=purchase_amount)            
-    market_object = binance_client.Market(asset_object)
+    market_object = binance_market_client.Market(asset_object)
     dataset = get_dataset("first_week_aug")
 
     dates, values, action_dates, total_profits, avaiable_cash, postion_worth = main(dataset,market_object,starting_cash,purchase_amount)
