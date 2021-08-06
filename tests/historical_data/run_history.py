@@ -106,7 +106,6 @@ def get_figure(dates, values, action_dates, total_profits, avaiable_cash, postio
 
 
 def main(dataset,market_object,avaiable_cash=1500,gbp_purchase_amount=50):
-    orders = []
     total_profits = 0
     dates = []
     values = []
@@ -131,9 +130,8 @@ def main(dataset,market_object,avaiable_cash=1500,gbp_purchase_amount=50):
         dates.append(timestamp)
         values.append(market_object.asset_object.price)
 
-        time_to_sell = market_object.asset_object.is_sell_time() 
+        time_to_sell = market_object.is_sell_time() 
         if time_to_sell:
-            #order = {"status" : "FILLED", 'side': 'SELL', 'price': market_object.asset_object.price, "executedQty" : market_object.asset_object.asset_holdings }
             order = market_object.asset_object.test_sell_asset()
             order_profit = (market_object.asset_object.asset_holdings * market_object.asset_object.price ) - market_object.asset_object.get_total_buy_in_amount()
             total_profits =  total_profits + order_profit
@@ -142,8 +140,7 @@ def main(dataset,market_object,avaiable_cash=1500,gbp_purchase_amount=50):
         else:
             time_to_buy = market_object.is_buy_time()
             if time_to_buy:
-                #position = market_object.asset_object.get_purchase_amount(gbp_purchase_amount)
-                #order = {"status" : "FILLED", 'side': 'BUY', 'price': market_object.asset_object.price, "executedQty" : position }
+                market_object.asset_object.purchase_amount = market_object.asset_object.get_purchase_amount(gbp_purchase_amount)
                 order = market_object.asset_object.test_buy_asset()
                 market_object.asset_object.asset_holdings = market_object.asset_object.asset_holdings + order["executedQty"]
                 market_object.asset_object.avaiable_cash = market_object.asset_object.avaiable_cash - (order["executedQty"] * market_object.asset_object.price )

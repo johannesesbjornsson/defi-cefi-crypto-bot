@@ -7,12 +7,11 @@ from binance.exceptions import BinanceAPIException
 
 class Asset(object):
 
-    def __init__(self, client, asset, purchase_amount=50, currency="GBP",number_of_double_downs=30):
+    def __init__(self, client, asset, purchase_amount=50, currency="GBP"):
         self.client = client
         self.asset = asset
         self.currency = currency
         self.symbol = asset+currency
-        self.number_of_double_downs = number_of_double_downs
         self.update_price()
         self.gbp_price = self.get_gbp_price()
         self.quantity_precision = self.get_quantity_precision()
@@ -158,19 +157,6 @@ class Asset(object):
             price_to_compare = float(order_to_compare["cummulativeQuoteQty"]) / float(order_to_compare["executedQty"])
         return price_to_compare
 
-    def is_sell_time(self):
-        is_sell_time = False
-        unsold_orders = self.get_unsold_orders()
-
-        if len(unsold_orders) > 0: 
-            price_to_compare = self.get_purchase_price()
-            if (self.price / price_to_compare) > 1.03:
-                is_sell_time = True
-            elif (self.get_asset_holding_worth() / self.get_total_buy_in_amount()) > 1.1 :
-                is_sell_time = True
-
-        return is_sell_time
-
     def get_asset_holding_worth(self):
         asset_worth = self.get_total_buy_quantity() * self.price
         return round_step_size(asset_worth, 0.0000001 )
@@ -182,18 +168,6 @@ class Asset(object):
         if purchase_amount_required < self.avaiable_cash:
             enough_avaiable_cash = True
         return enough_avaiable_cash
-            
-    def double_down(self):
-        double_down = False
-        price_to_compare = self.get_purchase_price()
-        unsold_orders = len(self.get_unsold_orders())
-        if self.enough_avaiable_cash() and self.number_of_double_downs > unsold_orders:
-            price_threshold = (100 - unsold_orders * 2) * 0.01
-            if (self.price / price_to_compare) < price_threshold:
-                double_down = True
-            
-
-        return double_down
 
     def get_total_buy_in_amount(self):
         unsold_orders = self.get_unsold_orders()
@@ -219,14 +193,15 @@ class Asset(object):
 
 class Market(Asset):
 
-    def __init__(self, asset_object, short_time_compare_mins=10, medium_time_compare_hours=3):
+    def __init__(self, asset_object,number_of_double_downs=30, short_time_compare_mins=10, medium_time_compare_hours=3):
         if type(asset_object) != Asset:
             raise ValueError("Argument must be object type Asset")
         self.symbol = asset_object.symbol
         self.client = asset_object.client
         self.asset_object = asset_object
-        self.average_price_last_hours = None
-        self.average_price_last_period = None
+        self.average_price_medium_period = None
+        self.number_of_double_downs = number_of_double_downs
+        self.average_price_short_period = None
         self.average_price_last_week = None
         self.short_time_compare_mins = short_time_compare_mins
         self.medium_time_compare_hours = str(medium_time_compare_hours)
@@ -276,26 +251,36 @@ class Market(Asset):
         enough_avaiable_cash = self.asset_object.enough_avaiable_cash()
         unsold_orders = self.asset_object.get_unsold_orders()
         if enough_avaiable_cash and len(unsold_orders) > 0:
-            is_buy_time = self.asset_object.double_down()
+            is_buy_time = self.double_down()
         
         elif enough_avaiable_cash:
             is_buy_time = self.market_good_for_buying()
-
-
         return is_buy_time
 
+    def double_down(self):
+        double_down = False
+        price_to_compare = self.asset_object.get_purchase_price()
+        unsold_orders = len(self.asset_object.get_unsold_orders())
+        if self.asset_object.enough_avaiable_cash() and self.number_of_double_downs > unsold_orders:
+            price_threshold = (100 - unsold_orders * 2) * 0.01
+            if (self.asset_object.price / price_to_compare) < price_threshold:
+                double_down = True
+
+        return double_down
+
+    def is_sell_time(self):
+        is_sell_time = False
+        unsold_orders = self.asset_object.get_unsold_orders()
+
+        if len(unsold_orders) > 0: 
+            price_to_compare = self.asset_object.get_purchase_price()
+            if (self.asset_object.price / price_to_compare) > 1.03:
+                is_sell_time = True
+            elif (self.asset_object.get_asset_holding_worth() / self.asset_object.get_total_buy_in_amount()) > 1.1 :
+                is_sell_time = True
+
+        return is_sell_time
 
 def get_client(api_key,api_secret):
     client = Client(api_key, api_secret)
     return client
-
-#@catch_exception
-#
-#def catch_exception(f):
-#    @functools.wraps(f)
-#    def func(*args, **kwargs):
-#        try:
-#            return f(*args, **kwargs)
-#        except Exception as e:
-#            print('Caught an exception in', f.__name__)
-#    return func

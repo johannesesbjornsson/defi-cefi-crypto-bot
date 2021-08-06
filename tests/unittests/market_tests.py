@@ -187,7 +187,7 @@ class TestingMarket(unittest.TestCase):
         self.assertTrue(self.market_object.asset_object.get_purchase_amount(500) == 568.25)
         self.market_object.asset_object.purchase_amount = 568.25
         self.assertTrue(self.market_object.asset_object.enough_avaiable_cash())
-        self.assertTrue(self.market_object.asset_object.double_down())
+        self.assertTrue(self.market_object.double_down())
         self.assertTrue(self.market_object.is_buy_time())
         self.assertTrue(self.market_object.market_good_for_buying())
 

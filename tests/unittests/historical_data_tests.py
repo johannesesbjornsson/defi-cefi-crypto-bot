@@ -41,7 +41,6 @@ class TestingAsset(unittest.TestCase):
         data_set = self.get_test_set_hours("historical_data")
         purchase_amount = 50
         dates, values, action_dates, total_profits, avaiable_cash, postion_worth = run_history.main(data_set,self.market_object,starting_cash,purchase_amount)
-
         self.assertTrue(total_profits == 2.083)
         self.assertTrue(len(action_dates) == 2)
         self.assertTrue(avaiable_cash == 1502.083)

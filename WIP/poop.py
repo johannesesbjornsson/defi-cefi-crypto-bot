@@ -20,6 +20,7 @@ client = binance_client.get_client(cfg.api_key,cfg.api_secret)
 #print(sell_usdt_price/gbp_ust_price)
 #print(buy_gbp_price)
 
-asset_object = binance_client.Asset(client,"BNB",purchase_amount=50,currency="ETH")
-for order in asset_object.orders:
+#asset_object = binance_client.Asset(client,"BNB",purchase_amount=50,currency="ETH")
+orders = client.get_all_orders(symbol="ETHGBP", limit=40)
+for order in orders:
     print(order) 
