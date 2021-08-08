@@ -93,3 +93,40 @@ class Market(Asset):
                 is_sell_time = True
 
         return is_sell_time
+
+
+
+
+class EMAMarket(Asset):
+
+    def __init__(self, asset_object):
+        if type(asset_object) != Asset:
+            raise ValueError("Argument must be object type Asset")
+        self.symbol = asset_object.symbol
+        self.client = asset_object.client
+        self.asset_object = asset_object
+        self.market_data
+
+
+    def set_market_data(self):
+        market_data = self.client.get_historical_klines(self.symbol, '5m', "15 hours ago GMT")
+        data = []
+        for entry in market_data:
+            data.append(entry[4])
+
+        self.market_data = data
+
+    def calculate_ema(self):
+        import pandas as pd
+        import numpy as np
+
+        df = pd.DataFrame(data = self.market_data)
+        df_ema = df.ewm(span=3).mean()
+        df_ema_medium = df.ewm(span=6).mean()
+        df_ema_long = df.ewm(span=9).mean()
+        #df_ma = df.rolling(window=5).mean()
+        #ma_list = df_ma[0].tolist()
+
+        ema_list = df_ema[0].tolist()
+        ema_medium = df_ema_medium[0].tolist()
+        ema_long = df_ema_long[0].tolist()

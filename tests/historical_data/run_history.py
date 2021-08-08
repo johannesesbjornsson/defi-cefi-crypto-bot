@@ -101,10 +101,34 @@ if __name__ == '__main__':
     client = binance_client.get_client(cfg.api_key,cfg.api_secret)
     asset_object = binance_client.Asset(client,currency, purchase_amount=purchase_amount)            
     market_object = binance_market_client.Market(asset_object)
-    dataset = get_dataset("first_week_aug")
+    dataset = get_dataset("dataset")
+
 
     dates, values, action_dates, total_profits, avaiable_cash, postion_worth = main(dataset,market_object,starting_cash,purchase_amount)
+    #fig = plotting.get_figure(dates, values, action_dates, total_profits, avaiable_cash, postion_worth, starting_cash,asset_object.asset)
+    #fig.show()
 
-    fig = plotting.get_figure(dates, values, action_dates, total_profits, avaiable_cash, postion_worth, starting_cash,asset_object.asset)
+    
+    import pandas as pd
+    import numpy as np
 
+    df = pd.DataFrame(data = values)
+    df_ema = df.ewm(span=3).mean()
+    df_ema_medium = df.ewm(span=6).mean()
+    df_ema_long = df.ewm(span=9).mean()
+    #df_ma = df.rolling(window=5).mean()
+    #ma_list = df_ma[0].tolist()
+
+    ema_list = df_ema[0].tolist()
+    ema_medium = df_ema_medium[0].tolist()
+    ema_long = df_ema_long[0].tolist()
+    
+
+    fig = plotting.get_figure(dates, values, ema_list, ema_medium, ema_long, action_dates, total_profits, avaiable_cash, postion_worth, starting_cash,asset_object.asset)
     fig.show()
+
+
+
+    
+
+
