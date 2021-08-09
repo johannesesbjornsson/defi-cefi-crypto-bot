@@ -5,6 +5,8 @@ from binance.helpers import round_step_size
 import datetime
 from binance.exceptions import BinanceAPIException
 from binance_client import Asset
+import pandas as pd
+import numpy as np
 
 class Market(Asset):
 
@@ -105,28 +107,69 @@ class EMAMarket(Asset):
         self.symbol = asset_object.symbol
         self.client = asset_object.client
         self.asset_object = asset_object
-        self.market_data
+        self.market_data = None
+        self.ema = None
+        self.ema_medium = None
+        self.ema_long = None
 
 
     def set_market_data(self):
-        market_data = self.client.get_historical_klines(self.symbol, '5m', "15 hours ago GMT")
-        data = []
-        for entry in market_data:
-            data.append(entry[4])
+        market_data = self.client.get_historical_klines(self.symbol, '1m', "2 hours ago GMT")
+        self.market_data
 
-        self.market_data = data
+
+    def get_emas(self,data,data_point=-1):
+        df = pd.DataFrame(data = data)
+        ema = df.ewm(span=3).mean()
+        ema_medium = df.ewm(span=6).mean()
+        ema_long = df.ewm(span=9).mean()
+        df = pd.DataFrame(data = data)
+        
+        ema = df.ewm(span=3).mean()[0].tolist()[data_point]
+        ema_medium = df.ewm(span=6).mean()[0].tolist()[data_point]
+        ema_long = df.ewm(span=9).mean()[0].tolist()[data_point ]
+
+        return ema, ema_medium, ema_long
 
     def calculate_ema(self):
-        import pandas as pd
-        import numpy as np
+        data = []
+        for entry in self.market_data:
+            data.append(float(entry[4]))
 
-        df = pd.DataFrame(data = self.market_data)
-        df_ema = df.ewm(span=3).mean()
-        df_ema_medium = df.ewm(span=6).mean()
-        df_ema_long = df.ewm(span=9).mean()
-        #df_ma = df.rolling(window=5).mean()
-        #ma_list = df_ma[0].tolist()
+        previous_ema, previous_ema_medium, previous_ema_long = self.get_emas(data)
+        data.append(self.asset_object.price)
+        ema, ema_medium, ema_long = self.get_emas(data)
 
-        ema_list = df_ema[0].tolist()
-        ema_medium = df_ema_medium[0].tolist()
-        ema_long = df_ema_long[0].tolist()
+        self.previous_ema = previous_ema
+        self.previous_ema_medium = previous_ema_medium
+        self.previous_ema_long = previous_ema_long
+
+        self.ema = ema
+        self.ema_medium = ema_medium
+        self.ema_long = ema_long
+
+
+    def is_buy_time(self):
+        is_buy_time = False
+        if self.ema == None and self.ema_medium == None and self.ema_long == None:
+            return False
+
+        if self.ema > self.ema_medium  and self.ema > self.ema_long:
+            if self.previous_ema < self.previous_ema_medium  or self.previous_ema < self.previous_ema_long:
+                unsold_orders = self.asset_object.get_unsold_orders()
+                if len(unsold_orders) < 1:
+                    is_buy_time =  True
+        return is_buy_time
+
+    def is_sell_time(self):
+        is_sell_time = False
+        unsold_orders = self.asset_object.get_unsold_orders()
+
+        if len(unsold_orders) > 0: 
+            price_to_compare = self.asset_object.get_purchase_price()
+            if (self.asset_object.price / price_to_compare) > 1.0075:
+                is_sell_time = True
+            elif (self.asset_object.price / price_to_compare) < 0.994:
+                is_sell_time = True
+
+        return is_sell_time

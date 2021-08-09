@@ -37,6 +37,15 @@ def set_market_conditions(market_object,i,dataset,entry):
     return market_object
 
 
+def set_ema_market_conditions(market_object,i,dataset,entry):
+    market_object.asset_object.price = get_price(entry)
+    market_object.asset_object.gbp_price = get_price(entry)
+
+    market_object.market_data = dataset[i-50:i]
+    market_object.calculate_ema()
+
+    return market_object
+
 def main(dataset,market_object,avaiable_cash=1500,gbp_purchase_amount=50):
     total_profits = 0
     dates = []
@@ -45,25 +54,26 @@ def main(dataset,market_object,avaiable_cash=1500,gbp_purchase_amount=50):
     market_object.asset_object.asset_holdings = 0
     market_object.asset_object.avaiable_cash = avaiable_cash
     market_object.asset_object.orders = []
-    for i in range(180,len(dataset)):
+    for i in range(50,len(dataset)):
         entry = dataset[i]
         timestamp = datetime.datetime.fromtimestamp(int(entry[0]/1000)).strftime('%c')
         order = None
         order_profit = 0
 
-        set_market_conditions(market_object,i,dataset,entry) 
+        #market_object = set_market_conditions(market_object,i,dataset,entry) 
+        market_object = set_ema_market_conditions(market_object,i,dataset,entry) 
 
-
-        time_to_sell = market_object.is_sell_time() 
-        if time_to_sell:
-            order = market_object.asset_object.test_sell_asset()
-            order_profit = (market_object.asset_object.asset_holdings * market_object.asset_object.price ) - market_object.asset_object.get_total_buy_in_amount()
-            total_profits =  total_profits + order_profit
-        else:
-            time_to_buy = market_object.is_buy_time()
-            if time_to_buy:
-                market_object.asset_object.purchase_amount = market_object.asset_object.get_purchase_amount(gbp_purchase_amount)
-                order = market_object.asset_object.test_buy_asset()
+        if i > 60:
+            time_to_sell = market_object.is_sell_time() 
+            if time_to_sell:
+                order = market_object.asset_object.test_sell_asset()
+                order_profit = (market_object.asset_object.asset_holdings * market_object.asset_object.price ) - market_object.asset_object.get_total_buy_in_amount()
+                total_profits =  total_profits + order_profit
+            else:
+                time_to_buy = market_object.is_buy_time()
+                if time_to_buy:
+                    market_object.asset_object.purchase_amount = market_object.asset_object.get_purchase_amount(gbp_purchase_amount)
+                    order = market_object.asset_object.test_buy_asset()
 
 
         if order is not None:
@@ -100,7 +110,8 @@ if __name__ == '__main__':
 
     client = binance_client.get_client(cfg.api_key,cfg.api_secret)
     asset_object = binance_client.Asset(client,currency, purchase_amount=purchase_amount)            
-    market_object = binance_market_client.Market(asset_object)
+    #market_object = binance_market_client.Market(asset_object)
+    market_object = binance_market_client.EMAMarket(asset_object)
     dataset = get_dataset("dataset")
 
 
