@@ -50,6 +50,8 @@ def main(dataset,market_object,avaiable_cash=1500,gbp_purchase_amount=50):
     total_profits = 0
     dates = []
     values = []
+    volume = []
+    trading_volume = 0
     action_dates = []
     market_object.asset_object.asset_holdings = 0
     market_object.asset_object.avaiable_cash = avaiable_cash
@@ -93,13 +95,18 @@ def main(dataset,market_object,avaiable_cash=1500,gbp_purchase_amount=50):
                 "avaiable_cash": market_object.asset_object.avaiable_cash,
                 "order_profit": order_profit,
             })
+            trading_volume = trading_volume + (order["executedQty"] * order["price"])
+
+
+
 
 
         dates.append(timestamp)
         values.append(market_object.asset_object.price)
+        #volume.append(float(entry[5]))
 
     postion_worth = market_object.asset_object.asset_holdings * market_object.asset_object.price
-    return dates, values, action_dates, round_step_size(total_profits, 0.00001), round_step_size(market_object.asset_object.avaiable_cash, 0.00001), round_step_size(postion_worth, 0.00001)
+    return dates, values, action_dates, trading_volume, round_step_size(total_profits, 0.00001), round_step_size(market_object.asset_object.avaiable_cash, 0.00001), round_step_size(postion_worth, 0.00001)
 
 
 
@@ -115,7 +122,7 @@ if __name__ == '__main__':
     dataset = get_dataset("dataset")
 
 
-    dates, values, action_dates, total_profits, avaiable_cash, postion_worth = main(dataset,market_object,starting_cash,purchase_amount)
+    dates, values, action_dates, trading_volume, total_profits, avaiable_cash, postion_worth = main(dataset,market_object,starting_cash,purchase_amount)
     #fig = plotting.get_figure(dates, values, action_dates, total_profits, avaiable_cash, postion_worth, starting_cash,asset_object.asset)
     #fig.show()
 
@@ -135,7 +142,7 @@ if __name__ == '__main__':
     ema_long = df_ema_long[0].tolist()
     
 
-    fig = plotting.get_figure(dates, values, ema_list, ema_medium, ema_long, action_dates, total_profits, avaiable_cash, postion_worth, starting_cash,asset_object.asset)
+    fig = plotting.get_figure(dates, values, ema_list, ema_medium, ema_long, action_dates, trading_volume, total_profits, avaiable_cash, postion_worth, starting_cash,asset_object.asset)
     fig.show()
 
 

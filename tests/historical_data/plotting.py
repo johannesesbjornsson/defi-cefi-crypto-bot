@@ -3,30 +3,35 @@ import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-def get_figure(dates, values, ema_values, ema_values_medium, ema_values_long, action_dates, total_profits, avaiable_cash, postion_worth, starting_cash,asset):
+def get_figure(dates, values, ema_values, ema_values_medium, ema_values_long, action_dates, trading_volume, total_profits, avaiable_cash, postion_worth, starting_cash,asset):
     fig = make_subplots(rows=2, cols=1,
                 shared_xaxes=False,
                 vertical_spacing=0.2,
                 specs=[[{"type": "scatter"}],
+                #specs=[[{"secondary_y": True}],
                     [{"type": "table"}]
                 ]
            )
-    
+
     trace1 = go.Scatter(x=dates, y=values,name="Price")
     trace2 = go.Scatter(x=dates, y=ema_values,name="EMA")
     trace3 = go.Scatter(x=dates, y=ema_values_medium,name="Medium EMA")
     trace4 = go.Scatter(x=dates, y=ema_values_long,name="Long EMA")
+    #bars = go.Bar(x=dates, y=volume,name="Volume")
+    
     fig.add_trace(trace1,row=1, col=1)
     fig.add_trace(trace2,row=1, col=1)
     fig.add_trace(trace3,row=1, col=1)
     fig.add_trace(trace4,row=1, col=1)
+    #fig.add_trace(bars,row=1, col=1, secondary_y=True)
+    
     
     fig.update_layout(
         title_text="<b>"+asset+"</b>"+
         "<br>Total sales profits: "+ str(total_profits)+
         "<br>Starting cash:" + str(starting_cash) + "          "+
-        "Portfolio worth: " +str( avaiable_cash+ postion_worth) 
-        
+        "Portfolio worth: " +str( avaiable_cash+ postion_worth) + "          "+
+        "Trading Volume:" + str(trading_volume)
     )
     for action in action_dates:
         if action["action"] == "BUY":

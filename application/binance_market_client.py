@@ -136,9 +136,11 @@ class EMAMarket(Asset):
         for entry in self.market_data:
             data.append(float(entry[4]))
 
-        previous_ema, previous_ema_medium, previous_ema_long = self.get_emas(data)
-        data.append(self.asset_object.price)
+        previous_ema, previous_ema_medium, previous_ema_long = self.get_emas(data,-2)
+        
         ema, ema_medium, ema_long = self.get_emas(data)
+        data.append(self.asset_object.price)
+        with_latest_price_ema, with_latest_price_ema_medium, with_latest_price_ema_long = self.get_emas(data)
 
         self.previous_ema = previous_ema
         self.previous_ema_medium = previous_ema_medium
@@ -148,17 +150,27 @@ class EMAMarket(Asset):
         self.ema_medium = ema_medium
         self.ema_long = ema_long
 
+        self.with_latest_price_ema = with_latest_price_ema
+        self.with_latest_price_ema_medium = with_latest_price_ema_medium
+        self.with_latest_price_ema_long = with_latest_price_ema_long
 
     def is_buy_time(self):
         is_buy_time = False
         if self.ema == None and self.ema_medium == None and self.ema_long == None:
             return False
-
+        
+        # Checks that EMA 3 is more than EMA 9
         if self.ema > self.ema_medium  and self.ema > self.ema_long:
-            if self.previous_ema < self.previous_ema_medium  or self.previous_ema < self.previous_ema_long:
-                unsold_orders = self.asset_object.get_unsold_orders()
-                if len(unsold_orders) < 1:
-                    is_buy_time =  True
+            # Checks that EMA with latest price (without a candle close) is more than EMA 6
+            if self.with_latest_price_ema > self.with_latest_price_ema_medium  and self.with_latest_price_ema > self.with_latest_price_ema_long:
+                # Checks that EMA 3 (with latest price) is more than EMA 6 and EMA 9
+                if self.with_latest_price_ema > self.ema_medium  and self.with_latest_price_ema > self.ema_long:
+                    # Makes sure that prvious EMA was less than medium span to prevent double buy
+                    # Uses the EMA 3 of second to last candle stick to verify that it's a sustained rise
+                    if self.previous_ema < self.previous_ema_medium  or self.previous_ema < self.previous_ema_long:
+                        unsold_orders = self.asset_object.get_unsold_orders()
+                        if len(unsold_orders) < 1:
+                            is_buy_time =  True
         return is_buy_time
 
     def is_sell_time(self):
@@ -167,9 +179,9 @@ class EMAMarket(Asset):
 
         if len(unsold_orders) > 0: 
             price_to_compare = self.asset_object.get_purchase_price()
-            if (self.asset_object.price / price_to_compare) > 1.0075:
+            if (self.asset_object.price / price_to_compare) > 1.006:
                 is_sell_time = True
-            elif (self.asset_object.price / price_to_compare) < 0.994:
+            elif (self.asset_object.price / price_to_compare) < 0.995:
                 is_sell_time = True
 
         return is_sell_time
