@@ -87,7 +87,7 @@ class Asset(object):
         order = {
             "status" : "FILLED", 
             'side': 'BUY', 
-            'newClientOrderId': order_id,
+            'clientOrderId': order_id,
             'price': self.price, 
             "executedQty" : position_to_buy }
             
@@ -109,7 +109,7 @@ class Asset(object):
         order = {
             "status" : "FILLED", 
             'side': 'SELL', 
-            'newClientOrderId': order_id,
+            'clientOrderId': order_id,
             'price': self.price, 
             "executedQty" : position_to_sell 
         }

@@ -117,7 +117,19 @@ class EMAMarket(Asset):
         market_data = self.client.get_historical_klines(self.symbol, '1m', "2 hours ago GMT")
         self.market_data
 
+    def is_sell_time(self):
+        is_sell_time = False
+        unsold_orders = self.asset_object.get_unsold_orders()
 
+        if len(unsold_orders) > 0: 
+            price_to_compare = self.asset_object.get_purchase_price()
+            if (self.asset_object.price / price_to_compare) > 1.006:
+                is_sell_time = True
+            elif (self.asset_object.price / price_to_compare) < 0.995:
+                is_sell_time = True
+
+        return is_sell_time
+        
     def get_emas(self,data,data_point=-1):
         df = pd.DataFrame(data = data)
         ema = df.ewm(span=3).mean()
@@ -159,6 +171,10 @@ class EMAMarket(Asset):
         if self.ema == None and self.ema_medium == None and self.ema_long == None:
             return False
         
+        # Need to check that EMA 6 & 9 has been mor than EMA 3 for a while
+        # Potentially compare vector of EMAs
+        if self.previous_ema < self.previous_ema_medium  or self.previous_ema < self.previous_ema_long
+
         # Checks that EMA 3 is more than EMA 9
         if self.ema > self.ema_medium  and self.ema > self.ema_long:
             # Checks that EMA with latest price (without a candle close) is more than EMA 6
@@ -173,15 +189,3 @@ class EMAMarket(Asset):
                             is_buy_time =  True
         return is_buy_time
 
-    def is_sell_time(self):
-        is_sell_time = False
-        unsold_orders = self.asset_object.get_unsold_orders()
-
-        if len(unsold_orders) > 0: 
-            price_to_compare = self.asset_object.get_purchase_price()
-            if (self.asset_object.price / price_to_compare) > 1.006:
-                is_sell_time = True
-            elif (self.asset_object.price / price_to_compare) < 0.995:
-                is_sell_time = True
-
-        return is_sell_time
