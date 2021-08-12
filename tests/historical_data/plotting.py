@@ -31,7 +31,7 @@ def get_figure(dates, values, ema_values, ema_values_medium, ema_values_long, ac
         "<br>Total sales profits: "+ str(total_profits)+
         "<br>Starting cash:" + str(starting_cash) + "          "+
         "Portfolio worth: " +str( avaiable_cash+ postion_worth) + "          "+
-        "Trading Volume:" + str(trading_volume)
+        "Trading Volume: " + str(trading_volume)
     )
     for action in action_dates:
         if action["action"] == "BUY":

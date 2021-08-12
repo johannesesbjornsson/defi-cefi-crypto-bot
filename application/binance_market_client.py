@@ -154,13 +154,16 @@ class EMAMarket(Asset):
         self.ema_medium = ema_medium
         self.ema_long = ema_long
 
-    def get_highest_price(self):
+    def get_trading_range(self):
         highest_price = 0
+        lowest_price = 10000000
         for entry in self.market_data:
             price = float(entry[4])
             if  price > highest_price:
                 highest_price = price
-        return highest_price
+            if  price < lowest_price:
+                lowest_price = price
+        return lowest_price, highest_price
 
 
     def is_buy_time(self):
@@ -190,9 +193,14 @@ class EMAMarket(Asset):
         if self.ema[-1] < self.ema[-2]:
             return False
 
-        highest_price = self.get_highest_price()
-        if self.asset_object.price/highest_price < 0.98:
+        lowest_price, highest_price = self.get_trading_range()
+        #if self.asset_object.price/highest_price < 0.98:
+        #    return False
+        points_away_from_lowest = self.asset_object.price - lowest_price
+        points_away_from_highest = highest_price - self.asset_object.price
+        if points_away_from_lowest > points_away_from_highest:
             return False
+        print(points_away_from_lowest, points_away_from_highest )
             
 
         return True

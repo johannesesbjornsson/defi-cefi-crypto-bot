@@ -114,12 +114,13 @@ if __name__ == '__main__':
     starting_cash = 1500
     currency = "BTC"
     purchase_amount = 50
+    dataset = get_dataset("dataset")
 
     client = binance_client.get_client(cfg.api_key,cfg.api_secret)
     asset_object = binance_client.Asset(client,currency, purchase_amount=purchase_amount)            
     #market_object = binance_market_client.Market(asset_object)
     market_object = binance_market_client.EMAMarket(asset_object)
-    dataset = get_dataset("dataset")
+    
 
 
     dates, values, action_dates, trading_volume, total_profits, avaiable_cash, postion_worth = main(dataset,market_object,starting_cash,purchase_amount)
