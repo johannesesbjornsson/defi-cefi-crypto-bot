@@ -1,4 +1,4 @@
 *.sh
 .terraform*
 __pycache__
-historical_data/dataset.json
+tests/historical_data/dataset.json
