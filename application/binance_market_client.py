@@ -200,7 +200,6 @@ class EMAMarket(Asset):
         points_away_from_highest = highest_price - self.asset_object.price
         if points_away_from_lowest > points_away_from_highest:
             return False
-        print(points_away_from_lowest, points_away_from_highest )
             
 
         return True

@@ -65,17 +65,16 @@ def main(dataset,market_object,avaiable_cash=1500,gbp_purchase_amount=50):
         #market_object = set_market_conditions(market_object,i,dataset,entry) 
         market_object = set_ema_market_conditions(market_object,i,dataset,entry) 
 
-        if i > 60:
-            time_to_sell = market_object.is_sell_time() 
-            if time_to_sell:
-                order = market_object.asset_object.test_sell_asset()
-                order_profit = (market_object.asset_object.asset_holdings * market_object.asset_object.price ) - market_object.asset_object.get_total_buy_in_amount()
-                total_profits =  total_profits + order_profit
-            else:
-                time_to_buy = market_object.is_buy_time()
-                if time_to_buy:
-                    market_object.asset_object.purchase_amount = market_object.asset_object.get_purchase_amount(gbp_purchase_amount)
-                    order = market_object.asset_object.test_buy_asset()
+        time_to_sell = market_object.is_sell_time() 
+        if time_to_sell:
+            order = market_object.asset_object.test_sell_asset()
+            order_profit = (market_object.asset_object.asset_holdings * market_object.asset_object.price ) - market_object.asset_object.get_total_buy_in_amount()
+            total_profits =  total_profits + order_profit
+        else:
+            time_to_buy = market_object.is_buy_time()
+            if time_to_buy:
+                market_object.asset_object.purchase_amount = market_object.asset_object.get_purchase_amount(gbp_purchase_amount)
+                order = market_object.asset_object.test_buy_asset()
 
 
         if order is not None:
@@ -112,7 +111,7 @@ def main(dataset,market_object,avaiable_cash=1500,gbp_purchase_amount=50):
 
 if __name__ == '__main__':
     starting_cash = 1500
-    currency = "BTC"
+    currency = "ETH"
     purchase_amount = 50
     dataset = get_dataset("dataset")
 
