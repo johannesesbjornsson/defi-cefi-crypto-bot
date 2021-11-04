@@ -108,14 +108,17 @@ class EMAMarket(Asset):
         self.client = asset_object.client
         self.asset_object = asset_object
         self.market_data = None
+        #self.btc_market_data = None
         self.ema = None
         self.ema_medium = None
         self.ema_long = None
 
 
     def set_market_data(self):
-        market_data = self.client.get_historical_klines(self.symbol, '1m', "2 hours ago GMT")
-        self.market_data
+        market_data = self.client.get_historical_klines(self.symbol, '3m', "9 hours ago GMT")
+        #btc_market_data = self.client.get_historical_klines("BTCUSDT", '3m', "9 hours ago GMT")
+        self.market_data = market_data
+        #self.btc_market_data = btc_market_data
 
     def is_sell_time(self):
         is_sell_time = False
@@ -123,9 +126,9 @@ class EMAMarket(Asset):
 
         if len(unsold_orders) > 0: 
             price_to_compare = self.asset_object.get_purchase_price()
-            if (self.asset_object.price / price_to_compare) > 1.01:
+            if (self.asset_object.price / price_to_compare) > 1.015:
                 is_sell_time = True
-            elif (self.asset_object.price / price_to_compare) < 0.993:
+            elif (self.asset_object.price / price_to_compare) < 0.99:
                 is_sell_time = True
 
         return is_sell_time
@@ -145,6 +148,7 @@ class EMAMarket(Asset):
     def calculate_ema(self):
         data = []
         for entry in self.market_data:
+        #for entry in self.btc_market_data:
             data.append(float(entry[4]))
     
         data.append(self.asset_object.price)
@@ -158,6 +162,7 @@ class EMAMarket(Asset):
         highest_price = 0
         lowest_price = 10000000
         for entry in self.market_data:
+        #for entry in self.btc_market_data:
             price = float(entry[4])
             if  price > highest_price:
                 highest_price = price
@@ -194,8 +199,7 @@ class EMAMarket(Asset):
             return False
 
         lowest_price, highest_price = self.get_trading_range()
-        #if self.asset_object.price/highest_price < 0.98:
-        #    return False
+
         points_away_from_lowest = self.asset_object.price - lowest_price
         points_away_from_highest = highest_price - self.asset_object.price
         if points_away_from_lowest > points_away_from_highest:
@@ -203,21 +207,6 @@ class EMAMarket(Asset):
             
 
         return True
-
-
-        # Checks that EMA 3 is more than EMA 9
-        if self.ema > self.ema_medium  and self.ema > self.ema_long:
-            # Checks that EMA with latest price (without a candle close) is more than EMA 6
-            if self.with_latest_price_ema > self.with_latest_price_ema_medium  and self.with_latest_price_ema > self.with_latest_price_ema_long:
-                # Checks that EMA 3 (with latest price) is more than EMA 6 and EMA 9
-                if self.with_latest_price_ema > self.ema_medium  and self.with_latest_price_ema > self.ema_long:
-                    # Makes sure that prvious EMA was less than medium span to prevent double buy
-                    # Uses the EMA 3 of second to last candle stick to verify that it's a sustained rise
-                    if self.previous_ema < self.previous_ema_medium  or self.previous_ema < self.previous_ema_long:
-                        unsold_orders = self.asset_object.get_unsold_orders()
-                        if len(unsold_orders) < 1:
-                            is_buy_time =  True
-        return is_buy_time
 
 
     # def get_emas(self,data,data_point=-1):

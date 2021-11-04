@@ -3,12 +3,12 @@ import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-def get_figure(dates, values, ema_values, ema_values_medium, ema_values_long, action_dates, trading_volume, total_profits, avaiable_cash, postion_worth, starting_cash,asset):
+def get_figure(dates, values, ema_values, ema_values_medium, ema_values_long, action_dates, trading_volume, total_profits, avaiable_cash, postion_worth, starting_cash,asset, btc_values=None):
     fig = make_subplots(rows=2, cols=1,
                 shared_xaxes=False,
                 vertical_spacing=0.2,
-                specs=[[{"type": "scatter"}],
-                #specs=[[{"secondary_y": True}],
+                #specs=[[{"type": "scatter"}],
+                specs=[[{"secondary_y": True}],
                     [{"type": "table"}]
                 ]
            )
@@ -18,26 +18,30 @@ def get_figure(dates, values, ema_values, ema_values_medium, ema_values_long, ac
     trace3 = go.Scatter(x=dates, y=ema_values_medium,name="Medium EMA")
     trace4 = go.Scatter(x=dates, y=ema_values_long,name="Long EMA")
     #bars = go.Bar(x=dates, y=volume,name="Volume")
+    #if not btc_values:
+    #    trace5 = go.Scatter(x=dates, y=btc_values,name="BTC Price")
     
     fig.add_trace(trace1,row=1, col=1)
     fig.add_trace(trace2,row=1, col=1)
     fig.add_trace(trace3,row=1, col=1)
     fig.add_trace(trace4,row=1, col=1)
     #fig.add_trace(bars,row=1, col=1, secondary_y=True)
+    #if not btc_values:
+    #    fig.add_trace(trace5,row=1, col=1, secondary_y=True)
+
+    profitable_trades = 0
+    unprofitable_trades = 0
     
-    
-    fig.update_layout(
-        title_text="<b>"+asset+"</b>"+
-        "<br>Total sales profits: "+ str(total_profits)+
-        "<br>Starting cash:" + str(starting_cash) + "          "+
-        "Portfolio worth: " +str( avaiable_cash+ postion_worth) + "          "+
-        "Trading Volume: " + str(trading_volume)
-    )
     for action in action_dates:
         if action["action"] == "BUY":
             color = "#ff7f0e"
         else: 
             color = "#00FF00"
+            if action["order_profit"] > 0:
+                profitable_trades = profitable_trades +1
+            else:
+                unprofitable_trades = unprofitable_trades +1
+
     
         fig.add_annotation(
             x=action["date"],
@@ -54,6 +58,16 @@ def get_figure(dates, values, ema_values, ema_values_medium, ema_values_long, ac
             ax=-10,
             bgcolor=color,
             )
+    
+    fig.update_layout(
+        title_text="<b>"+asset+"</b>"+
+        "<br>Total sales profits: "+ str(total_profits)+ "          "+
+        "Profitable trades: " + str(profitable_trades)+ "          "+
+        "Unprofitable trades: " + str(unprofitable_trades)+
+        "<br>Starting cash:" + str(starting_cash) + "          "+
+        "Portfolio worth: " +str( avaiable_cash+ postion_worth) + "          "+
+        "Trading Volume: " + str(trading_volume)
+    )
 
     cells = [[],[],[],[],[]]
     colors = [] 

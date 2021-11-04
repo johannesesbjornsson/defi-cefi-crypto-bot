@@ -88,11 +88,11 @@ class TestingAsset(unittest.TestCase):
         self.market_object.asset_object.orders = [
             {'symbol': 'ADAGBP', 'orderId': 19692858, 'orderListId': -1, 'clientOrderId': 'crypto_bot_created11111', 'price': '1.00000000', 'origQty': '40.77000000', 'executedQty': '40.77000000', 'cummulativeQuoteQty': '49.99217400', 'status': 'FILLED', 'timeInForce': 'GTC', 'type': 'LIMIT', 'side': 'BUY', 'stopPrice': '0.00000000', 'icebergQty': '0.00000000', 'time': 1622886369535, 'updateTime': 1622886403711, 'isWorking': True, 'origQuoteOrderQty': '0.00000000'},
         ]
-        self.market_object.asset_object.precision = 0.01
+        self.market_object.asset_object.quantity_precision = 0.01
         self.market_object.asset_object.price = 0.97
         self.market_object.asset_object.gbp_price = 0.97
         self.market_object.asset_object.avaiable_cash = 51
-
+        
         # Verifies that that it will double down
         self.assertTrue(self.market_object.asset_object.get_purchase_amount(50) == 51.55)
         self.market_object.asset_object.purchase_amount = 51.55
@@ -107,6 +107,7 @@ class TestingAsset(unittest.TestCase):
         self.market_object.asset_object.price = 0.9799
         self.market_object.asset_object.gbp_price = 0.9799
         self.market_object.asset_object.avaiable_cash = 49
+        self.market_object.asset_object.quantity_precision = 0.01
         self.market_object.asset_object.asset_holdings = 100
 
         # Won't buy due to insufficent cash
@@ -122,6 +123,7 @@ class TestingAsset(unittest.TestCase):
             {'symbol': 'ADAGBP', 'orderId': 19692858, 'orderListId': -1, 'clientOrderId': 'crypto_bot_created11111', 'price': '0.98000000', 'origQty': '40.77000000', 'executedQty': '40.77000000', 'cummulativeQuoteQty': '49.99217400', 'status': 'FILLED', 'timeInForce': 'GTC', 'type': 'LIMIT', 'side': 'BUY', 'stopPrice': '0.00000000', 'icebergQty': '0.00000000', 'time': 1622886369535, 'updateTime': 1622886403711, 'isWorking': True, 'origQuoteOrderQty': '0.00000000'},
         ]
         self.market_object.asset_object.price = 0.97
+        self.market_object.asset_object.quantity_precision = 0.01
         self.market_object.asset_object.gbp_price = 0.97
         self.market_object.asset_object.avaiable_cash = 51
         self.market_object.asset_object.asset_holdings = 100
@@ -142,6 +144,7 @@ class TestingAsset(unittest.TestCase):
         self.market_object.asset_object.gbp_price = 0.9599
         self.market_object.asset_object.avaiable_cash = 51
         self.market_object.asset_object.asset_holdings = 100
+        self.market_object.asset_object.quantity_precision = 0.01
         
         # Will buy because of enough price decrease
         self.assertTrue(self.market_object.asset_object.get_purchase_amount(50) == 52.09)
@@ -160,6 +163,7 @@ class TestingAsset(unittest.TestCase):
         self.market_object.asset_object.gbp_price = 0.879
         self.market_object.asset_object.avaiable_cash = 50
         self.market_object.asset_object.asset_holdings = 100
+        self.market_object.asset_object.quantity_precision = 0.01
         self.market_object.asset_object.purchase_amount = 50
         
 
@@ -183,6 +187,7 @@ class TestingAsset(unittest.TestCase):
         self.market_object.asset_object.price = 0.87
         self.market_object.asset_object.gbp_price = 0.87
         self.market_object.asset_object.avaiable_cash = 51
+        self.market_object.asset_object.quantity_precision = 0.01
         self.market_object.asset_object.asset_holdings = 100
         
         # Wont buy due to lack of price decrase
@@ -203,6 +208,7 @@ class TestingAsset(unittest.TestCase):
         self.market_object.asset_object.price = 0.911
         self.market_object.asset_object.gbp_price = 0.911
         self.market_object.asset_object.asset_holdings = 100
+        self.market_object.asset_object.quantity_precision = 0.01
         self.market_object.asset_object.avaiable_cash = 51
 
         # Won't buy to lack of price decrase
@@ -223,10 +229,11 @@ class TestingAsset(unittest.TestCase):
     def test_buy_asset(self):
         self.market_object.asset_object.price = 0.91
         self.market_object.asset_object.gbp_price = 0.91
+        self.market_object.asset_object.quantity_precision = 0.1
         qty = self.market_object.asset_object.get_purchase_amount(50)
         self.market_object.asset_object.purchase_amount = qty
         order = self.market_object.asset_object.test_buy_asset()
-        self.assertTrue(order["executedQty"] == 54.95 )
+        self.assertTrue(order["executedQty"] == 54.9 )
         self.assertTrue(order["price"] == 0.91 )
 
     def test_get_total_buy_in_amount_1(self):
@@ -267,6 +274,7 @@ class TestingAsset(unittest.TestCase):
         self.market_object.asset_object.price = 0.14829
         self.market_object.asset_object.gbp_price = 215
         self.market_object.asset_object.avaiable_cash = 51
+        self.market_object.asset_object.quantity_precision = 0.01
 
         # Make sure that the ordering of orders are correct
         unsold_orders = self.market_object.asset_object.get_unsold_orders()

@@ -41,7 +41,9 @@ def set_ema_market_conditions(market_object,i,dataset,entry):
     market_object.asset_object.price = get_price(entry)
     market_object.asset_object.gbp_price = get_price(entry)
 
-    market_object.market_data = dataset[i-50:i]
+    market_object.market_data = dataset[i-180:i]
+    #if btc_dataset is not None: 
+    #    market_object.btc_market_data = btc_dataset[i-50:i]
     market_object.calculate_ema()
 
     return market_object
@@ -56,7 +58,7 @@ def main(dataset,market_object,avaiable_cash=1500,gbp_purchase_amount=50):
     market_object.asset_object.asset_holdings = 0
     market_object.asset_object.avaiable_cash = avaiable_cash
     market_object.asset_object.orders = []
-    for i in range(50,len(dataset)):
+    for i in range(180,len(dataset)):
         entry = dataset[i]
         timestamp = datetime.datetime.fromtimestamp(int(entry[0]/1000)).strftime('%c')
         order = None
@@ -102,10 +104,18 @@ def main(dataset,market_object,avaiable_cash=1500,gbp_purchase_amount=50):
 
         dates.append(timestamp)
         values.append(market_object.asset_object.price)
+        #if btc_dataset is not None:
+        #    btc_values.append(get_price(btc_dataset[i]))
         #volume.append(float(entry[5]))
 
     postion_worth = market_object.asset_object.asset_holdings * market_object.asset_object.price
-    return dates, values, action_dates, trading_volume, round_step_size(total_profits, 0.00001), round_step_size(market_object.asset_object.avaiable_cash, 0.00001), round_step_size(postion_worth, 0.00001)
+    return dates, \
+        values, \
+        action_dates, \
+        trading_volume, \
+        round_step_size(total_profits, 0.00001), \
+        round_step_size(market_object.asset_object.avaiable_cash, 0.00001), \
+        round_step_size(postion_worth, 0.00001)
 
 
 
@@ -114,6 +124,7 @@ if __name__ == '__main__':
     currency = "ETH"
     purchase_amount = 50
     dataset = get_dataset("dataset")
+    #btc_dataset = None #get_dataset("btc_dataset")
 
     client = binance_client.get_client(cfg.api_key,cfg.api_secret)
     asset_object = binance_client.Asset(client,currency, purchase_amount=purchase_amount)            
