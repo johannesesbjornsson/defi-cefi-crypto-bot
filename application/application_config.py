@@ -1,23 +1,12 @@
 import os
 
 assets_to_check = {
-    "BTC": {
-        "crypto": "BTC",
-        "currency": "GBP",
-        "precision" : 6,
-        "amount": 0.005 
-    },
-    "ETH": {
+    "ETHUSDT": {
+        "medium_period_to_compare": 3,
+        "short_period_to_compare": 10,
         "crypto": "ETH",
-        "currency": "GBP",
-        "precision" : 4,
-        "amount": 0.05 
-    },
-    "BNB": {
-        "crypto": "BNB",
-        "currency": "GBP",
-        "precision" : 4,
-        "amount": 0.05 
+        "currency": "USDT",
+        "double_downs": 1
     },   
 }
 

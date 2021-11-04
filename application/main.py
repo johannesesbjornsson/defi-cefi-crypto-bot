@@ -49,7 +49,7 @@ def main(client,assets_to_check):
             continue
         
         time_to_sell = market_object.is_sell_time()
-
+        
         if time_to_sell:
             asset_object.update_price()
             order = sell(asset_object)
@@ -71,7 +71,8 @@ if __name__ == '__main__':
     
     while True:
         try:
-            main(client,cfg.cryptopairs)
+            #main(client,cfg.cryptopairs)
+            main(client,cfg.assets_to_check)
         except ReadTimeout as e:
             print("Got connection timout, conntinuing")
         except ConnectionError as e:

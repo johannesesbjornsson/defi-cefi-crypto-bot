@@ -5,6 +5,8 @@ from binance.helpers import round_step_size
 import datetime
 from binance.exceptions import BinanceAPIException
 from binance_client import Asset
+import pandas as pd
+import numpy as np
 
 class Market(Asset):
 
@@ -93,3 +95,175 @@ class Market(Asset):
                 is_sell_time = True
 
         return is_sell_time
+
+
+
+
+class EMAMarket(Asset):
+
+    def __init__(self, asset_object):
+        if type(asset_object) != Asset:
+            raise ValueError("Argument must be object type Asset")
+        self.symbol = asset_object.symbol
+        self.client = asset_object.client
+        self.asset_object = asset_object
+        self.market_data = None
+        #self.btc_market_data = None
+        self.ema = None
+        self.ema_medium = None
+        self.ema_long = None
+
+
+    def set_market_data(self):
+        market_data = self.client.get_historical_klines(self.symbol, '3m', "9 hours ago GMT")
+        #btc_market_data = self.client.get_historical_klines("BTCUSDT", '3m', "9 hours ago GMT")
+        self.market_data = market_data
+        #self.btc_market_data = btc_market_data
+
+    def is_sell_time(self):
+        is_sell_time = False
+        unsold_orders = self.asset_object.get_unsold_orders()
+
+        if len(unsold_orders) > 0: 
+            price_to_compare = self.asset_object.get_purchase_price()
+            if (self.asset_object.price / price_to_compare) > 1.015:
+                is_sell_time = True
+            elif (self.asset_object.price / price_to_compare) < 0.99:
+                is_sell_time = True
+
+        return is_sell_time
+    def get_emas(self,data,):
+        df = pd.DataFrame(data = data)
+        ema = df.ewm(span=3).mean()
+        ema_medium = df.ewm(span=6).mean()
+        ema_long = df.ewm(span=9).mean()
+        df = pd.DataFrame(data = data)
+        
+        ema = df.ewm(span=3).mean()[0].tolist()[-8:]
+        ema_medium = df.ewm(span=6).mean()[0].tolist()[-8:]
+        ema_long = df.ewm(span=9).mean()[0].tolist()[-8:]
+
+        return ema, ema_medium, ema_long
+
+    def calculate_ema(self):
+        data = []
+        for entry in self.market_data:
+        #for entry in self.btc_market_data:
+            data.append(float(entry[4]))
+    
+        data.append(self.asset_object.price)
+        ema, ema_medium, ema_long = self.get_emas(data)
+
+        self.ema = ema
+        self.ema_medium = ema_medium
+        self.ema_long = ema_long
+
+    def get_trading_range(self):
+        highest_price = 0
+        lowest_price = 10000000
+        for entry in self.market_data:
+        #for entry in self.btc_market_data:
+            price = float(entry[4])
+            if  price > highest_price:
+                highest_price = price
+            if  price < lowest_price:
+                lowest_price = price
+        return lowest_price, highest_price
+
+
+    def is_buy_time(self):
+        unsold_orders = self.asset_object.get_unsold_orders()
+        if len(unsold_orders) > 0:
+            return False
+        if self.ema == None and self.ema_medium == None and self.ema_long == None:
+            return False
+        
+        # Need to check that EMA 6 & 9 has been mor than EMA 3 for a while
+        # Potentially compare vector of EMAs
+        if self.ema[-1] > self.ema_medium[-1]  and self.ema[-1] > self.ema_long[-1]:
+            pass
+        else:
+            return False
+
+        time_in_green = 0
+        for i in range(len(self.ema)-2):
+            if self.ema[i] > self.ema_medium[i]  or self.ema[i] > self.ema_long[i]:
+                time_in_green = time_in_green +1
+        if time_in_green > 2:
+            return False
+
+        for i in range(len(self.ema)-2, len(self.ema)):
+            if self.ema[i] < self.ema_medium[i]  or self.ema[i] < self.ema_long[i]:
+                return False
+        if self.ema[-1] < self.ema[-2]:
+            return False
+
+        lowest_price, highest_price = self.get_trading_range()
+
+        points_away_from_lowest = self.asset_object.price - lowest_price
+        points_away_from_highest = highest_price - self.asset_object.price
+        if points_away_from_lowest > points_away_from_highest:
+            return False
+            
+
+        return True
+
+
+    # def get_emas(self,data,data_point=-1):
+    #     df = pd.DataFrame(data = data)
+    #     ema = df.ewm(span=3).mean()
+    #     ema_medium = df.ewm(span=6).mean()
+    #     ema_long = df.ewm(span=9).mean()
+    #     df = pd.DataFrame(data = data)
+        
+    #     ema = df.ewm(span=3).mean()[0].tolist()[data_point]
+    #     ema_medium = df.ewm(span=6).mean()[0].tolist()[data_point]
+    #     ema_long = df.ewm(span=9).mean()[0].tolist()[data_point ]
+
+    #     return ema, ema_medium, ema_long
+
+    # def calculate_ema(self):
+    #     data = []
+    #     for entry in self.market_data:
+    #         data.append(float(entry[4]))
+
+    #     previous_ema, previous_ema_medium, previous_ema_long = self.get_emas(data,-2)
+        
+    #     ema, ema_medium, ema_long = self.get_emas(data)
+    #     data.append(self.asset_object.price)
+    #     with_latest_price_ema, with_latest_price_ema_medium, with_latest_price_ema_long = self.get_emas(data)
+
+    #     self.previous_ema = previous_ema
+    #     self.previous_ema_medium = previous_ema_medium
+    #     self.previous_ema_long = previous_ema_long
+
+    #     self.ema = ema
+    #     self.ema_medium = ema_medium
+    #     self.ema_long = ema_long
+
+    #     self.with_latest_price_ema = with_latest_price_ema
+    #     self.with_latest_price_ema_medium = with_latest_price_ema_medium
+    #     self.with_latest_price_ema_long = with_latest_price_ema_long
+
+    # def is_buy_time(self):
+    #     is_buy_time = False
+    #     if self.ema == None and self.ema_medium == None and self.ema_long == None:
+    #         return False
+        
+    #     # Need to check that EMA 6 & 9 has been mor than EMA 3 for a while
+    #     # Potentially compare vector of EMAs
+
+    #     # Checks that EMA 3 is more than EMA 9
+    #     if self.ema > self.ema_medium  and self.ema > self.ema_long:
+    #         # Checks that EMA with latest price (without a candle close) is more than EMA 6
+    #         if self.with_latest_price_ema > self.with_latest_price_ema_medium  and self.with_latest_price_ema > self.with_latest_price_ema_long:
+    #             # Checks that EMA 3 (with latest price) is more than EMA 6 and EMA 9
+    #             if self.with_latest_price_ema > self.ema_medium  and self.with_latest_price_ema > self.ema_long:
+    #                 # Makes sure that prvious EMA was less than medium span to prevent double buy
+    #                 # Uses the EMA 3 of second to last candle stick to verify that it's a sustained rise
+    #                 if self.previous_ema < self.previous_ema_medium  or self.previous_ema < self.previous_ema_long:
+    #                     unsold_orders = self.asset_object.get_unsold_orders()
+    #                     if len(unsold_orders) < 1:
+    #                         is_buy_time =  True
+    #     return is_buy_time
+

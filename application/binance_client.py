@@ -67,13 +67,19 @@ class Asset(object):
         
         return active_order_exist
 
+    def generate_timestamp(self):
+        now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        return now
+
     def test_buy_asset(self):
         position_to_buy = self.purchase_amount
+        order_id = "crypto_bot_created"+self.generate_timestamp()
 
         order = self.client.create_test_order(
             symbol=self.symbol,
             side=SIDE_BUY,
             type=ORDER_TYPE_LIMIT,
+            newClientOrderId=order_id,
             timeInForce=TIME_IN_FORCE_GTC,
             quantity=position_to_buy,
             price="{:.8f}".format(self.price))
@@ -81,6 +87,7 @@ class Asset(object):
         order = {
             "status" : "FILLED", 
             'side': 'BUY', 
+            'clientOrderId': order_id,
             'price': self.price, 
             "executedQty" : position_to_buy }
             
@@ -88,11 +95,13 @@ class Asset(object):
 
     def test_sell_asset(self):
         position_to_sell = self.get_total_buy_quantity()
+        order_id = "crypto_bot_created"+self.generate_timestamp()
 
         order = self.client.create_test_order(
             symbol=self.symbol,
             side=SIDE_SELL,
             type=ORDER_TYPE_LIMIT,
+            newClientOrderId=order_id,
             timeInForce=TIME_IN_FORCE_GTC,
             quantity=position_to_sell,
             price="{:.8f}".format(self.price))
@@ -100,6 +109,7 @@ class Asset(object):
         order = {
             "status" : "FILLED", 
             'side': 'SELL', 
+            'clientOrderId': order_id,
             'price': self.price, 
             "executedQty" : position_to_sell 
         }
@@ -108,10 +118,12 @@ class Asset(object):
 
     def buy_asset(self):
         position_to_buy = self.purchase_amount
+        order_id = "crypto_bot_created"+self.generate_timestamp()
 
         order = self.client.create_order(
             symbol=self.symbol,
             side=SIDE_BUY,
+            newClientOrderId=order_id,
             type=ORDER_TYPE_LIMIT,
             timeInForce=TIME_IN_FORCE_GTC,
             quantity=position_to_buy,
@@ -121,11 +133,13 @@ class Asset(object):
 
     def sell_asset(self):
         position_to_sell = self.get_total_buy_quantity()
+        order_id = "crypto_bot_created"+self.generate_timestamp()
 
         order = self.client.create_order(
             symbol=self.symbol,
             side=SIDE_SELL,
             type=ORDER_TYPE_LIMIT,
+            newClientOrderId=order_id,
             timeInForce=TIME_IN_FORCE_GTC,
             quantity=position_to_sell,
             price="{:.8f}".format(self.price))
@@ -135,6 +149,8 @@ class Asset(object):
     def get_unsold_orders(self):
         orders_not_sold = []
         for order in reversed(self.orders):
+            if not order["clientOrderId"].startswith('crypto_bot_created'):
+                continue
             if order["status"] != "FILLED" and order["status"] != "PARTIALLY_FILLED":
                 continue
             if order["status"] == "FILLED" and order["side"] == "SELL":

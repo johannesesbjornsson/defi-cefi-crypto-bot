@@ -37,10 +37,23 @@ def set_market_conditions(market_object,i,dataset,entry):
     return market_object
 
 
+def set_ema_market_conditions(market_object,i,dataset,entry):
+    market_object.asset_object.price = get_price(entry)
+    market_object.asset_object.gbp_price = get_price(entry)
+
+    market_object.market_data = dataset[i-180:i]
+    #if btc_dataset is not None: 
+    #    market_object.btc_market_data = btc_dataset[i-50:i]
+    market_object.calculate_ema()
+
+    return market_object
+
 def main(dataset,market_object,avaiable_cash=1500,gbp_purchase_amount=50):
     total_profits = 0
     dates = []
     values = []
+    volume = []
+    trading_volume = 0
     action_dates = []
     market_object.asset_object.asset_holdings = 0
     market_object.asset_object.avaiable_cash = avaiable_cash
@@ -51,8 +64,8 @@ def main(dataset,market_object,avaiable_cash=1500,gbp_purchase_amount=50):
         order = None
         order_profit = 0
 
-        set_market_conditions(market_object,i,dataset,entry) 
-
+        #market_object = set_market_conditions(market_object,i,dataset,entry) 
+        market_object = set_ema_market_conditions(market_object,i,dataset,entry) 
 
         time_to_sell = market_object.is_sell_time() 
         if time_to_sell:
@@ -83,28 +96,68 @@ def main(dataset,market_object,avaiable_cash=1500,gbp_purchase_amount=50):
                 "avaiable_cash": market_object.asset_object.avaiable_cash,
                 "order_profit": order_profit,
             })
+            trading_volume = trading_volume + (order["executedQty"] * order["price"])
+
+
+
 
 
         dates.append(timestamp)
         values.append(market_object.asset_object.price)
+        #if btc_dataset is not None:
+        #    btc_values.append(get_price(btc_dataset[i]))
+        #volume.append(float(entry[5]))
 
     postion_worth = market_object.asset_object.asset_holdings * market_object.asset_object.price
-    return dates, values, action_dates, round_step_size(total_profits, 0.00001), round_step_size(market_object.asset_object.avaiable_cash, 0.00001), round_step_size(postion_worth, 0.00001)
+    return dates, \
+        values, \
+        action_dates, \
+        trading_volume, \
+        round_step_size(total_profits, 0.00001), \
+        round_step_size(market_object.asset_object.avaiable_cash, 0.00001), \
+        round_step_size(postion_worth, 0.00001)
 
 
 
 if __name__ == '__main__':
     starting_cash = 1500
-    currency = "BTC"
+    currency = "ETH"
     purchase_amount = 50
+    dataset = get_dataset("dataset")
+    #btc_dataset = None #get_dataset("btc_dataset")
 
     client = binance_client.get_client(cfg.api_key,cfg.api_secret)
     asset_object = binance_client.Asset(client,currency, purchase_amount=purchase_amount)            
-    market_object = binance_market_client.Market(asset_object)
-    dataset = get_dataset("first_week_aug")
+    #market_object = binance_market_client.Market(asset_object)
+    market_object = binance_market_client.EMAMarket(asset_object)
+    
 
-    dates, values, action_dates, total_profits, avaiable_cash, postion_worth = main(dataset,market_object,starting_cash,purchase_amount)
 
-    fig = plotting.get_figure(dates, values, action_dates, total_profits, avaiable_cash, postion_worth, starting_cash,asset_object.asset)
+    dates, values, action_dates, trading_volume, total_profits, avaiable_cash, postion_worth = main(dataset,market_object,starting_cash,purchase_amount)
+    #fig = plotting.get_figure(dates, values, action_dates, total_profits, avaiable_cash, postion_worth, starting_cash,asset_object.asset)
+    #fig.show()
 
+    
+    import pandas as pd
+    import numpy as np
+
+    df = pd.DataFrame(data = values)
+    df_ema = df.ewm(span=3).mean()
+    df_ema_medium = df.ewm(span=6).mean()
+    df_ema_long = df.ewm(span=9).mean()
+    #df_ma = df.rolling(window=5).mean()
+    #ma_list = df_ma[0].tolist()
+
+    ema_list = df_ema[0].tolist()
+    ema_medium = df_ema_medium[0].tolist()
+    ema_long = df_ema_long[0].tolist()
+    
+
+    fig = plotting.get_figure(dates, values, ema_list, ema_medium, ema_long, action_dates, trading_volume, total_profits, avaiable_cash, postion_worth, starting_cash,asset_object.asset)
     fig.show()
+
+
+
+    
+
+
