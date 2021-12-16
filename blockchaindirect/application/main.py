@@ -6,25 +6,24 @@ import itertools
 client = bsc_client.Client(cfg.my_bep20_address, cfg.private_key, cfg.bsc_scan_api_key)
 
 lists = list(itertools.combinations(client.tokens_to_check, 2))
-lists = list(itertools.combinations(cfg.tokens.keys(), 2))
-#lists = [
-#    ["Cake", "DogeDash"]
-#]
+#lists = list(itertools.combinations(cfg.tokens.keys(), 2))
+lists = [
+    ["FLOKI","XRP"]
+]
 debug_mode = True
+from_range = [2, 4]
 for li in lists:
     token_0 = "BUSD"
     token_1 = li[0]
     token_2 = li[1]
+    #print("Checking",token_0, token_1, token_2 )
+    client.test("FLOKI")
+    client.test("CAKE")
     
-    arbitrage = bsc_client.Arbitrage(client=client,token_0=token_0,token_1=token_1,token_2=token_2,from_range=[2,20], debug_mode=debug_mode)
-
-    
-    found_arbitrage =  arbitrage.find_arbitrage()
-    if found_arbitrage:
-        arbitrage.print_prices()
-        print(arbitrage.available_arbitrage)
-        print("-----")
-        arbitrage.execute_arbitrage()
+    #arbitrage = bsc_client.Arbitrage(client=client,token_0=token_0,token_1=token_1,token_2=token_2,from_range=from_range, debug_mode=debug_mode)
+    #found_arbitrage =  arbitrage.find_arbitrage()
+    #if found_arbitrage:
+    #    arbitrage.execute_arbitrage()
 
     
     # ------------------- Hepful transactions -------------------
