@@ -20,6 +20,7 @@ class Client(object):
         contract_details = contract_libarary.get_contract_details("pancake_router")
         abi = json.loads(contract_details["abi"])
         contract_address = contract_details["address"]
+        self.contract_address = self.web3.toChecksumAddress(contract_address) 
         self.contract = self.web3.eth.contract(address=contract_address, abi=abi)
         contract_details = contract_libarary.get_contract_details("pancake_factory")
         abi = json.loads(contract_details["abi"])
@@ -72,35 +73,39 @@ class Client(object):
             token_price = None
         
         return token_price
-        
-    def execute_buy_order(self, from_token, to_token, from_token_amount, to_token_amount):
+
+    def build_transaction(self, from_token, to_token, from_token_amount, to_token_amount):
         spend = self.web3.toChecksumAddress(self.known_tokens[from_token])
         token_to_buy = self.web3.toChecksumAddress(self.known_tokens[to_token])
-        nonce = self.web3.eth.get_transaction_count(self.my_address)
         start = time.time()
-
         amount_out = self.web3.toWei(float(self.web3.fromWei(to_token_amount,'ether')) * 0.99,'ether')
-        
+
         pancakeswap2_txn = self.contract.functions.swapExactTokensForTokens(
             from_token_amount, #amountIn 
             amount_out, #AmountOut
             [spend,token_to_buy],
             self.my_address,
             (int(time.time()) + 10000) 
-            ).buildTransaction({
-                'from': self.my_address,
-                'value': 0,
-                'gas': 250000, #TODO have this be not fixed
-                'gasPrice': self.web3.toWei('5','gwei'),
-                'nonce': nonce,
-            })
+            )
         
         if self.debug_mode:
             print("amount in:", self.web3.fromWei(from_token_amount,'ether'), from_token_amount)
             print("amount out:", self.web3.fromWei(amount_out,'ether'), amount_out)
             print(spend,",",token_to_buy)
             print(self.my_address)
-            print((int(time.time()) + 10000) )
+            print((int(time.time()) + 10000))
+        return pancakeswap2_txn
+
+    def execute_buy_order(self, from_token, to_token, from_token_amount, to_token_amount):
+        txn = self.build_transaction(from_token, to_token, from_token_amount, to_token_amount)
+        nonce = self.web3.eth.get_transaction_count(self.my_address)
+        pancakeswap2_txn = txn.buildTransaction({
+                'from': self.my_address,
+                'value': 0,
+                'gas': 250000, #TODO have this be not fixed
+                'gasPrice': self.web3.toWei('5','gwei'),
+                'nonce': nonce,
+            })
 
         signed_txn = self.web3.eth.account.sign_transaction(pancakeswap2_txn, private_key=self.private_key)
         tx_token = self.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
@@ -123,16 +128,21 @@ class Client(object):
         
         return decoded_data
 
-    def approve_token(self,token_hash):
-        #token_hash = self.known_tokens[token]
-        address = self.web3.toChecksumAddress(token_hash)
-        abi = self.get_abi(address)
-        token_contract = self.web3.eth.contract(address=address, abi=abi)
-        nonce = self.web3.eth.get_transaction_count(self.my_address)
-        is_approved = token_contract.functions.allowance(self.my_address,address).call()
+    def approve_token(self,token):
+        token_hash = self.known_tokens[token]
+        token_address = self.web3.toChecksumAddress(token_hash)
+        abi = self.get_abi(token_address)
+        token_contract = self.web3.eth.contract(address=token_address, abi=abi)
 
+        #is_approved = token_contract.functions.allowance(self.my_address,token_address).call()
+        is_approved = token_contract.functions.allowance(self.my_address,self.contract_address).call()
+        
         if is_approved == 0:
-            tx = token_contract.functions.approve(address,value).buildTransaction({
+            print("not approved")
+            nonce = self.web3.eth.get_transaction_count(self.my_address)
+            #value = self.web3.toWei(2**64-1,'ether')
+            value = self.web3.toWei(2**84-1,'ether')
+            tx = token_contract.functions.approve(self.contract_address,value).buildTransaction({
                     'from': self.my_address,
                     'value': 0,
                     'gas': 250000,
@@ -141,7 +151,25 @@ class Client(object):
                 })
             signed_txn = self.web3.eth.account.sign_transaction(tx, private_key=self.private_key)
             tx_token = self.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
+
         return True
+    
+    def estimate_gas_price(self):
+        from_amount = 0.1
+        from_token_amount = self.web3.toWei(from_amount,'ether')
+        to_token_amount = self.get_token_amount_out("BUSD", "CAKE", from_token_amount)
+        nonce = self.web3.eth.get_transaction_count(self.my_address)
+
+        txn = self.build_transaction("BUSD", "CAKE", from_token_amount, to_token_amount)
+
+        pancakeswap2_txn = txn.estimateGas({
+                'from': self.my_address,
+                'value': 0,
+                'gas': 250000, #TODO have this be not fixed
+                'gasPrice': self.web3.toWei('5','gwei'),
+                'nonce': nonce,
+            })
+        print("Estimated gass:", pancakeswap2_txn)
 
 
 class Arbitrage(object):

@@ -17,11 +17,12 @@ for li in lists:
     token_1 = li[0]
     token_2 = li[1]
     #print("Checking",token_0, token_1, token_2 )
-    client.test("FLOKI")
-    client.test("CAKE")
     
-    #arbitrage = bsc_client.Arbitrage(client=client,token_0=token_0,token_1=token_1,token_2=token_2,from_range=from_range, debug_mode=debug_mode)
+    arbitrage = bsc_client.Arbitrage(client=client,token_0=token_0,token_1=token_1,token_2=token_2,from_range=from_range, debug_mode=debug_mode)
+    #client.approve_token("BabyDoge")
+    
     #found_arbitrage =  arbitrage.find_arbitrage()
+
     #if found_arbitrage:
     #    arbitrage.execute_arbitrage()
 
