@@ -10,12 +10,15 @@ import token_config
 client = pancakeswap_client.Client(cfg.my_bep20_address, cfg.private_key, cfg.bsc_scan_api_key)
 
 lists = list(itertools.combinations(client.tokens_to_check, 2))
-lists = list(itertools.combinations(token_config.tokens_to_check, 2))
+#lists = list(itertools.combinations(token_config.tokens_to_check, 2))
 #lists = [
-#    ["WBNB", "MiniDOGE"]
+#    ["Cake", "FLOKI"]
 #]
+
+
 debug_mode = False
 from_range = [5, 20]
+
 for li in lists:
     token_0 = "BUSD"
     token_1 = li[0]
@@ -27,8 +30,8 @@ for li in lists:
     #client.estimate_gas_price()
     
     found_arbitrage =  arbitrage_client.find_arbitrage()
-    #if found_arbitrage:
-    #    arbitrage_client.execute_arbitrage()
+    if found_arbitrage:
+        arbitrage_client.execute_arbitrage()
 
     
     # ------------------- Hepful transactions -------------------

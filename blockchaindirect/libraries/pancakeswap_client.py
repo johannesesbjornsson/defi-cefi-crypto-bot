@@ -140,7 +140,6 @@ class Client(object):
         is_approved = token_contract.functions.allowance(self.my_address,self.contract_address).call()
         
         if is_approved == 0:
-            print("not approved")
             nonce = self.web3.eth.get_transaction_count(self.my_address)
             #value = self.web3.toWei(2**64-1,'ether')
             value = self.web3.toWei(2**84-1,'ether')
