@@ -109,9 +109,9 @@ class Client(object):
             })
 
         
-        #signed_txn = self.web3.eth.account.sign_transaction(pancakeswap2_txn, private_key=self.private_key)
-        #tx_token = self.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
-        #return self.web3.toHex(tx_token), order
+        signed_txn = self.web3.eth.account.sign_transaction(pancakeswap2_txn, private_key=self.private_key)
+        tx_token = self.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
+        return self.web3.toHex(tx_token), order
         
         return "0xcdde2e6e068aebc0d9fa662c68445f45cac69f4fbb2c7ee47d017b3e76eed88c", order
 
@@ -152,9 +152,9 @@ class Client(object):
                     'nonce': nonce,
                 })
 
-            #signed_txn = self.web3.eth.account.sign_transaction(tx, private_key=self.private_key)
-            #tx_token = self.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
-            #transaction_receipt = self.web3.eth.wait_for_transaction_receipt(tx_token)
+            signed_txn = self.web3.eth.account.sign_transaction(tx, private_key=self.private_key)
+            tx_token = self.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
+            transaction_receipt = self.web3.eth.wait_for_transaction_receipt(tx_token)
 
         return True
     
