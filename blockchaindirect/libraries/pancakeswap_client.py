@@ -13,7 +13,6 @@ class Client(object):
     def __init__(self, my_address, private_key, bsc_scan_api_key):
         bsc = "https://bsc-dataseed.binance.org/"
         self.bsc_scan_api_key = bsc_scan_api_key
-        self.debug_mode = False
         self.web3 = Web3(Web3.HTTPProvider(bsc))
         self.my_address = self.web3.toChecksumAddress(my_address)
         self.private_key = private_key
@@ -88,16 +87,18 @@ class Client(object):
             (int(time.time()) + 10000) 
             )
         
-        if self.debug_mode:
-            print("amount in:", self.web3.fromWei(from_token_amount,'ether'), from_token_amount)
-            print("amount out:", self.web3.fromWei(amount_out,'ether'), amount_out)
-            print(spend,",",token_to_buy)
-            print(self.my_address)
-            print((int(time.time()) + 10000))
-        return pancakeswap2_txn
+        order = {
+            "Amount in" : from_token_amount,
+            "Amount out" : amount_out,
+            "Spend" : [spend, token_to_buy],
+            "Address": self.my_address,
+            "Timeout": (int(time.time()) + 10000)
+        }
+
+        return pancakeswap2_txn, order
 
     def execute_buy_order(self, from_token, to_token, from_token_amount, to_token_amount):
-        txn = self.build_transaction(from_token, to_token, from_token_amount, to_token_amount)
+        txn, order = self.build_transaction(from_token, to_token, from_token_amount, to_token_amount)
         nonce = self.web3.eth.get_transaction_count(self.my_address)
         pancakeswap2_txn = txn.buildTransaction({
                 'from': self.my_address,
@@ -107,13 +108,14 @@ class Client(object):
                 'nonce': nonce,
             })
 
-        signed_txn = self.web3.eth.account.sign_transaction(pancakeswap2_txn, private_key=self.private_key)
-        tx_token = self.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
-        return self.web3.toHex(tx_token)
         
-        return "0xcdde2e6e068aebc0d9fa662c68445f45cac69f4fbb2c7ee47d017b3e76eed88c"
+        #signed_txn = self.web3.eth.account.sign_transaction(pancakeswap2_txn, private_key=self.private_key)
+        #tx_token = self.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
+        #return self.web3.toHex(tx_token), order
+        
+        return "0xcdde2e6e068aebc0d9fa662c68445f45cac69f4fbb2c7ee47d017b3e76eed88c", order
 
-    def get_transaction_final_swap(self,transaction_hash):
+    def get_transaction_final_data(self,transaction_hash):
         transaction_receipt = self.web3.eth.wait_for_transaction_receipt(transaction_hash)
 
         tx_dict = dict(transaction_receipt)
@@ -149,8 +151,10 @@ class Client(object):
                     'gasPrice': self.web3.toWei('5','gwei'),
                     'nonce': nonce,
                 })
-            signed_txn = self.web3.eth.account.sign_transaction(tx, private_key=self.private_key)
-            tx_token = self.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
+
+            #signed_txn = self.web3.eth.account.sign_transaction(tx, private_key=self.private_key)
+            #tx_token = self.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
+            #transaction_receipt = self.web3.eth.wait_for_transaction_receipt(tx_token)
 
         return True
     
@@ -160,7 +164,7 @@ class Client(object):
         to_token_amount = self.get_token_amount_out("BUSD", "CAKE", from_token_amount)
         nonce = self.web3.eth.get_transaction_count(self.my_address)
 
-        txn = self.build_transaction("BUSD", "CAKE", from_token_amount, to_token_amount)
+        txn, order = self.build_transaction("BUSD", "CAKE", from_token_amount, to_token_amount)
 
         pancakeswap2_txn = txn.estimateGas({
                 'from': self.my_address,
@@ -172,102 +176,3 @@ class Client(object):
         print("Estimated gass:", pancakeswap2_txn)
 
 
-class Arbitrage(object):
-
-    def __init__(self, client, token_0, token_1, token_2, from_range=[20,50], debug_mode=False):
-        if type(client) != Client:
-            raise ValueError("Argument must be object type Client")
-        self.client = client
-        self.debug_mode = debug_mode
-        self.client.debug_mode = debug_mode
-        self.token_0 = token_0
-        self.token_1 = token_1
-        self.token_2 = token_2
-        self.from_range = from_range
-        self.token_0_hash = self.client.known_tokens[token_0]
-        self.token_1_hash = self.client.known_tokens[token_1]
-        self.token_2_hash = self.client.known_tokens[token_2]
-
-
-    def get_sequence_amount_out(self, amount_in, sequence):
-        for pair in sequence:
-            from_token = pair["from_token"]
-            to_token = pair["to_token"]
-            amount_out = self.client.get_token_amount_out(from_token,to_token,amount_in)
-            if amount_out is None:
-                return 0
-            amount_in = amount_out
-        return amount_out
-
-
-    def find_arbitrage(self):
-        self.available_arbitrage = None
-        self.initial_swap_amount = None
-        minimal_initial_offset = self.client.web3.toWei(self.from_range[0] * 1.02,'ether')
-        found_arbitrage = False
-
-        potential_arbitrage = {
-            "option_1" : [
-                {"from_token": self.token_0, "to_token": self.token_1 },
-                {"from_token": self.token_1, "to_token": self.token_2 },
-                {"from_token": self.token_2, "to_token": self.token_0 }
-            ],
-            "option_2" : [
-                {"from_token": self.token_0, "to_token": self.token_2 },
-                {"from_token": self.token_2, "to_token": self.token_1 },
-                {"from_token": self.token_1, "to_token": self.token_0 }
-            ]
-        }
-
-        for option in potential_arbitrage:
-            initial_swap_amount = self.client.web3.toWei(self.from_range[0],'ether')
-            amount_out = self.get_sequence_amount_out(initial_swap_amount,potential_arbitrage[option])
-            max_profit = amount_out - initial_swap_amount
-
-            if amount_out > minimal_initial_offset:
-                self.available_arbitrage = potential_arbitrage[option]
-                found_arbitrage = True
-                optimal_swap_amount = initial_swap_amount
-                
-                # Finding the optimal amount to buy
-                for starting_option in range(self.from_range[0]+1,self.from_range[1]):
-                    initial_swap_amount = self.client.web3.toWei(starting_option,'ether')
-                    amount_out = self.get_sequence_amount_out(initial_swap_amount,potential_arbitrage[option])
-                    profit = amount_out - initial_swap_amount
-                    
-                    if profit > max_profit:
-                        optimal_swap_amount = initial_swap_amount
-                        max_profit = profit
-                        
-                    else:
-                        break
-                self.initial_swap_amount = optimal_swap_amount
-
-                print(self.available_arbitrage)
-                print("Profit", self.client.web3.fromWei(max_profit,'ether'))
-                print("Intial Swap sum", self.client.web3.fromWei(initial_swap_amount,'ether'))
-                print("--------------------------------------------")
-
-        return found_arbitrage
-
-        
-        
-    def execute_arbitrage(self):
-        from_token_amount = self.initial_swap_amount
-        for pair in self.available_arbitrage:
-            if self.debug_mode:
-                print("Execute order on pair", pair)
-            from_token = pair["from_token"]
-            to_token = pair["to_token"]
-            
-            self.client.approve_token(from_token)
-            self.client.approve_token(to_token)
-
-            to_token_amount = self.client.get_token_amount_out(from_token=from_token,to_token=to_token, from_token_amount=from_token_amount)
-            transaction_hash = self.client.execute_buy_order(from_token, to_token, from_token_amount, to_token_amount)
-            data = self.client.get_transaction_final_swap(transaction_hash)
-            if data["amount0Out"] != 0:
-                from_token_amount = data["amount0Out"]
-            elif data["amount1Out"] != 0:
-                from_token_amount = data["amount1Out"]
-        
