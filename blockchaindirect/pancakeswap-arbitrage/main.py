@@ -1,17 +1,16 @@
 
-
-
+import cfg as cfg
 import itertools
 import sys
 import arbitrage
 sys.path.insert(0,'../libraries')
 import pancakeswap_client
-import cfg as cfg
+import token_config
 
 client = pancakeswap_client.Client(cfg.my_bep20_address, cfg.private_key, cfg.bsc_scan_api_key)
 
 lists = list(itertools.combinations(client.tokens_to_check, 2))
-lists = list(itertools.combinations(cfg.tokens_to_check, 2))
+lists = list(itertools.combinations(token_config.tokens_to_check, 2))
 #lists = [
 #    ["WBNB", "MiniDOGE"]
 #]

@@ -3,7 +3,7 @@ import json
 import contract_libarary
 from web3 import Web3
 import time
-import cfg
+import token_config
 from web3.logs import STRICT, IGNORE, DISCARD, WARN
 from web3.exceptions import ContractLogicError
 
@@ -48,7 +48,7 @@ class Client(object):
         self.tokens_to_check = known_tokens
 
         all_tokens = known_tokens.copy()
-        all_tokens.update(cfg.all_tokens)
+        all_tokens.update(token_config.all_tokens)
         self.known_tokens = all_tokens
 
 
