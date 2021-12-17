@@ -1,11 +1,12 @@
 
 
-import cfg as cfg
+
 import itertools
 import sys
 import arbitrage
 sys.path.insert(0,'../libraries')
 import pancakeswap_client
+import cfg as cfg
 
 client = pancakeswap_client.Client(cfg.my_bep20_address, cfg.private_key, cfg.bsc_scan_api_key)
 
