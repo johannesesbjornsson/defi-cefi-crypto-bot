@@ -10,20 +10,20 @@ import token_config
 client = pancakeswap_client.Client(cfg.my_bep20_address, cfg.private_key, cfg.bsc_scan_api_key)
 
 lists = list(itertools.combinations(client.tokens_to_check, 2))
-#lists = list(itertools.combinations(token_config.tokens_to_check, 2))
+#lists = list(itertools.combinations(token_config.bep20_tokens_to_check, 2))
 #lists = [
-#    ["Cake", "FLOKI"]
+#    ["DOT", "LINK"]
 #]
 
 
 debug_mode = False
-from_range = [5, 20]
+from_range = [2, 3]
 
 for li in lists:
     token_0 = "BUSD"
     token_1 = li[0]
     token_2 = li[1]
-    print("Checking",token_0, token_1, token_2 )
+    print("Checking: ",token_0, token_1, token_2 )
     
     arbitrage_client = arbitrage.Arbitrage(client=client,token_0=token_0,token_1=token_1,token_2=token_2,from_range=from_range, debug_mode=debug_mode)
     #client.approve_token("BabyDoge")

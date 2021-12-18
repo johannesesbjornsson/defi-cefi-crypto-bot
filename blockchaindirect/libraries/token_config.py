@@ -6,7 +6,7 @@ my_bep20_address=os.environ['my_bep20_address']
 private_key=os.environ['private_key']
 
 
-tokens = {
+bep20_tokens = {
     "CAKE" : "0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82",
     "BAKE" : "0xe02df9e3e622debdd69fb838bb799e3f168902c5",
     "MATIC": "0xcc42724c6683b7e57334c4e856f4c9965ed682bd",
@@ -18,14 +18,14 @@ tokens = {
     #"PLSPAD" : "0x8a74bc8c372bc7f0e9ca3f6ac0df51be15aec47a",
     #
 }
-base_tokens = {
+bep20_base_tokens = {
     "BUSD" : "0xe9e7cea3dedca5984780bafc599bd69add087d56",
     "WBNB": "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c",
     "USDT": "0x55d398326f99059ff775485246999027b3197955",
     "USDC": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d"
 }
 
-tokens_to_check = [
+bep20_tokens_to_check = [
     "WBNB",
     "CAKE",
     "LINK",
@@ -38,9 +38,10 @@ tokens_to_check = [
     "USDC",
     "UNI",
     "MATIC",
-    "SCAR"
+    "SCAR",
+    "FLOKI"
 
 ]
 
-all_tokens = tokens.copy()
-all_tokens.update(base_tokens)
+bep20_all_tokens = bep20_tokens.copy()
+bep20_all_tokens.update(bep20_base_tokens)
