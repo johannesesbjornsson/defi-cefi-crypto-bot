@@ -3,7 +3,7 @@ import json
 import contract_libarary
 from web3 import Web3
 import time
-import cfg
+import token_config
 from web3.logs import STRICT, IGNORE, DISCARD, WARN
 from web3.exceptions import ContractLogicError
 
@@ -48,7 +48,7 @@ class Client(object):
         self.tokens_to_check = known_tokens
 
         all_tokens = known_tokens.copy()
-        all_tokens.update(cfg.all_tokens)
+        all_tokens.update(token_config.bep20_all_tokens)
         self.known_tokens = all_tokens
 
 
@@ -108,7 +108,7 @@ class Client(object):
                 'nonce': nonce,
             })
 
-        
+        # TODO: uncomment
         signed_txn = self.web3.eth.account.sign_transaction(pancakeswap2_txn, private_key=self.private_key)
         tx_token = self.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
         return self.web3.toHex(tx_token), order
@@ -140,7 +140,6 @@ class Client(object):
         is_approved = token_contract.functions.allowance(self.my_address,self.contract_address).call()
         
         if is_approved == 0:
-            print("not approved")
             nonce = self.web3.eth.get_transaction_count(self.my_address)
             #value = self.web3.toWei(2**64-1,'ether')
             value = self.web3.toWei(2**84-1,'ether')
@@ -152,6 +151,7 @@ class Client(object):
                     'nonce': nonce,
                 })
 
+            # TODO: uncomment
             signed_txn = self.web3.eth.account.sign_transaction(tx, private_key=self.private_key)
             tx_token = self.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
             transaction_receipt = self.web3.eth.wait_for_transaction_receipt(tx_token)
@@ -176,3 +176,26 @@ class Client(object):
         print("Estimated gass:", pancakeswap2_txn)
 
 
+    def get_pair_liquidity(self,token_1,token_2):
+        token_1_liquidity = None
+        token_2_liquidity = None
+        token_1_hash = self.web3.toChecksumAddress(self.known_tokens[token_1])
+        token_2_hash = self.web3.toChecksumAddress(self.known_tokens[token_2])
+        liquidity_pool_address = self.factory_contract.functions.getPair(token_1_hash,token_2_hash).call()
+
+        address = self.web3.toChecksumAddress(liquidity_pool_address)
+        abi = self.get_abi(address)
+        liquidity_pool_contract = self.web3.eth.contract(address=address, abi=abi)
+
+        reserves =  liquidity_pool_contract.functions.getReserves().call()
+        reserves_token_1 = liquidity_pool_contract.functions.token0().call()
+        reserves_token_2 = liquidity_pool_contract.functions.token1().call()
+
+        if reserves_token_1 == token_1_hash and reserves_token_2 == token_2_hash:
+            token_1_liquidity = self.web3.fromWei(reserves[0],'ether')
+            token_2_liquidity = self.web3.fromWei(reserves[1],'ether')
+        elif reserves_token_2 == token_1_hash and reserves_token_1 == token_2_hash:
+            token_1_liquidity = self.web3.fromWei(reserves[1],'ether')
+            token_2_liquidity = self.web3.fromWei(reserves[0],'ether')
+
+        return float(token_1_liquidity), float(token_2_liquidity), liquidity_pool_address
