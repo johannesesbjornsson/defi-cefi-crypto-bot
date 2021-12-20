@@ -50,6 +50,21 @@ class Client(object):
         contract_address = self.web3.toChecksumAddress(contract_details["address"])
         self.factory_contract = self.web3.eth.contract(address=contract_address, abi=abi)
 
+    def fromWei(self, token, amount):
+        if self.blockchain == "polygon" and token in token_config.polygon_tokens_extra_decimals:
+            wei_value = self.web3.fromWei(amount,'lovelace')
+        else:
+            wei_value = self.web3.fromWei(amount,'ether')
+        
+        return float(wei_value)
+
+    def toWei(self, token, amount):
+        if self.blockchain == "polygon" and token in token_config.polygon_tokens_extra_decimals:
+            wei_value = self.web3.toWei(amount,'lovelace')
+        else:
+            wei_value = self.web3.toWei(amount,'ether')
+        
+        return wei_value
 
     def get_bep20_tokens(self,exclude_tokens=["BUSD", "USDT","USDC","SAFEMOON"]):
         url = "https://api.pancakeswap.info/api/v2/pairs"
@@ -111,10 +126,6 @@ class Client(object):
         token_to_buy = self.web3.toChecksumAddress(self.known_tokens[to_token])
         start = time.time()
         amount_out = self.web3.toWei(float(self.web3.fromWei(to_token_amount,'ether')) * self.slippage,'ether')
-
-        #if self.blockchain == "polygon":
-        #    from_token_amount = int(from_token_amount / 1000000000000)
-        #    amount_out   = int(to_token_amount / 1000000000000)
 
         pancakeswap2_txn = self.contract.functions.swapExactTokensForTokens(
             from_token_amount, #amountIn 
@@ -188,7 +199,6 @@ class Client(object):
 
         if is_approved == 0:
             nonce = self.web3.eth.get_transaction_count(self.my_address)
-            #value = self.web3.toWei(2**64-1,'ether')
             value = self.web3.toWei(2**84-1,'ether')
             tx = token_contract.functions.approve(self.contract_address,value).buildTransaction({
                     'from': self.my_address,
@@ -207,7 +217,7 @@ class Client(object):
     
     def estimate_gas_price(self):
         from_amount = 0.1
-        from_token_amount = self.web3.toWei(from_amount,'ether')
+        from_token_amount = self.toWei("USDC",from_amount)
 
         
         if self.blockchain == "bsc":
@@ -264,20 +274,16 @@ class Client(object):
     def get_amount_out_by_liqudity_pool(self, from_token, to_token, from_token_amount):
         from_token_liquidity, to_token_liquidity, liquidity_pool_address = self.get_pair_liquidity(from_token,to_token)
 
-        if from_token in token_config.polygon_tokens_extra_decimals:
-            from_token_liquidity = from_token_liquidity * token_config.polygon_tokens_extra_decimals[from_token]
-        if to_token in token_config.polygon_tokens_extra_decimals:
-            to_token_liquidity = to_token_liquidity * token_config.polygon_tokens_extra_decimals[to_token]         
-        
-        if from_token_liquidity > from_token_amount *100:
-            #print(f" {from_token} -> {to_token} || LIQ: {self.web3.fromWei(from_token_liquidity,'ether')} {self.web3.fromWei(to_token_liquidity,'ether')} {liquidity_pool_address}")
-            per_unit_amount = to_token_liquidity/from_token_liquidity * float(self.web3.fromWei(from_token_amount,'ether'))
+        from_token_amount = self.fromWei(from_token, from_token_amount)
+        from_token_liquidity = self.fromWei(from_token, from_token_liquidity)
+        to_token_liquidity = self.fromWei(to_token, to_token_liquidity)
+
+        if from_token_liquidity > from_token_amount * 100:
+            per_unit_amount = to_token_liquidity/from_token_liquidity * from_token_amount
         else:
-            #print("Insufficent liquidity")
-            #print(f" {from_token} -> {to_token} || LIQ: {self.web3.fromWei(from_token_liquidity,'ether')} {self.web3.fromWei(to_token_liquidity,'ether')} {liquidity_pool_address}")
             per_unit_amount = 0
 
-        return self.web3.toWei(per_unit_amount * 0.999,'ether')
+        return self.toWei(to_token, per_unit_amount)
         
 
 

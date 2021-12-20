@@ -30,16 +30,16 @@ for li in lists:
     found_arbitrage =  arbitrage_client.find_arbitrage()
     if found_arbitrage:
         print(found_arbitrage)
-        arbitrage_client.execute_arbitrage()
+        #arbitrage_client.execute_arbitrage()
     
+    #client.estimate_gas_price()
     
     #client.approve_token("LINK")
     
     #print(client.get_token_amount_out(token_0, token_1,1000000000000000000))
     
     #print(token_0,token_1)
-    #print(client.web3.fromWei(client.get_token_amount_out(token_0, token_1,1000000000000000000),'ether'))
-    #print(client.get_amount_out_by_liqudity_pool(token_0, token_1,1000000000000000000))
+    #print(client.get_amount_out_by_liqudity_pool(token_0, token_1,1000000))
     
     print("--------------------------------")
     #

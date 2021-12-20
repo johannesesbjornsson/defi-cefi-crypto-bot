@@ -18,9 +18,9 @@ class Arbitrage(object):
         self.token_2_hash = self.client.known_tokens[token_2]
         
         if self.client.blockchain == "bsc":
-            self.minimum_profit = self.client.web3.toWei(self.from_range[0] + 0.02,'ether') 
+            self.minimum_profit = self.client.toWei(self.token_0,self.from_range[0] + 0.2) 
         elif self.client.blockchain == "polygon":
-            self.minimum_profit =  self.client.web3.toWei(self.from_range[0] + 0.0001,'ether')
+            self.minimum_profit =  self.client.toWei(self.token_0,self.from_range[0] + 0.01)
 
     def get_sequence_amount_out(self, amount_in, sequence):
         for pair in sequence:
@@ -67,11 +67,11 @@ class Arbitrage(object):
             if found_arbitrage:
                 continue
 
-            initial_swap_amount = self.client.web3.toWei(self.from_range[0],'ether')
+            initial_swap_amount = self.client.toWei(self.token_0, self.from_range[0])
             amount_out = self.get_sequence_amount_out(initial_swap_amount,sequence)
             max_profit = amount_out - initial_swap_amount
             #print(option,sequence)
-            print(self.client.web3.fromWei(initial_swap_amount,'ether'),self.client.web3.fromWei(amount_out,'ether'))
+            print(self.client.fromWei(self.token_0,initial_swap_amount),self.client.fromWei(self.token_0, amount_out))
 
             if amount_out > minimal_initial_offset:
                 self.available_arbitrage = sequence
@@ -93,8 +93,8 @@ class Arbitrage(object):
                 self.initial_swap_amount = optimal_swap_amount
 
                 print(self.available_arbitrage)
-                print("Profit", self.client.web3.fromWei(max_profit,'ether'))
-                print("Intial Swap sum", self.client.web3.fromWei(initial_swap_amount,'ether'))
+                print("Profit", self.client.fromWei(self.token_0, max_profit))
+                print("Intial Swap sum", self.client.fromWei(self.token_0, initial_swap_amount))
                 print("--------------------------------------------")
 
         return found_arbitrage

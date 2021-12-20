@@ -12,12 +12,12 @@ client = eth_fork_client.Client("bsc",cfg.my_bep20_address, cfg.private_key, cfg
 lists = list(itertools.combinations(client.tokens_to_check, 2))
 lists = list(itertools.combinations(token_config.bep20_tokens_to_check, 2))
 lists = [
-    ["XRP", "ADA"]
+    ["WBNB", "DOT"]
 ]
 
 
 debug_mode = False
-from_range = [2, 3]
+from_range = [1, 2]
 
 for li in lists:
     token_0 = "BUSD"
@@ -30,8 +30,9 @@ for li in lists:
     #client.estimate_gas_price()
     
     found_arbitrage =  arbitrage_client.find_arbitrage()
-    #if found_arbitrage:
-    #    arbitrage_client.execute_arbitrage()
+    if found_arbitrage:
+        print(found_arbitrage)
+        #arbitrage_client.execute_arbitrage()
 
     
     # ------------------- Hepful transactions -------------------

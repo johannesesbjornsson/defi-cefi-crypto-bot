@@ -62,12 +62,13 @@ polygon_base_tokens = {
 }
 
 polygon_tokens_extra_decimals = {
-    "USDC" : 1000000000000,
-    "USDT" : 1000000000000,
-    "ATOM" : 1000000000000,
-    "WBTC" : 1000000000000,
-    "TEL" : 1000000000000
+    "USDC" : 'lovelace',
+    "USDT" : 'lovelace',
+    "ATOM" : 'lovelace',
+    "WBTC" : 'lovelace',
+    "TEL" :  'lovelace'
 }
+# See https://web3js.readthedocs.io/en/v1.2.11/web3-utils.html#id82
 
 polygon_all_tokens = polygon_tokens.copy()
 polygon_all_tokens.update(polygon_base_tokens)
