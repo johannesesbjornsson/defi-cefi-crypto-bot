@@ -14,7 +14,7 @@ client = Client("polygon",cfg.my_polygon_address, cfg.private_key, cfg.api_key)
 lists = list(itertools.combinations(client.tokens_to_check, 2))
 lists = [
     #["WETH", "WMATIC"],
-    ["WBTC", "LINK"]
+    ["AAVE", "WMATIC"]
 ]
 
 debug_mode = False
@@ -29,9 +29,12 @@ for li in lists:
 
     found_arbitrage =  arbitrage_client.find_arbitrage()
     if found_arbitrage:
+        print(found_arbitrage)
         arbitrage_client.execute_arbitrage()
+    
+    
     #client.approve_token("LINK")
-    #print(found_arbitrage)
+    
     #print(client.get_token_amount_out(token_0, token_1,1000000000000000000))
     
     #print(token_0,token_1)

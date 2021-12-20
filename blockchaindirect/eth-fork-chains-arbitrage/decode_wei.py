@@ -4,7 +4,7 @@ bsc = "https://bsc-dataseed.binance.org/"
 #bsc = "https://data-seed-prebsc-1-s1.binance.org:8545"
 web3 = Web3(Web3.HTTPProvider(bsc))
 price =  1 
-price =   336439482240874454
+price =   10000
 amount = web3.fromWei(price,'ether')
 #amount = web3.toWei(price,'ether')
 print(amount)
