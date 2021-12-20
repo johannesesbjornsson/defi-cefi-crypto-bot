@@ -20,7 +20,7 @@ class Arbitrage(object):
         if self.client.blockchain == "bsc":
             self.minimum_profit = self.client.web3.toWei(self.from_range[0] + 0.02,'ether') 
         elif self.client.blockchain == "polygon":
-            self.minimum_profit =  self.client.web3.toWei(self.from_range[0] + 0.005,'ether')
+            self.minimum_profit =  self.client.web3.toWei(self.from_range[0] + 0.0001,'ether')
 
     def get_sequence_amount_out(self, amount_in, sequence):
         for pair in sequence:
@@ -64,6 +64,9 @@ class Arbitrage(object):
         }
 
         for option, sequence in potential_arbitrage.items():
+            if found_arbitrage:
+                continue
+
             initial_swap_amount = self.client.web3.toWei(self.from_range[0],'ether')
             amount_out = self.get_sequence_amount_out(initial_swap_amount,sequence)
             max_profit = amount_out - initial_swap_amount

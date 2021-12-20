@@ -13,14 +13,14 @@ class Client(object):
     def __init__(self, blockchain, my_address, private_key, api_key):
         if blockchain == "polygon":
             self.api_key = api_key
-            #provider_url = "https://speedy-nodes-nyc.moralis.io/0279106ed82b874b3e1b195d/polygon/mainnet"
+            provider_url = "https://speedy-nodes-nyc.moralis.io/0279106ed82b874b3e1b195d/polygon/mainnet"
             #provider_url = "https://polygon-rpc.com"
-            provider_url = "https://matic.slingshot.finance"
+            #provider_url = "https://matic.slingshot.finance"
             self.web3 = Web3(Web3.HTTPProvider(provider_url))
             router_contract_name = "quickswap_router"
             factory_contract_name = "quickswap_factory"  
             self.get_polygon_tokens()
-            self.gas_price = self.web3.toWei('60','gwei')
+            self.gas_price = self.web3.toWei('30','gwei')
             self.default_gas_limit = 300000 #TODO have this be not fixed
             self.slippage = 0.995
         elif blockchain == "bsc":
@@ -112,6 +112,10 @@ class Client(object):
         start = time.time()
         amount_out = self.web3.toWei(float(self.web3.fromWei(to_token_amount,'ether')) * self.slippage,'ether')
 
+        #if self.blockchain == "polygon":
+        #    from_token_amount = int(from_token_amount / 1000000000000)
+        #    amount_out   = int(to_token_amount / 1000000000000)
+
         pancakeswap2_txn = self.contract.functions.swapExactTokensForTokens(
             from_token_amount, #amountIn 
             amount_out, #AmountOut
@@ -137,7 +141,7 @@ class Client(object):
                 'from': self.my_address,
                 'value': 0,
                 'gas': self.default_gas_limit, 
-                'gasPrice': self.web3.toWei('5','gwei'),
+                'gasPrice': self.gas_price,
                 'nonce': nonce,
             })
 
@@ -151,15 +155,20 @@ class Client(object):
     def get_transaction_final_data(self,transaction_hash):
         transaction_receipt = self.web3.eth.wait_for_transaction_receipt(transaction_hash)
 
+        if self.blockchain == "polygon":
+            log_location_index = -2
+        elif self.blockchain == "bsc":
+            log_location_index = -1
+
         tx_dict = dict(transaction_receipt)
-        data = tx_dict["logs"][-1]["data"]
-        address = tx_dict["logs"][-1]["address"]
+        data = tx_dict["logs"][log_location_index]["data"]
+        address = tx_dict["logs"][log_location_index]["address"]
         
         address = self.web3.toChecksumAddress(address)
         abi = self.get_abi(address)
         contract = self.web3.eth.contract(address=address, abi=abi)
         events = contract.events.Swap().processReceipt(transaction_receipt,errors=IGNORE)
-        decoded_data = dict(dict(list(events)[-1])["args"])
+        decoded_data = dict(dict(list(events)[log_location_index])["args"])
         
         return decoded_data
 
@@ -199,15 +208,21 @@ class Client(object):
     def estimate_gas_price(self):
         from_amount = 0.1
         from_token_amount = self.web3.toWei(from_amount,'ether')
-        to_token_amount = self.get_token_amount_out("BUSD", "CAKE", from_token_amount)
+
+        
+        if self.blockchain == "bsc":
+            to_token_amount = self.get_token_amount_out("USDC", "LINK", from_token_amount)
+        elif self.blockchain == "polygon":
+            to_token_amount = self.get_amount_out_by_liqudity_pool("USDC", "LINK", from_token_amount)         
+            
         nonce = self.web3.eth.get_transaction_count(self.my_address)
 
-        txn, order = self.build_transaction("BUSD", "CAKE", from_token_amount, to_token_amount)
+        txn, order = self.build_transaction("USDC", "LINK", from_token_amount, to_token_amount)
 
         pancakeswap2_txn = txn.estimateGas({
                 'from': self.my_address,
                 'value': 0,
-                'gas': 250000, #TODO have this be not fixed
+                'gas': self.default_gas_limit, 
                 'gasPrice': self.gas_price,
                 'nonce': nonce,
             })
@@ -248,10 +263,12 @@ class Client(object):
 
     def get_amount_out_by_liqudity_pool(self, from_token, to_token, from_token_amount):
         from_token_liquidity, to_token_liquidity, liquidity_pool_address = self.get_pair_liquidity(from_token,to_token)
+
         if from_token in token_config.polygon_tokens_extra_decimals:
             from_token_liquidity = from_token_liquidity * token_config.polygon_tokens_extra_decimals[from_token]
         if to_token in token_config.polygon_tokens_extra_decimals:
             to_token_liquidity = to_token_liquidity * token_config.polygon_tokens_extra_decimals[to_token]         
+        
         if from_token_liquidity > from_token_amount *100:
             #print(f" {from_token} -> {to_token} || LIQ: {self.web3.fromWei(from_token_liquidity,'ether')} {self.web3.fromWei(to_token_liquidity,'ether')} {liquidity_pool_address}")
             per_unit_amount = to_token_liquidity/from_token_liquidity * float(self.web3.fromWei(from_token_amount,'ether'))
@@ -260,7 +277,7 @@ class Client(object):
             #print(f" {from_token} -> {to_token} || LIQ: {self.web3.fromWei(from_token_liquidity,'ether')} {self.web3.fromWei(to_token_liquidity,'ether')} {liquidity_pool_address}")
             per_unit_amount = 0
 
-        return self.web3.toWei(per_unit_amount,'ether')
+        return self.web3.toWei(per_unit_amount * 0.999,'ether')
         
 
 

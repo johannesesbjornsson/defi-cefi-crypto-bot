@@ -14,11 +14,11 @@ client = Client("polygon",cfg.my_polygon_address, cfg.private_key, cfg.api_key)
 lists = list(itertools.combinations(client.tokens_to_check, 2))
 lists = [
     #["WETH", "WMATIC"],
-    ["AAVE", "WMATIC"]
+    ["WETH","LINK"]
 ]
 
 debug_mode = False
-from_range = [2,3]
+from_range = [1,1]
 for li in lists:
     token_0 = "USDC"
     #token_0 = "WMATIC"

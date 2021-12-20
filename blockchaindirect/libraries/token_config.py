@@ -63,6 +63,7 @@ polygon_base_tokens = {
 
 polygon_tokens_extra_decimals = {
     "USDC" : 1000000000000,
+    "USDT" : 1000000000000,
     "ATOM" : 1000000000000,
     "WBTC" : 1000000000000,
     "TEL" : 1000000000000
