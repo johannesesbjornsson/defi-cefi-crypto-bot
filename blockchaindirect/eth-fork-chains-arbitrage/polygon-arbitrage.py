@@ -9,7 +9,7 @@ import token_config
 
 from web3 import Web3
 
-client = Client("polygon",cfg.my_polygon_address, cfg.private_key, cfg.api_key)
+client = Client("polygon",cfg.my_polygon_address, cfg.private_key, cfg.polygon_api_key)
 
 lists = list(itertools.combinations(client.tokens_to_check, 2))
 lists = [
@@ -27,12 +27,13 @@ for li in lists:
     print("Checking: ",token_0, token_1, token_2 )
     arbitrage_client = arbitrage.Arbitrage(client=client,token_0=token_0,token_1=token_1,token_2=token_2,from_range=from_range, debug_mode=debug_mode)
 
-    found_arbitrage =  arbitrage_client.find_arbitrage()
-    if found_arbitrage:
-        print(found_arbitrage)
-        #arbitrage_client.execute_arbitrage()
+    #found_arbitrage =  arbitrage_client.find_arbitrage()
+    #if found_arbitrage:
+    #    print(found_arbitrage)
+    #    #arbitrage_client.execute_arbitrage()
+    #    print("------------------------")
     
-    #client.estimate_gas_price()
+    client.get_recent_transaction()
     
     #client.approve_token("LINK")
     
@@ -40,10 +41,3 @@ for li in lists:
     
     #print(token_0,token_1)
     #print(client.get_amount_out_by_liqudity_pool(token_0, token_1,1000000))
-    
-    print("--------------------------------")
-    #
-    #t0_l, t1_l, addr = arbitrage_client.client.get_pair_liquidity(token_0,token_1)
-    #print(token_0, token_1, "||LIQ:",t0_l, t1_l,addr)
-    #print(float(t0_l) * 1000000000000)
-    #client.web3.fromWei(initial_swap_amount,'ether')

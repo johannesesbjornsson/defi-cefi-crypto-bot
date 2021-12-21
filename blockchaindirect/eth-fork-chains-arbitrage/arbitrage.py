@@ -71,7 +71,7 @@ class Arbitrage(object):
             amount_out = self.get_sequence_amount_out(initial_swap_amount,sequence)
             max_profit = amount_out - initial_swap_amount
             #print(option,sequence)
-            print(self.client.fromWei(self.token_0,initial_swap_amount),self.client.fromWei(self.token_0, amount_out))
+            #print(self.client.fromWei(self.token_0,initial_swap_amount),self.client.fromWei(self.token_0, amount_out))
 
             if amount_out > minimal_initial_offset:
                 self.available_arbitrage = sequence
