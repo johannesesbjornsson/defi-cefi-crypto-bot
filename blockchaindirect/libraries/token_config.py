@@ -53,6 +53,8 @@ polygon_tokens = {
     "WBTC": "0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6",
     "TEL": "0xdf7837de1f2fa4631d716cf2502f8b230f1dcc32",
     "USDT": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+    "MANA": "0xa1c57f48f0deb89f569dfbe6e2b7f46d33606fd4",
+    "SAND": "0xBbba073C31bF03b8ACf7c28EF0738DeCF3695683"
     
 }
 polygon_base_tokens = {

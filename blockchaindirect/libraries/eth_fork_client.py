@@ -43,36 +43,13 @@ class Client(object):
         contract_details = contract_libarary.get_contract_details(router_contract_name)
         abi = json.loads(contract_details["abi"])
         contract_address = self.web3.toChecksumAddress(contract_details["address"])
-        self.contract_address = contract_address 
-        self.contract = self.web3.eth.contract(address=contract_address, abi=abi)
+        self.router_contract_address = contract_address 
+        self.router_contract = self.web3.eth.contract(address=contract_address, abi=abi)
         contract_details = contract_libarary.get_contract_details(factory_contract_name)
         abi = json.loads(contract_details["abi"])
         contract_address = self.web3.toChecksumAddress(contract_details["address"])
         self.factory_contract = self.web3.eth.contract(address=contract_address, abi=abi)
 
-    def fromWei(self, token, amount):
-        if self.blockchain == "polygon" and token in token_config.polygon_tokens_extra_decimals:
-            wei_value = self.web3.fromWei(amount,'lovelace')
-        else:
-            wei_value = self.web3.fromWei(amount,'ether')
-        
-        return float(wei_value)
-
-    def toWei(self, token, amount):
-        if self.blockchain == "polygon" and token in token_config.polygon_tokens_extra_decimals:
-            wei_value = self.web3.toWei(amount,'lovelace')
-        else:
-            wei_value = self.web3.toWei(amount,'ether')
-        
-        return wei_value
-
-    def toChecksumAddress(self, address):
-        try:
-            verified_address = self.web3.toChecksumAddress(address)
-        except ValueError as e:
-            verified_address = self.web3.toChecksumAddress(self.known_tokens[address])
-
-        return verified_address
 
     def get_bep20_tokens(self,exclude_tokens=["BUSD", "USDT","USDC","SAFEMOON"]):
         url = "https://api.pancakeswap.info/api/v2/pairs"
@@ -115,48 +92,9 @@ class Client(object):
       
         return json_reponse["result"]
 
-    def get_token_amount_out(self, from_token, to_token, from_token_amount):
-        spend_token = self.web3.toChecksumAddress(self.known_tokens[from_token])
-        token_to_buy = self.web3.toChecksumAddress(self.known_tokens[to_token])
-
-        try:
-            token_price = self.contract.functions.getAmountsOut(from_token_amount,[spend_token,token_to_buy]).call()[1]
-            if token_price == 0:
-                token_price = None
-        
-        except ContractLogicError as e:
-            token_price = None
-        
-        return token_price
-
-    def build_transaction(self, from_token, to_token, from_token_amount, to_token_amount):
-        spend = self.web3.toChecksumAddress(self.known_tokens[from_token])
-        token_to_buy = self.web3.toChecksumAddress(self.known_tokens[to_token])
-        start = time.time()
-        amount_out = self.web3.toWei(float(self.web3.fromWei(to_token_amount,'ether')) * self.slippage,'ether')
-
-        pancakeswap2_txn = self.contract.functions.swapExactTokensForTokens(
-            from_token_amount, #amountIn 
-            amount_out, #AmountOut
-            [spend,token_to_buy],
-            self.my_address,
-            (int(time.time()) + 10000) 
-            )
-        
-        order = {
-            "Amount in" : from_token_amount,
-            "Amount out" : amount_out,
-            "Spend" : [spend, token_to_buy],
-            "Address": self.my_address,
-            "Timeout": (int(time.time()) + 10000)
-        }
-
-        return pancakeswap2_txn, order
-
-    def execute_buy_order(self, from_token, to_token, from_token_amount, to_token_amount):
-        txn, order = self.build_transaction(from_token, to_token, from_token_amount, to_token_amount)
+    def sign_and_send_transaction(self, transaction):
         nonce = self.web3.eth.get_transaction_count(self.my_address)
-        pancakeswap2_txn = txn.buildTransaction({
+        built_txn = transaction.buildTransaction({
                 'from': self.my_address,
                 'value': 0,
                 'gas': self.default_gas_limit, 
@@ -164,147 +102,169 @@ class Client(object):
                 'nonce': nonce,
             })
 
-        # TODO: uncomment
-        signed_txn = self.web3.eth.account.sign_transaction(pancakeswap2_txn, private_key=self.private_key)
-        tx_token = self.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
-        return self.web3.toHex(tx_token), order
+        signed_txn = self.web3.eth.account.sign_transaction(built_txn, private_key=self.private_key)
+        txn_hash = self.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
+        transaction_receipt = self.web3.eth.wait_for_transaction_receipt(txn_hash)
         
-        return "0xcdde2e6e068aebc0d9fa662c68445f45cac69f4fbb2c7ee47d017b3e76eed88c", order
+        return self.web3.toHex(txn_hash)
 
-    def get_transaction_final_data(self,transaction_hash):
-        transaction_receipt = self.web3.eth.wait_for_transaction_receipt(transaction_hash)
 
-        if self.blockchain == "polygon":
-            log_location_index = -2
-        elif self.blockchain == "bsc":
-            log_location_index = -1
+class Token(object):
 
-        tx_dict = dict(transaction_receipt)
-        data = tx_dict["logs"][log_location_index]["data"]
-        address = tx_dict["logs"][log_location_index]["address"]
-        
-        address = self.web3.toChecksumAddress(address)
-        abi = self.get_abi(address)
-        contract = self.web3.eth.contract(address=address, abi=abi)
-        events = contract.events.Swap().processReceipt(transaction_receipt,errors=IGNORE)
-        decoded_data = dict(dict(list(events)[log_location_index])["args"])
-        
-        return decoded_data
+    def __init__(self, client, token):
+        if type(client) != Client:
+            raise ValueError("Argument must be object type Client")
+        self.known_tokens = client.known_tokens
+        self.client = client
 
-    def approve_token(self,token):
-        token_hash = self.known_tokens[token]
-        token_address = self.web3.toChecksumAddress(token_hash)
-        abi = self.get_abi(token_address)
-        token_contract = self.web3.eth.contract(address=token_address, abi=abi)
+        try:
+            self.address = self.client.web3.toChecksumAddress(token)
+            self.name = "Uknown"
+        except ValueError as e:
+            self.address = self.client.web3.toChecksumAddress(self.known_tokens[token])
+            self.name = token
 
-        if "allowance" not in dir(token_contract.functions):
+        self.abi = self.client.get_abi(self.address)
+        self.token_contract = self.client.web3.eth.contract(address=self.address, abi=self.abi)
+
+        self.set_proxy_details()
+        self.allowance_on_router =  self.token_contract.functions.allowance(self.client.my_address,self.client.router_contract_address).call()
+        self.decimals = self.token_contract.functions.decimals().call()
+    
+    def __str__(self):
+        return self.address
+
+    def set_proxy_details(self):
+        is_proxy = False
+        token_contract = self.token_contract
+
+        if "proxyType" in dir(token_contract.functions):
             proxy_contract_address = token_contract.functions.implementation().call()
-            proxy_abi  = self.get_abi(proxy_contract_address)
-            proxy_contract = self.web3.eth.contract(address=token_address, abi=proxy_abi)
+            proxy_abi  = self.client.get_abi(proxy_contract_address)
+            proxy_contract = self.client.web3.eth.contract(address=self.address, abi=proxy_abi)
+            
             token_contract = proxy_contract
+            is_proxy = True
 
-        is_approved = token_contract.functions.allowance(self.my_address,self.contract_address).call()
+        self.is_proxy =  is_proxy
+        self.token_contract = token_contract
 
-        if is_approved == 0:
-            nonce = self.web3.eth.get_transaction_count(self.my_address)
-            value = self.web3.toWei(2**84-1,'ether')
-            tx = token_contract.functions.approve(self.contract_address,value).buildTransaction({
-                    'from': self.my_address,
-                    'value': 0,
-                    'gas': self.default_gas_limit,
-                    'gasPrice': self.gas_price,
-                    'nonce': nonce,
-                })
-
-            # TODO: uncomment
-            signed_txn = self.web3.eth.account.sign_transaction(tx, private_key=self.private_key)
-            tx_token = self.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
-            transaction_receipt = self.web3.eth.wait_for_transaction_receipt(tx_token)
+    def approve_token(self):
+        if self.allowance_on_router == 0:
+            value = self.client.web3.toWei(2**84-1,'ether')
+            txn = self.token_contract.functions.approve(self.client.router_contract_address,value)
+            self.client.sign_and_send_transaction(txn)
 
         return True
-    
-    def estimate_gas_price(self):
-        from_amount = 0.1
-        from_token_amount = self.toWei("USDC",from_amount)
 
+    def to_wei(self, n):
+        wei = n * ( 10 ** self.decimals)
+        return int(wei)
+
+    def from_wei(self, n):
+        non_wei = n / ( 10 ** self.decimals)
+        return float(non_wei)
+
+
+class TokenPair(object):
+    def __init__(self, client, token_1, token_2):
+        if type(client) != Client or type(token_1) != Token or type(token_1) != Token:
+            raise ValueError("First arguments must be object types Client, Token and Token")
+
+        self.client = client
+        self.token_1 = token_1
+        self.token_2 = token_2
+        self.set_pair_liquidity()
+
+    def __str__(self):
+        return f"{self.token_1.name}: {self.token_1.address}, {self.token_2.name}: {self.token_2.address}"
         
-        if self.blockchain == "bsc":
-            to_token_amount = self.get_token_amount_out("USDC", "LINK", from_token_amount)
-        elif self.blockchain == "polygon":
-            to_token_amount = self.get_amount_out_by_liqudity_pool("USDC", "LINK", from_token_amount)         
-            
-        nonce = self.web3.eth.get_transaction_count(self.my_address)
-
-        txn, order = self.build_transaction("USDC", "LINK", from_token_amount, to_token_amount)
-
-        pancakeswap2_txn = txn.estimateGas({
-                'from': self.my_address,
-                'value': 0,
-                'gas': self.default_gas_limit, 
-                'gasPrice': self.gas_price,
-                'nonce': nonce,
-            })
-        print("Estimated gass:", pancakeswap2_txn)
-
-
-    def get_pair_liquidity(self,token_1,token_2):
-        token_1_liquidity = None
-        token_2_liquidity = None
-        token_1_hash = self.web3.toChecksumAddress(self.known_tokens[token_1])
-        token_2_hash = self.web3.toChecksumAddress(self.known_tokens[token_2])
-        
-
+    def set_pair_liquidity(self):
         try:
-            liquidity_pool_address = self.factory_contract.functions.getPair(token_1_hash,token_2_hash).call()
-            address = self.web3.toChecksumAddress(liquidity_pool_address)
-            abi = self.get_abi(address)
-            liquidity_pool_contract = self.web3.eth.contract(address=address, abi=abi)
-
+            liquidity_pool_address = self.client.factory_contract.functions.getPair(self.token_1.address, self.token_2.address).call()
+            liquidity_pool_address = self.client.web3.toChecksumAddress(liquidity_pool_address)
+            abi = self.client.get_abi(liquidity_pool_address)
+            liquidity_pool_contract = self.client.web3.eth.contract(address=liquidity_pool_address, abi=abi)
             reserves =  liquidity_pool_contract.functions.getReserves().call()
             reserves_token_1 = liquidity_pool_contract.functions.token0().call()
             reserves_token_2 = liquidity_pool_contract.functions.token1().call()
         except ValueError as e:
-            reserves_token_1 = token_1_hash
-            reserves_token_2 = token_2_hash
+            reserves_token_1 = self.token_1.address
+            reserves_token_2 = self.token_2.address
             reserves = [0, 0]
-            address = None
+            liquidity_pool_address = None
 
-        if reserves_token_1 == token_1_hash and reserves_token_2 == token_2_hash:
+        if reserves_token_1 == self.token_1.address and reserves_token_2 == self.token_2.address:
             token_1_liquidity = reserves[0]
             token_2_liquidity = reserves[1]
-        elif reserves_token_2 == token_1_hash and reserves_token_1 == token_2_hash:
+        elif reserves_token_2 == self.token_1.address and reserves_token_1 == self.token_2.address:
             token_1_liquidity = reserves[1]
             token_2_liquidity = reserves[0]
 
-        return float(token_1_liquidity), float(token_2_liquidity), address
+        self.token_1_liquidity = self.token_1.from_wei(token_1_liquidity)
+        self.token_2_liquidity = self.token_2.from_wei(token_2_liquidity)
+        self.liquidity_pool_address = liquidity_pool_address
 
+    def get_pair_liquidity(self):
+        return self.token_1_liquidity, self.token_2_liquidity
 
-    def get_amount_out_by_liqudity_pool(self, from_token, to_token, from_token_amount):
-        from_token_liquidity, to_token_liquidity, liquidity_pool_address = self.get_pair_liquidity(from_token,to_token)
-
-        from_token_amount = self.fromWei(from_token, from_token_amount)
-        from_token_liquidity = self.fromWei(from_token, from_token_liquidity)
-        to_token_liquidity = self.fromWei(to_token, to_token_liquidity)
-
-        if from_token_liquidity > from_token_amount * 100:
-            per_unit_amount = to_token_liquidity/from_token_liquidity * from_token_amount
+    def get_amount_token_2_out_by_liquidity(self, amount_in):
+        if self.token_1_liquidity > amount_in * 100:
+            per_unit_amount = self.token_2_liquidity/self.token_1_liquidity * amount_in
         else:
             per_unit_amount = 0
+        return per_unit_amount
 
-        return self.toWei(to_token, per_unit_amount)
-        
+    def get_amount_token_1_out_by_liquidity(self, amount_in):
+        if self.token_2_liquidity > amount_in * 100:
+            per_unit_amount = self.token_1_liquidity/self.token_2_liquidity * amount_in
+        else:
+            per_unit_amount = 0
+        return per_unit_amount
 
+    def get_amount_token_2_out(self, amount_in):
+        amount_in_wei = self.token_1.to_wei(amount_in)
+        try:
+            amount_out_wei = self.client.router_contract.functions.getAmountsOut(amount_in_wei,[self.token_1.address,self.token_2.address]).call()[1]
+        except ContractLogicError as e:
+            amount_out_wei = 0 
+        amount_out = self.token_2.from_wei(amount_out_wei)
+        return amount_out
 
-    def get_recent_transaction(self):
+    def get_amount_token_1_out(self, amount_in):
+        amount_in_wei = self.token_2.to_wei(amount_in)
+        try:
+            amount_out_wei = self.client.router_contract.functions.getAmountsOut(amount_in_wei,[self.token_2.address,self.token_1.address]).call()[1]
+        except ContractLogicError as e:
+            amount_out_wei = 0 
+        amount_out = self.token_1.from_wei(amount_out_wei)
+        return amount_out
 
-        url = "https://deep-index.moralis.io/api/v2/{}?chain=polygon&limit=25".format(self.contract_address)
-        response = requests.get(url, headers={"X-API-Key":"0ZMgWQz5RlFhsFYBHOXJqvDCDdYmkZ1KzzY2304zUmsfmBpszfa0Bo3cBnxy1atV"})
-        json_reponse = json.loads(response.content)
+    def build_transaction(self, from_token, to_token, from_token_amount, to_token_amount):
+        start = time.time()
+        txn = self.client.router_contract.functions.swapExactTokensForTokens(
+            from_token_amount,
+            to_token_amount,
+            [from_token,to_token],
+            self.client.my_address,
+            (int(time.time()) + 10000) 
+            )
+        return txn
 
-        for transaction in json_reponse["result"]:
-            print(transaction["block_timestamp"])
-            #print(transaction.keys())
-            txn_input = self.contract.decode_function_input(transaction["input"])
-            print(txn_input[1])
-            #self.toChecksumAddress(txn_input[1]["path"][1])
-            self.toChecksumAddress("USDT")
+    def swap_token_1_for_token_2(self, amount_in, amount_out):
+        from_token = self.token_1.address
+        to_token = self.token_2.address
+        from_token_amount = self.token_1.to_wei(amount_in)
+        to_token_amount = self.token_2.to_wei(amount_out * self.client.slippage)
+        txn  = self.build_transaction(from_token, to_token, from_token_amount, to_token_amount)
+        txn_hash = self.client.sign_and_send_transaction(txn)
+        return txn_hash
+
+    def swap_token_2_for_token_1(self, amount_in, amount_out):
+        from_token = self.token_2.address
+        to_token = self.token_1.address
+        from_token_amount = self.token_2.to_wei(amount_in)
+        to_token_amount = self.token_1.to_wei(amount_out * self.client.slippage)
+        txn  = self.build_transaction(from_token, to_token, from_token_amount, to_token_amount)
+        txn_hash = self.client.sign_and_send_transaction(txn)
+        return txn_hash
