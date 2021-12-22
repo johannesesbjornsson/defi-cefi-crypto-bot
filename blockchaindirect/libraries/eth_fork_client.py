@@ -109,6 +109,31 @@ class Client(object):
         return self.web3.toHex(txn_hash)
 
 
+    def get_transaction_amount_out(self,transaction_hash):
+        transaction_receipt = self.web3.eth.wait_for_transaction_receipt(transaction_hash)
+
+        if self.blockchain == "polygon":
+            log_location_index = -2
+        elif self.blockchain == "bsc":
+            log_location_index = -1
+
+        tx_dict = dict(transaction_receipt)
+        data = tx_dict["logs"][log_location_index]["data"]
+        address = tx_dict["logs"][log_location_index]["address"]
+        
+        address = self.web3.toChecksumAddress(address)
+        abi = self.get_abi(address)
+        contract = self.web3.eth.contract(address=address, abi=abi)
+        events = contract.events.Swap().processReceipt(transaction_receipt,errors=IGNORE)
+        decoded_data = dict(dict(list(events)[log_location_index])["args"])
+
+        if decoded_data["amount0Out"] != 0:
+            amount_out = data["amount0Out"]
+        elif decoded_data["amount1Out"] != 0:
+            amount_out = data["amount1Out"]
+        return amount_out
+
+
 class Token(object):
 
     def __init__(self, client, token):
@@ -267,4 +292,5 @@ class TokenPair(object):
         to_token_amount = self.token_1.to_wei(amount_out * self.client.slippage)
         txn  = self.build_transaction(from_token, to_token, from_token_amount, to_token_amount)
         txn_hash = self.client.sign_and_send_transaction(txn)
+
         return txn_hash

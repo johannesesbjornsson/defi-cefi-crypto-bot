@@ -24,6 +24,8 @@ token_pair = TokenPair(client, token1, token2)
 print(token_pair)
 print(token_pair.liquidity_pool_address)
 
+print(client.get_transaction_amount_out("0x3442393734aaafdb42a710f4aa70a81cdc107e839b5a68a16a903cfec4977fdf"))
+
 #ina = 7.75
 #out = token_pair.get_amount_token_1_out(ina)
 #print(ina, out)
