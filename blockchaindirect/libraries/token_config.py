@@ -42,10 +42,10 @@ bep20_all_tokens.update(bep20_base_tokens)
 
 
 polygon_tokens = {
-    "AAVE" : "0xd6df932a45c0f255f85145f286ea0b292b21c90b",
-    "ATOM": "0xac51c4c48dc3116487ed4bc16542e27b5694da1b",
-    "AVAX": "0x2C89bbc92BD86F8075d1DEcc58C7F4E0107f286b",
-    "LUNA": "0x24834bbec7e39ef42f4a75eaf8e5b6486d3f0e57",
+    #"AAVE" : "0xd6df932a45c0f255f85145f286ea0b292b21c90b",
+    #"ATOM": "0xac51c4c48dc3116487ed4bc16542e27b5694da1b",
+    #"AVAX": "0x2C89bbc92BD86F8075d1DEcc58C7F4E0107f286b",
+    #"LUNA": "0x24834bbec7e39ef42f4a75eaf8e5b6486d3f0e57",
     "WETH": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
     "WMATIC": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
     "LINK": "0x53e0bca35ec356bd5dddfebbd1fc0fd03fabad39",

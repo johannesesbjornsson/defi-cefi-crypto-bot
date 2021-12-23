@@ -14,44 +14,26 @@ client = Client("polygon",cfg.my_polygon_address, cfg.private_key, cfg.polygon_a
 lists = list(itertools.combinations(client.tokens_to_check, 2))
 lists = [
     #["WETH", "WMATIC"],
-    #["WETH","LINK"]
+    ["WMATIC", "LINK"]
 ]
+token_1 = Token(client, "USDC")
 
-token1 = Token(client, "USDC")
-token2 = Token(client, "TEL")
-
-token_pair = TokenPair(client, token1, token2)
-print(token_pair)
-print(token_pair.liquidity_pool_address)
-
-#ina = 15.74
-#out = token_pair.get_amount_token_1_out(ina)
-#print(ina, out)
-#print(token_pair.swap_token_2_for_token_1(ina,out))
-
-debug_mode = False
-from_range = [1,1]
+from_range = [0.1,0.1]
 for li in lists:
-    token_0 = "USDC"
-    #token_0 = "WMATIC"
-    token_1 = li[0]
-    token_2 = li[1]
-    print("Checking: ",token_0, token_1, token_2 )
-    arbitrage_client = arbitrage.Arbitrage(client=client,token_0=token_0,token_1=token_1,token_2=token_2,from_range=from_range, debug_mode=debug_mode)
+    token_2 = Token(client, li[0])
+    token_3 = Token(client, li[1])
+    token_pair_1 = TokenPair(client, token_1, token_2)
+    token_pair_2 = TokenPair(client, token_2, token_3)
+    token_pair_3 = TokenPair(client, token_1, token_3)
+
+    print("Checking: ",token_1.name, token_2.name, token_3.name )
+    arbitrage_client = arbitrage.Arbitrage(client=client,
+        token_pair_1=token_pair_1, 
+        token_pair_2=token_pair_2, 
+        token_pair_3=token_pair_3,
+        from_range=from_range)
 
     found_arbitrage =  arbitrage_client.find_arbitrage()
     if found_arbitrage:
-        print(found_arbitrage)
-        #arbitrage_client.execute_arbitrage()
+        arbitrage_client.execute_arbitrage()
         print("------------------------")
-    
-    #client.get_recent_transaction()
-    
-    #l0, l1, addr = client.get_pair_liquidity("TEL","USDC")
-    #print(client.fromWei("TEL",l0))
-    #print(client.fromWei("USDC",l1))
-    
-    #print(client.get_token_amount_out(token_0, token_1,1000000000000000000))
-    
-    #print(token_0,token_1)
-    #print(client.get_amount_out_by_liqudity_pool(token_0, token_1,1000000))

@@ -306,7 +306,7 @@ class TokenPair(object):
         contract = self.client.web3.eth.contract(address=address, abi=abi)
         events = contract.events.Swap().processReceipt(transaction_receipt,errors=IGNORE)
         decoded_data = dict(dict(list(events)[log_location_index])["args"])
-        print(decoded_data)
+
         if decoded_data["amount0Out"] != 0:
             amount_out = decoded_data["amount0Out"]
         elif decoded_data["amount1Out"] != 0:
