@@ -92,6 +92,21 @@ class Client(object):
       
         return json_reponse["result"]
 
+
+    def get_recent_transaction(self):
+
+        url = "https://deep-index.moralis.io/api/v2/{}?chain=polygon&limit=25".format(self.contract_address)
+        response = requests.get(url, headers={"X-API-Key":"0ZMgWQz5RlFhsFYBHOXJqvDCDdYmkZ1KzzY2304zUmsfmBpszfa0Bo3cBnxy1atV"})
+        json_reponse = json.loads(response.content)
+
+        for transaction in json_reponse["result"]:
+            print(transaction["block_timestamp"])
+            #print(transaction.keys())
+            txn_input = self.contract.decode_function_input(transaction["input"])
+            print(txn_input[1])
+            #self.toChecksumAddress(txn_input[1]["path"][1])
+            self.toChecksumAddress("USDT")
+
     def sign_and_send_transaction(self, transaction):
         nonce = self.web3.eth.get_transaction_count(self.my_address)
         built_txn = transaction.buildTransaction({
@@ -106,32 +121,7 @@ class Client(object):
         txn_hash = self.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
         transaction_receipt = self.web3.eth.wait_for_transaction_receipt(txn_hash)
         
-        return self.web3.toHex(txn_hash)
-
-
-    def get_transaction_amount_out(self,transaction_hash):
-        transaction_receipt = self.web3.eth.wait_for_transaction_receipt(transaction_hash)
-
-        if self.blockchain == "polygon":
-            log_location_index = -2
-        elif self.blockchain == "bsc":
-            log_location_index = -1
-
-        tx_dict = dict(transaction_receipt)
-        data = tx_dict["logs"][log_location_index]["data"]
-        address = tx_dict["logs"][log_location_index]["address"]
-        
-        address = self.web3.toChecksumAddress(address)
-        abi = self.get_abi(address)
-        contract = self.web3.eth.contract(address=address, abi=abi)
-        events = contract.events.Swap().processReceipt(transaction_receipt,errors=IGNORE)
-        decoded_data = dict(dict(list(events)[log_location_index])["args"])
-
-        if decoded_data["amount0Out"] != 0:
-            amount_out = data["amount0Out"]
-        elif decoded_data["amount1Out"] != 0:
-            amount_out = data["amount1Out"]
-        return amount_out
+        return transaction_receipt
 
 
 class Token(object):
@@ -178,7 +168,7 @@ class Token(object):
         if self.allowance_on_router == 0:
             value = self.client.web3.toWei(2**84-1,'ether')
             txn = self.token_contract.functions.approve(self.client.router_contract_address,value)
-            self.client.sign_and_send_transaction(txn)
+            transaction_receipt = self.client.sign_and_send_transaction(txn)
 
         return True
 
@@ -199,17 +189,19 @@ class TokenPair(object):
         self.client = client
         self.token_1 = token_1
         self.token_2 = token_2
-        self.set_pair_liquidity()
+        
+        liquidity_pool_address = self.client.factory_contract.functions.getPair(self.token_1.address, self.token_2.address).call()
+        self.liquidity_pool_address = self.client.web3.toChecksumAddress(liquidity_pool_address)
+        self.token_1_liquidity = None
+        self.token_2_liquidity = None
 
     def __str__(self):
-        return f"{self.token_1.name}: {self.token_1.address}, {self.token_2.name}: {self.token_2.address}"
+        return f"{self.token_1.name}: {self.token_1.address},\n{self.token_2.name}: {self.token_2.address},\nLiquidity_address: {self.liquidity_pool_address}"
         
     def set_pair_liquidity(self):
         try:
-            liquidity_pool_address = self.client.factory_contract.functions.getPair(self.token_1.address, self.token_2.address).call()
-            liquidity_pool_address = self.client.web3.toChecksumAddress(liquidity_pool_address)
-            abi = self.client.get_abi(liquidity_pool_address)
-            liquidity_pool_contract = self.client.web3.eth.contract(address=liquidity_pool_address, abi=abi)
+            abi = self.client.get_abi(self.liquidity_pool_address)
+            liquidity_pool_contract = self.client.web3.eth.contract(address=self.liquidity_pool_address, abi=abi)
             reserves =  liquidity_pool_contract.functions.getReserves().call()
             reserves_token_1 = liquidity_pool_contract.functions.token0().call()
             reserves_token_2 = liquidity_pool_contract.functions.token1().call()
@@ -217,7 +209,6 @@ class TokenPair(object):
             reserves_token_1 = self.token_1.address
             reserves_token_2 = self.token_2.address
             reserves = [0, 0]
-            liquidity_pool_address = None
 
         if reserves_token_1 == self.token_1.address and reserves_token_2 == self.token_2.address:
             token_1_liquidity = reserves[0]
@@ -228,7 +219,6 @@ class TokenPair(object):
 
         self.token_1_liquidity = self.token_1.from_wei(token_1_liquidity)
         self.token_2_liquidity = self.token_2.from_wei(token_2_liquidity)
-        self.liquidity_pool_address = liquidity_pool_address
 
     def get_pair_liquidity(self):
         return self.token_1_liquidity, self.token_2_liquidity
@@ -282,8 +272,10 @@ class TokenPair(object):
         from_token_amount = self.token_1.to_wei(amount_in)
         to_token_amount = self.token_2.to_wei(amount_out * self.client.slippage)
         txn  = self.build_transaction(from_token, to_token, from_token_amount, to_token_amount)
-        txn_hash = self.client.sign_and_send_transaction(txn)
-        return txn_hash
+        transaction_receipt = self.client.sign_and_send_transaction(txn)
+        amount_out = self.get_transaction_amount_out(transaction_receipt)
+
+        return self.token_2.from_wei(amount_out)
 
     def swap_token_2_for_token_1(self, amount_in, amount_out):
         from_token = self.token_2.address
@@ -291,6 +283,32 @@ class TokenPair(object):
         from_token_amount = self.token_2.to_wei(amount_in)
         to_token_amount = self.token_1.to_wei(amount_out * self.client.slippage)
         txn  = self.build_transaction(from_token, to_token, from_token_amount, to_token_amount)
-        txn_hash = self.client.sign_and_send_transaction(txn)
+        transaction_receipt = self.client.sign_and_send_transaction(txn)
+        amount_out = self.get_transaction_amount_out(transaction_receipt)
 
-        return txn_hash
+        return self.token_1.from_wei(amount_out)
+
+    def get_transaction_amount_out(self,transaction_receipt):
+        if isinstance(transaction_receipt, str):
+            transaction_receipt = self.client.web3.eth.wait_for_transaction_receipt(transaction_receipt)
+
+        if self.client.blockchain == "polygon":
+            log_location_index = -2
+        elif self.client.blockchain == "bsc":
+            log_location_index = -1
+
+        tx_dict = dict(transaction_receipt)
+        data = tx_dict["logs"][log_location_index]["data"]
+        address = tx_dict["logs"][log_location_index]["address"]
+        
+        address = self.client.web3.toChecksumAddress(address)
+        abi = self.client.get_abi(address)
+        contract = self.client.web3.eth.contract(address=address, abi=abi)
+        events = contract.events.Swap().processReceipt(transaction_receipt,errors=IGNORE)
+        decoded_data = dict(dict(list(events)[log_location_index])["args"])
+        print(decoded_data)
+        if decoded_data["amount0Out"] != 0:
+            amount_out = decoded_data["amount0Out"]
+        elif decoded_data["amount1Out"] != 0:
+            amount_out = decoded_data["amount1Out"]
+        return amount_out
