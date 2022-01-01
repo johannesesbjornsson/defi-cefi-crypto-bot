@@ -64,15 +64,16 @@ class Arbitrage(object):
 
         sequence_1_value = self.token_pair_1.token_1.from_wei(amount_out_sequence_1)
         sequence_2_value = self.token_pair_1.token_1.from_wei(amount_out_sequence_2)
-        print("amount_out_sequence_1:", sequence_1_value )
-        print("amount_out_sequence_2:", sequence_2_value)
 
         if sequence_1_value > sequence_2_value and sequence_1_value > self.minimum_profit:
             found_arbitrage = True
             self.available_arbitrage = "sequence_1"
+            print("amount_out_sequence_1:", sequence_1_value)
+            
         elif sequence_2_value > sequence_1_value and sequence_2_value > self.minimum_profit:
             found_arbitrage = True
-            self.available_arbitrage = "sequence_2"       
+            self.available_arbitrage = "sequence_2"
+            print("amount_out_sequence_2:", sequence_2_value)
 
 
         self.initial_swap_amount = initial_swap_amount

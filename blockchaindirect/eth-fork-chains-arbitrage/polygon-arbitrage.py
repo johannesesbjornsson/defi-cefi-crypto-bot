@@ -4,7 +4,9 @@ import itertools
 import sys
 import arbitrage
 sys.path.insert(0,'../libraries')
-from eth_fork_client import Client, Token, TokenPair
+from eth_fork_client import Client
+from eth_fork_token import Token
+from eth_fork_token_pair import TokenPair
 import token_config
 
 from web3 import Web3
@@ -13,8 +15,8 @@ client = Client("polygon",cfg.my_polygon_address, cfg.private_key, cfg.polygon_a
 
 lists = list(itertools.combinations(client.tokens_to_check, 2))
 #lists = [
-#    #["WETH", "WMATIC"],
-#    ["QUICK", "LINK"]
+#    ["WETH", "WMATIC"],
+#    #["QUICK", "LINK"]
 #]
 token_1 = Token(client, "USDC")
 

@@ -4,7 +4,9 @@ import itertools
 import sys
 import arbitrage
 sys.path.insert(0,'../libraries')
-from eth_fork_client import Client, Token, TokenPair
+from eth_fork_client import Client
+from eth_fork_token import Token
+from eth_fork_token_pair import TokenPair
 import eth_fork_client
 import token_config
 
