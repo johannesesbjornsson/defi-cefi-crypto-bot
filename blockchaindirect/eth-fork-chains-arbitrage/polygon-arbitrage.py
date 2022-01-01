@@ -12,10 +12,10 @@ from web3 import Web3
 client = Client("polygon",cfg.my_polygon_address, cfg.private_key, cfg.polygon_api_key)
 
 lists = list(itertools.combinations(client.tokens_to_check, 2))
-lists = [
-    #["WETH", "WMATIC"],
-    ["WMATIC", "LINK"]
-]
+#lists = [
+#    #["WETH", "WMATIC"],
+#    ["QUICK", "LINK"]
+#]
 token_1 = Token(client, "USDC")
 
 from_range = [0.1,0.1]

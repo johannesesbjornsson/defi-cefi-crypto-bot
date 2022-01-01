@@ -14,9 +14,9 @@ class Arbitrage(object):
         self.from_range = from_range
         
         if self.client.blockchain == "bsc":
-            self.minimum_profit = self.from_range[0] + 0.2
+            self.minimum_profit = self.from_range[0] + 0.02
         elif self.client.blockchain == "polygon":
-            self.minimum_profit =  self.from_range[0] #+ 0.01
+            self.minimum_profit =  self.from_range[0] + 0.01
 
     def get_sequence_1_amount_out(self, amount_in):
         amount_out = self.token_pair_1.get_amount_token_2_out(amount_in)
@@ -35,10 +35,10 @@ class Arbitrage(object):
         amount_out = self.token_pair_1.get_amount_token_2_out(amount_in)
         amount_in = self.token_pair_1.swap_token_1_for_token_2(amount_in,amount_out)
 
-        amount_out = self.token_pair_2.get_amount_token_2_out(amount_out)
+        amount_out = self.token_pair_2.get_amount_token_2_out(amount_in)
         amount_in = self.token_pair_2.swap_token_1_for_token_2(amount_in,amount_out)
 
-        amount_out = self.token_pair_3.get_amount_token_1_out(amount_out)
+        amount_out = self.token_pair_3.get_amount_token_1_out(amount_in)
         amount_in = self.token_pair_3.swap_token_2_for_token_1(amount_in,amount_out)
         return amount_in
 
@@ -46,29 +46,31 @@ class Arbitrage(object):
         amount_out = self.token_pair_3.get_amount_token_2_out(amount_in)
         amount_in = self.token_pair_3.swap_token_1_for_token_2(amount_in,amount_out)
 
-        amount_out = self.token_pair_2.get_amount_token_1_out(amount_out)
+        amount_out = self.token_pair_2.get_amount_token_1_out(amount_in)
         amount_in = self.token_pair_2.swap_token_2_for_token_1(amount_in,amount_out)
 
-        amount_out = self.token_pair_1.swap_token_2_for_token_1(amount_out)
-        amount_in = self.token_pair_1.get_amount_token_1_out(amount_in,amount_out)
+        amount_out = self.token_pair_1.get_amount_token_1_out(amount_in)
+        amount_in = self.token_pair_1.swap_token_2_for_token_1(amount_in,amount_out)
 
         return amount_in
 
 
     def find_arbitrage(self):
         found_arbitrage = False
-        initial_swap_amount = 1
+        initial_swap_amount = self.token_pair_1.token_1.to_wei(self.from_range[0])
 
         amount_out_sequence_1 = self.get_sequence_1_amount_out(initial_swap_amount)
         amount_out_sequence_2 = self.get_sequence_2_amount_out(initial_swap_amount)
 
-        print("amount_out_sequence_1:", amount_out_sequence_1)
-        print("amount_out_sequence_2:", amount_out_sequence_2)
+        sequence_1_value = self.token_pair_1.token_1.from_wei(amount_out_sequence_1)
+        sequence_2_value = self.token_pair_1.token_1.from_wei(amount_out_sequence_2)
+        print("amount_out_sequence_1:", sequence_1_value )
+        print("amount_out_sequence_2:", sequence_2_value)
 
-        if amount_out_sequence_1 > amount_out_sequence_2 and amount_out_sequence_1 > self.minimum_profit:
+        if sequence_1_value > sequence_2_value and sequence_1_value > self.minimum_profit:
             found_arbitrage = True
             self.available_arbitrage = "sequence_1"
-        elif amount_out_sequence_2 > amount_out_sequence_1 and amount_out_sequence_2 > self.minimum_profit:
+        elif sequence_2_value > sequence_1_value and sequence_2_value > self.minimum_profit:
             found_arbitrage = True
             self.available_arbitrage = "sequence_2"       
 
@@ -78,7 +80,9 @@ class Arbitrage(object):
         return found_arbitrage
         
     def execute_arbitrage(self):
-        
+        self.token_pair_1.approve_tokens()
+        self.token_pair_2.approve_tokens()
+        self.token_pair_3.approve_tokens()
         if self.available_arbitrage == "sequence_1":
             amount_out = self.execute_sequence_1_amount_out(self.initial_swap_amount)
         elif self.available_arbitrage == "sequence_2":

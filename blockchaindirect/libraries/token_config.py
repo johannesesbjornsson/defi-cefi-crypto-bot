@@ -26,12 +26,11 @@ bep20_tokens_to_check = [
     "DOT",
     "ADA",
     "ETH",
-    "DOGE",
     "XRP",
-    "USDT",
-    "USDC",
-    "UNI",
-    "MATIC",
+    #"USDT",
+    #"USDC",
+    #"UNI",
+    #"MATIC",
     #"SCAR",
     #"FLOKI"
 
@@ -52,9 +51,10 @@ polygon_tokens = {
     "QUICK": "0x831753dd7087cac61ab5644b308642cc1c33dc13",
     "WBTC": "0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6",
     "TEL": "0xdf7837de1f2fa4631d716cf2502f8b230f1dcc32",
-    "USDT": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
-    "MANA": "0xa1c57f48f0deb89f569dfbe6e2b7f46d33606fd4",
-    "SAND": "0xBbba073C31bF03b8ACf7c28EF0738DeCF3695683"
+    #"UNI": "0xb33eaad8d922b1083446dc23f610c2567fb5180f",
+    #"USDT": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+    #"MANA": "0xa1c57f48f0deb89f569dfbe6e2b7f46d33606fd4",
+    #"SAND": "0xBbba073C31bF03b8ACf7c28EF0738DeCF3695683"
     
 }
 polygon_base_tokens = {
@@ -63,12 +63,9 @@ polygon_base_tokens = {
     "WMATIC": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
 }
 
-polygon_tokens_extra_decimals = {
-    "USDC" : 'lovelace',
-    "USDT" : 'lovelace',
-    "ATOM" : 'lovelace',
-    "WBTC" : 'lovelace',
-    "TEL" :  'lovelace'
+decimals_to_unit = {
+    6: "lovelace",
+    18: "ether"
 }
 # See https://web3js.readthedocs.io/en/v1.2.11/web3-utils.html#id82
 

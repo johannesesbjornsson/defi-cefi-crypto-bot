@@ -20,7 +20,7 @@ class Client(object):
             router_contract_name = "quickswap_router"
             factory_contract_name = "quickswap_factory"  
             self.get_polygon_tokens()
-            self.gas_price = self.web3.toWei('30','gwei')
+            self.max_gas_price = self.web3.toWei('70','gwei')
             self.default_gas_limit = 300000 #TODO have this be not fixed
             self.slippage = 0.995
         elif blockchain == "bsc":
@@ -32,11 +32,10 @@ class Client(object):
             self.get_bep20_tokens()
             self.slippage = 0.99 
             self.default_gas_limit = 250000
-            self.gas_price = self.web3.toWei('5','gwei')
+            self.max_gas_price = self.web3.toWei('5','gwei')
         else:
             raise ValueError(blockchain + "is not a supported blockchain")
 
-        
         self.blockchain = blockchain
         self.my_address = self.web3.toChecksumAddress(my_address)
         self.private_key = private_key
@@ -49,7 +48,6 @@ class Client(object):
         abi = json.loads(contract_details["abi"])
         contract_address = self.web3.toChecksumAddress(contract_details["address"])
         self.factory_contract = self.web3.eth.contract(address=contract_address, abi=abi)
-
 
     def get_bep20_tokens(self,exclude_tokens=["BUSD", "USDT","USDC","SAFEMOON"]):
         url = "https://api.pancakeswap.info/api/v2/pairs"
@@ -108,12 +106,16 @@ class Client(object):
             self.toChecksumAddress("USDT")
 
     def sign_and_send_transaction(self, transaction):
+        gas_price = self.web3.eth.gas_price
+        if gas_price > self.max_gas_price:
+            raise ValueError(f"Gas prices are currently to expensive: {gas_price}")
+
         nonce = self.web3.eth.get_transaction_count(self.my_address)
         built_txn = transaction.buildTransaction({
                 'from': self.my_address,
                 'value': 0,
                 'gas': self.default_gas_limit, 
-                'gasPrice': self.gas_price,
+                'gasPrice': gas_price,
                 'nonce': nonce,
             })
 
@@ -166,9 +168,11 @@ class Token(object):
 
     def approve_token(self):
         if self.allowance_on_router == 0:
-            value = self.client.web3.toWei(2**84-1,'ether')
+            value = self.client.web3.toWei(2**64-1,'ether')
             txn = self.token_contract.functions.approve(self.client.router_contract_address,value)
             transaction_receipt = self.client.sign_and_send_transaction(txn)
+
+            self.allowance_on_router =  self.token_contract.functions.allowance(self.client.my_address,self.client.router_contract_address).call()
 
         return True
 
@@ -197,7 +201,14 @@ class TokenPair(object):
 
     def __str__(self):
         return f"{self.token_1.name}: {self.token_1.address},\n{self.token_2.name}: {self.token_2.address},\nLiquidity_address: {self.liquidity_pool_address}"
-        
+    
+    def approve_tokens(self):
+        if self.token_1.allowance_on_router == 0:
+            self.token_1.approve_token()
+        if self.token_2.allowance_on_router == 0:
+            self.token_2.approve_token()
+        return True
+
     def set_pair_liquidity(self):
         try:
             abi = self.client.get_abi(self.liquidity_pool_address)
@@ -238,21 +249,19 @@ class TokenPair(object):
         return per_unit_amount
 
     def get_amount_token_2_out(self, amount_in):
-        amount_in_wei = self.token_1.to_wei(amount_in)
         try:
-            amount_out_wei = self.client.router_contract.functions.getAmountsOut(amount_in_wei,[self.token_1.address,self.token_2.address]).call()[1]
+            amount_out = self.client.router_contract.functions.getAmountsOut(amount_in,[self.token_1.address,self.token_2.address]).call()[1]
         except ContractLogicError as e:
-            amount_out_wei = 0 
-        amount_out = self.token_2.from_wei(amount_out_wei)
+            amount_out = 0 
+        
         return amount_out
 
     def get_amount_token_1_out(self, amount_in):
-        amount_in_wei = self.token_2.to_wei(amount_in)
         try:
-            amount_out_wei = self.client.router_contract.functions.getAmountsOut(amount_in_wei,[self.token_2.address,self.token_1.address]).call()[1]
+            amount_out = self.client.router_contract.functions.getAmountsOut(amount_in,[self.token_2.address,self.token_1.address]).call()[1]
         except ContractLogicError as e:
-            amount_out_wei = 0 
-        amount_out = self.token_1.from_wei(amount_out_wei)
+            amount_out = 0 
+        
         return amount_out
 
     def build_transaction(self, from_token, to_token, from_token_amount, to_token_amount):
@@ -269,24 +278,24 @@ class TokenPair(object):
     def swap_token_1_for_token_2(self, amount_in, amount_out):
         from_token = self.token_1.address
         to_token = self.token_2.address
-        from_token_amount = self.token_1.to_wei(amount_in)
-        to_token_amount = self.token_2.to_wei(amount_out * self.client.slippage)
+        from_token_amount = amount_in
+        to_token_amount = int(amount_out * self.client.slippage)
         txn  = self.build_transaction(from_token, to_token, from_token_amount, to_token_amount)
         transaction_receipt = self.client.sign_and_send_transaction(txn)
         amount_out = self.get_transaction_amount_out(transaction_receipt)
 
-        return self.token_2.from_wei(amount_out)
+        return amount_out
 
     def swap_token_2_for_token_1(self, amount_in, amount_out):
         from_token = self.token_2.address
         to_token = self.token_1.address
-        from_token_amount = self.token_2.to_wei(amount_in)
-        to_token_amount = self.token_1.to_wei(amount_out * self.client.slippage)
+        from_token_amount = amount_in
+        to_token_amount = int(amount_out * self.client.slippage)
         txn  = self.build_transaction(from_token, to_token, from_token_amount, to_token_amount)
         transaction_receipt = self.client.sign_and_send_transaction(txn)
         amount_out = self.get_transaction_amount_out(transaction_receipt)
 
-        return self.token_1.from_wei(amount_out)
+        return amount_out
 
     def get_transaction_amount_out(self,transaction_receipt):
         if isinstance(transaction_receipt, str):
