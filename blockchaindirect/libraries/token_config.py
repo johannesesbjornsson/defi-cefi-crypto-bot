@@ -26,12 +26,11 @@ bep20_tokens_to_check = [
     "DOT",
     "ADA",
     "ETH",
-    "DOGE",
     "XRP",
-    "USDT",
-    "USDC",
-    "UNI",
-    "MATIC",
+    #"USDT",
+    #"USDC",
+    #"UNI",
+    #"MATIC",
     #"SCAR",
     #"FLOKI"
 
@@ -42,17 +41,20 @@ bep20_all_tokens.update(bep20_base_tokens)
 
 
 polygon_tokens = {
-    "AAVE" : "0xd6df932a45c0f255f85145f286ea0b292b21c90b",
-    "ATOM": "0xac51c4c48dc3116487ed4bc16542e27b5694da1b",
-    "AVAX": "0x2C89bbc92BD86F8075d1DEcc58C7F4E0107f286b",
-    "LUNA": "0x24834bbec7e39ef42f4a75eaf8e5b6486d3f0e57",
+    #"AAVE" : "0xd6df932a45c0f255f85145f286ea0b292b21c90b",
+    #"ATOM": "0xac51c4c48dc3116487ed4bc16542e27b5694da1b",
+    #"AVAX": "0x2C89bbc92BD86F8075d1DEcc58C7F4E0107f286b",
+    #"LUNA": "0x24834bbec7e39ef42f4a75eaf8e5b6486d3f0e57",
     "WETH": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
     "WMATIC": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
     "LINK": "0x53e0bca35ec356bd5dddfebbd1fc0fd03fabad39",
     "QUICK": "0x831753dd7087cac61ab5644b308642cc1c33dc13",
     "WBTC": "0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6",
     "TEL": "0xdf7837de1f2fa4631d716cf2502f8b230f1dcc32",
-    "USDT": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+    #"UNI": "0xb33eaad8d922b1083446dc23f610c2567fb5180f",
+    #"USDT": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+    #"MANA": "0xa1c57f48f0deb89f569dfbe6e2b7f46d33606fd4",
+    #"SAND": "0xBbba073C31bF03b8ACf7c28EF0738DeCF3695683"
     
 }
 polygon_base_tokens = {
@@ -61,12 +63,9 @@ polygon_base_tokens = {
     "WMATIC": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
 }
 
-polygon_tokens_extra_decimals = {
-    "USDC" : 'lovelace',
-    "USDT" : 'lovelace',
-    "ATOM" : 'lovelace',
-    "WBTC" : 'lovelace',
-    "TEL" :  'lovelace'
+decimals_to_unit = {
+    6: "lovelace",
+    18: "ether"
 }
 # See https://web3js.readthedocs.io/en/v1.2.11/web3-utils.html#id82
 
