@@ -91,20 +91,6 @@ class Client(object):
         return json_reponse["result"]
 
 
-    def get_recent_transaction(self):
-
-        url = "https://deep-index.moralis.io/api/v2/{}?chain=polygon&limit=25".format(self.contract_address)
-        response = requests.get(url, headers={"X-API-Key":"0ZMgWQz5RlFhsFYBHOXJqvDCDdYmkZ1KzzY2304zUmsfmBpszfa0Bo3cBnxy1atV"})
-        json_reponse = json.loads(response.content)
-
-        for transaction in json_reponse["result"]:
-            print(transaction["block_timestamp"])
-            #print(transaction.keys())
-            txn_input = self.contract.decode_function_input(transaction["input"])
-            print(txn_input[1])
-            #self.toChecksumAddress(txn_input[1]["path"][1])
-            self.toChecksumAddress("USDT")
-
     def sign_and_send_transaction(self, transaction):
         gas_price = self.web3.eth.gas_price
         if gas_price > self.max_gas_price:
@@ -125,3 +111,16 @@ class Client(object):
         
         return transaction_receipt
 
+    def get_recent_transaction(self):
+
+        url = "https://deep-index.moralis.io/api/v2/{}?chain=polygon&limit=25".format(self.contract_address)
+        response = requests.get(url, headers={"X-API-Key":"0ZMgWQz5RlFhsFYBHOXJqvDCDdYmkZ1KzzY2304zUmsfmBpszfa0Bo3cBnxy1atV"})
+        json_reponse = json.loads(response.content)
+
+        for transaction in json_reponse["result"]:
+            print(transaction["block_timestamp"])
+            #print(transaction.keys())
+            txn_input = self.contract.decode_function_input(transaction["input"])
+            print(txn_input[1])
+            #self.toChecksumAddress(txn_input[1]["path"][1])
+            self.toChecksumAddress("USDT")
