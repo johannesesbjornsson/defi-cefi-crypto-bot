@@ -128,7 +128,7 @@ class Client(object):
 
 class Token(object):
 
-    def __init__(self, client, token):
+    def __init__(self, client, token, use_standard_contracts=True):
         if type(client) != Client:
             raise ValueError("Argument must be object type Client")
         self.known_tokens = client.known_tokens
@@ -141,10 +141,15 @@ class Token(object):
             self.address = self.client.web3.toChecksumAddress(self.known_tokens[token])
             self.name = token
 
-        self.abi = self.client.get_abi(self.address)
-        self.token_contract = self.client.web3.eth.contract(address=self.address, abi=self.abi)
+        if use_standard_contracts:
+            self.token_contract = self.client.web3.eth.contract(
+                address=self.address, 
+                abi=contract_libarary.standard_contracts["token"])
+        else:
+            self.abi = self.client.get_abi(self.address)
+            self.token_contract = self.client.web3.eth.contract(address=self.address, abi=self.abi)
+            self.set_proxy_details()
 
-        self.set_proxy_details()
         self.allowance_on_router =  self.token_contract.functions.allowance(self.client.my_address,self.client.router_contract_address).call()
         self.decimals = self.token_contract.functions.decimals().call()
     

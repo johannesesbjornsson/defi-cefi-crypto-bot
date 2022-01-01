@@ -26,6 +26,7 @@ for li in lists:
     token_pair_2 = TokenPair(client, token_2, token_3)
     token_pair_3 = TokenPair(client, token_1, token_3)
 
+    
     print("Checking: ",token_1.name, token_2.name, token_3.name )
     arbitrage_client = arbitrage.Arbitrage(client=client,
         token_pair_1=token_pair_1, 
@@ -35,5 +36,5 @@ for li in lists:
 
     found_arbitrage =  arbitrage_client.find_arbitrage()
     if found_arbitrage:
-        arbitrage_client.execute_arbitrage()
+        #arbitrage_client.execute_arbitrage()
         print("------------------------")
