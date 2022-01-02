@@ -17,7 +17,7 @@ class TokenPair(object):
         self.token_2_liquidity = None
 
     def __str__(self):
-        return f"{self.token_1.name}: {self.token_1.address},\n{self.token_2.name}: {self.token_2.address},\nLiquidity_address: {self.liquidity_pool_address}"
+        return f"{self.token_1.symbol}: {self.token_1.address},\n{self.token_2.symbol}: {self.token_2.address},\nLiquidity_address: {self.liquidity_pool_address}"
     
     def approve_tokens(self):
         if self.token_1.allowance_on_router == 0:
@@ -92,24 +92,24 @@ class TokenPair(object):
             )
         return txn
 
-    def swap_token_1_for_token_2(self, amount_in, amount_out):
+    def swap_token_1_for_token_2(self, amount_in, amount_out, gas_price=None):
         from_token = self.token_1.address
         to_token = self.token_2.address
         from_token_amount = amount_in
         to_token_amount = int(amount_out * self.client.slippage)
         txn  = self.build_transaction(from_token, to_token, from_token_amount, to_token_amount)
-        transaction_receipt = self.client.sign_and_send_transaction(txn)
+        transaction_receipt = self.client.sign_and_send_transaction(txn,gas_price)
         amount_out = self.get_transaction_amount_out(transaction_receipt)
 
         return amount_out
 
-    def swap_token_2_for_token_1(self, amount_in, amount_out):
+    def swap_token_2_for_token_1(self, amount_in, amount_out, gas_price=None)):
         from_token = self.token_2.address
         to_token = self.token_1.address
         from_token_amount = amount_in
         to_token_amount = int(amount_out * self.client.slippage)
         txn  = self.build_transaction(from_token, to_token, from_token_amount, to_token_amount)
-        transaction_receipt = self.client.sign_and_send_transaction(txn)
+        transaction_receipt = self.client.sign_and_send_transaction(txn, gas_price)
         amount_out = self.get_transaction_amount_out(transaction_receipt)
 
         return amount_out

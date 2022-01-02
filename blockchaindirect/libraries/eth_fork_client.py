@@ -91,10 +91,11 @@ class Client(object):
         return json_reponse["result"]
 
 
-    def sign_and_send_transaction(self, transaction):
-        gas_price = self.web3.eth.gas_price
-        if gas_price > self.max_gas_price:
-            raise ValueError(f"Gas prices are currently to expensive: {gas_price}")
+    def sign_and_send_transaction(self, transaction, gas_price=None):
+        if gas_price is not None:
+            gas_price = self.web3.eth.gas_price
+            if gas_price > self.max_gas_price:
+                raise ValueError(f"Gas prices are currently to expensive: {gas_price}")
 
         nonce = self.web3.eth.get_transaction_count(self.my_address)
         built_txn = transaction.buildTransaction({
