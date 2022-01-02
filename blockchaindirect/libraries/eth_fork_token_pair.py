@@ -3,15 +3,10 @@ import time
 import token_config
 from web3.logs import STRICT, IGNORE, DISCARD, WARN
 from web3.exceptions import ContractLogicError
-from eth_fork_client import Client
-from eth_fork_token import Token
 
 
 class TokenPair(object):
     def __init__(self, client, token_1, token_2):
-        if type(client) != Client or type(token_1) != Token or type(token_1) != Token:
-            raise ValueError("First arguments must be object types Client, Token and Token")
-
         self.client = client
         self.token_1 = token_1
         self.token_2 = token_2
@@ -121,7 +116,8 @@ class TokenPair(object):
 
     def get_transaction_amount_out(self,transaction_receipt):
         if isinstance(transaction_receipt, str):
-            transaction_receipt = self.client.web3.eth.wait_for_transaction_receipt(transaction_receipt)
+            #transaction_receipt = self.client.web3.eth.wait_for_transaction_receipt(transaction_receipt)
+            transaction_receipt, transaction_successful, transaction_complete = self.client.get_transaction_receipt(txn_hash=txn_hash, wait=False)
 
         if self.client.blockchain == "polygon":
             log_location_index = -2

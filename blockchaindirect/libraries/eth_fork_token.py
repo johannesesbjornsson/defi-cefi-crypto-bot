@@ -2,13 +2,10 @@ import contract_libarary
 import token_config
 from web3.logs import STRICT, IGNORE, DISCARD, WARN
 from web3.exceptions import ContractLogicError
-from eth_fork_client import Client
 
 class Token(object):
 
     def __init__(self, client, token, use_standard_contracts=True):
-        if type(client) != Client:
-            raise ValueError("Argument must be object type Client")
         self.known_tokens = client.known_tokens
         self.client = client
 
@@ -28,6 +25,7 @@ class Token(object):
             self.token_contract = self.client.web3.eth.contract(address=self.address, abi=self.abi)
             self.set_proxy_details()
 
+        self.symbol = self.token_contract.functions.symbol().call()
         self.allowance_on_router =  self.token_contract.functions.allowance(self.client.my_address,self.client.router_contract_address).call()
         self.decimals = self.token_contract.functions.decimals().call()
     

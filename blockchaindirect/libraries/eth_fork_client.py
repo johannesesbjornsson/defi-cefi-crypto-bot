@@ -5,7 +5,7 @@ from web3 import Web3
 import time
 import token_config
 from web3.logs import STRICT, IGNORE, DISCARD, WARN
-from web3.exceptions import ContractLogicError
+from web3.exceptions import ContractLogicError, TransactionNotFound
 
 
 class Client(object):
@@ -107,11 +107,37 @@ class Client(object):
 
         signed_txn = self.web3.eth.account.sign_transaction(built_txn, private_key=self.private_key)
         txn_hash = self.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
-        transaction_receipt = self.web3.eth.wait_for_transaction_receipt(txn_hash)
+        #transaction_receipt = self.web3.eth.wait_for_transaction_receipt(txn_hash)
+        transaction_receipt, transaction_successful, transaction_complete = self.get_transaction_receipt(txn_hash=txn_hash, wait=False)
         
         return transaction_receipt
 
-    def get_recent_transaction(self):
+    def get_transaction_receipt(self,txn_hash, wait=True):
+        transaction_receipt = None
+        transaction_successful = None
+        transaction_complete = False
+
+        if wait:
+            transaction_receipt = self.web3.eth.wait_for_transaction_receipt(txn_hash)
+            transaction_complete = True
+            transaction_successful = transaction_receipt["status"]
+        else:
+            try:
+                transaction_receipt = self.web3.eth.get_transaction_receipt(txn_hash)
+                transaction_complete = True
+                transaction_successful = transaction_receipt["status"]
+            except TransactionNotFound as e:
+                transaction_complete = False
+        
+        if transaction_successful == 0:
+            transaction_successful = False
+        elif transaction_successful == 1:
+            transaction_successful = True
+
+        return transaction_receipt, transaction_successful, transaction_complete
+
+                
+    def get_recent_transactions(self):
 
         url = "https://deep-index.moralis.io/api/v2/{}?chain=polygon&limit=25".format(self.contract_address)
         response = requests.get(url, headers={"X-API-Key":"0ZMgWQz5RlFhsFYBHOXJqvDCDdYmkZ1KzzY2304zUmsfmBpszfa0Bo3cBnxy1atV"})
@@ -120,7 +146,7 @@ class Client(object):
         for transaction in json_reponse["result"]:
             print(transaction["block_timestamp"])
             #print(transaction.keys())
-            txn_input = self.contract.decode_function_input(transaction["input"])
+            txn_input = self.router_contract.decode_function_input(transaction["input"])
             print(txn_input[1])
             #self.toChecksumAddress(txn_input[1]["path"][1])
             self.toChecksumAddress("USDT")
