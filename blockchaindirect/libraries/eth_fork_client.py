@@ -92,7 +92,7 @@ class Client(object):
 
 
     def sign_and_send_transaction(self, transaction, gas_price=None):
-        if gas_price is not None:
+        if gas_price is None:
             gas_price = self.web3.eth.gas_price
             if gas_price > self.max_gas_price:
                 raise ValueError(f"Gas prices are currently to expensive: {gas_price}")
@@ -109,7 +109,7 @@ class Client(object):
         signed_txn = self.web3.eth.account.sign_transaction(built_txn, private_key=self.private_key)
         txn_hash = self.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
         #transaction_receipt = self.web3.eth.wait_for_transaction_receipt(txn_hash)
-        transaction_receipt, transaction_successful, transaction_complete = self.get_transaction_receipt(txn_hash=txn_hash, wait=False)
+        transaction_receipt, transaction_successful, transaction_complete = self.get_transaction_receipt(txn_hash=txn_hash, wait=True)
         
         return transaction_receipt
 

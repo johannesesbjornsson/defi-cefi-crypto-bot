@@ -17,25 +17,24 @@ class Triggers(object):
             self.token_to_scan_for =  self.client.web3.toChecksumAddress("0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c")
 
         self.token_1 = Token(self.client,self.token_to_scan_for)
+        self.client.web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
     def handle_swap_transaction(self,gas_price, txn_input):
-        front_runnable = None
-        
+        token_pair = None
+        amount_in = None
+        amount_out = None
         try:
             input_token, out_token = txn_input["path"]
             if out_token == self.token_to_scan_for:
                 token_2 = Token(self.client,input_token)
-                front_runnable = True
                 token_pair = TokenPair(self.client, self.token_1, token_2)
             else:
                 token_pair = None
-                
-
         except ValueError as e:
             token_pair = None
         
         
-        if front_runnable:
+        if token_pair:
             print(gas_price)
             print(txn_input)
             if "amountOut" in txn_input:
@@ -43,22 +42,27 @@ class Triggers(object):
             elif "amountOutMin" in txn_input:
                 txn_amount = self.token_1.from_wei(txn_input["amountOutMin"])
             print("Transaction value:",txn_amount)
-            if txn_amount > 200:
-                amount_in = self.token_1.to_wei(1)
-                token_pair.get_amount_token_2_out(amount_in)
-                
-            
-        
+            if txn_amount > 2:
+                amount_in = self.token_1.to_wei(0.1)
+                amount_out = token_pair.get_amount_token_2_out(amount_in)
+                gas_price = gas_price + self.client.web3.toWei('1','gwei')
+                print(gas_price)
 
-        return 
+        return token_pair, amount_in, amount_out, gas_price
 
     def get_pending_transactions(self):
-        self.client.web3.middleware_onion.inject(geth_poa_middleware, layer=0)
         pending = self.client.web3.eth.get_block(block_identifier='pending', full_transactions=True)
-        #test = self.client.web3.eth.filter('pending').get_all_entries()
         
-        #print(pending)
+        #test = self.client.web3.eth.filter('pending') #.get_all_entries()
+        #self.client.web3.eth.get_filter_logs(test.filter_id)
+        #from web3.auto import w3
+        #pending_transaction_filter= w3.eth.filter({"address": self.client.router_contract_address})
+        #pending_transaction_filter= w3.eth.filter('pending')
 
+        #for t in pending:
+        #    print(t)
+        #print(pending["number"])
+        
         for entry in pending["transactions"]:
             if entry["to"] == self.client.router_contract_address:
             
@@ -73,21 +77,26 @@ class Triggers(object):
                 if "Function swap" not in str(function_called):
                     continue
 
-                print(txn_hash)
-                self.handle_swap_transaction(gas_price, input_data)
+                token_pair, amount_in, amount_out, gas_price = self.handle_swap_transaction(gas_price, input_data)
 
+                if not token_pair or not amount_in or not amount_out or not gas_price:
+                    continue
+
+                print(txn_hash)
                 transaction_receipt, transaction_successful, transaction_complete = self.client.get_transaction_receipt(txn_hash=txn_hash, wait=False)
                 if transaction_complete:
                     print("Too slow....")
+                    print("Transaction successful: ",transaction_successful)
                 else:    
                     print("Winning!!")
+                    amount_out_from_token_2 = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price)
+                    token_pair.token_2.approve_token()
                     #start = time.perf_counter()
-                    #transaction_receipt, transaction_successful, transaction_complete = self.client.get_transaction_receipt(txn_hash=txn_hash, wait=True)
-                    #print("Transaction successful: ",transaction_successful)
+                    transaction_receipt, transaction_successful, transaction_complete = self.client.get_transaction_receipt(txn_hash=txn_hash, wait=True)
+                    amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
+                    token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
                     #end = time.perf_counter()
                     #print(end - start)
                 
-                
- 
                 print("--------")
                 

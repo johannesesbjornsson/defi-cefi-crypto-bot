@@ -22,7 +22,12 @@ lists = [
 token_1 = Token(client, "USDC")
 
 triggers = Triggers(client)
-triggers.get_pending_transactions()
+import time
+while True:
+    triggers.get_pending_transactions()
+    print("Taking a wee break")
+    time.sleep(2)
+
 
 from_range = [0.1,0.1]
 for li in lists:

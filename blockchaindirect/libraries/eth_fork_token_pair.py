@@ -103,7 +103,7 @@ class TokenPair(object):
 
         return amount_out
 
-    def swap_token_2_for_token_1(self, amount_in, amount_out, gas_price=None)):
+    def swap_token_2_for_token_1(self, amount_in, amount_out, gas_price=None):
         from_token = self.token_2.address
         to_token = self.token_1.address
         from_token_amount = amount_in
