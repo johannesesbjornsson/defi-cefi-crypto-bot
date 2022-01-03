@@ -88,7 +88,7 @@ class TokenPair(object):
             to_token_amount,
             [from_token,to_token],
             self.client.my_address,
-            (int(time.time()) + 10000) 
+            (int(time.time()) + 1000) 
             )
         return txn
 
