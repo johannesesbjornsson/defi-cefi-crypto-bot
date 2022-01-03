@@ -16,11 +16,13 @@ class Client(object):
             provider_url = "https://speedy-nodes-nyc.moralis.io/0279106ed82b874b3e1b195d/polygon/mainnet"
             #provider_url = "https://polygon-rpc.com"
             #provider_url = "https://matic.slingshot.finance"
+            provider_ws = "wss://speedy-nodes-nyc.moralis.io/0279106ed82b874b3e1b195d/polygon/mainnet/ws"
+            self.web3_ws = Web3(Web3.WebsocketProvider(provider_ws))
             self.web3 = Web3(Web3.HTTPProvider(provider_url))
             router_contract_name = "quickswap_router"
             factory_contract_name = "quickswap_factory"  
             self.get_polygon_tokens()
-            self.max_gas_price = self.web3.toWei('70','gwei')
+            self.max_gas_price = self.web3.toWei('150','gwei')
             self.default_gas_limit = 300000 #TODO have this be not fixed
             self.slippage = 0.995
         elif blockchain == "bsc":
