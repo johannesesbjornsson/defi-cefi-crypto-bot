@@ -2,9 +2,9 @@ import contract_libarary
 import time
 import token_config
 from web3.logs import STRICT, IGNORE, DISCARD, WARN
-from web3.exceptions import ContractLogicError, TransactionNotFound
+from web3.exceptions import ContractLogicError, TransactionNotFound, TimeExhausted
 from web3.middleware import geth_poa_middleware
-from eth_fork_token import Token
+from eth_fork_token import Token, Transaction, RouterTransaction
 from eth_fork_token_pair import TokenPair
 
 
@@ -43,7 +43,6 @@ class Triggers(object):
 
             if txn_amount > 5:
                 print("Transaction value:",txn_amount)
-                print("Input: ",txn_input )
                 amount_in = self.token_1.to_wei(0.1)
                 amount_out = token_pair.get_amount_token_2_out(amount_in)
                 gas_price = gas_price + self.client.web3.toWei('1','gwei')
@@ -59,39 +58,53 @@ class Triggers(object):
         for transaction in pending_transactions:
             txn_hash = self.client.web3.toHex(transaction)
             try:
-                entry = self.client.web3.eth.get_transaction(txn_hash)
+                transaction_info = self.client.web3.eth.get_transaction(txn_hash)
             except TransactionNotFound as e:
                 continue
 
-            if entry["to"] == self.client.router_contract_address and entry["blockNumber"] is None :
+            txn = Transaction(self.client, transaction_info)
             
-                txn_input = self.client.router_contract.decode_function_input(entry["input"])
-                gas_price = entry["gasPrice"]
-                function_called = txn_input[0]
-                input_data = txn_input[1]
+            #try:
+            #    entry = self.client.web3.eth.get_transaction(txn_hash)
+            #except TransactionNotFound as e:
+            #    continue
+            print(txn)
+            if txn.to == self.client.router_contract_address and txn.block_number is None :
+                #router_txn = RouterTransaction(txn)
+                #txn_input = self.client.router_contract.decode_function_input(entry["input"])
+                #gas_price = entry["gasPrice"]
+                #function_called = txn_input[0]
+                #input_data = txn_input[1]
+
+                router_txn = RouterTransaction(txn)
                 
-                if "Function swap" not in str(function_called):
+                if not router_txn.function_called.startswith("swap"):
                     continue
 
-                token_pair, amount_in, amount_out, gas_price = self.handle_swap_transaction(gas_price, input_data)
+                token_pair, amount_in, amount_out, gas_price = self.handle_swap_transaction(router_txn.transaction.gas_price, router_txn.input_data)
 
                 if not token_pair or not amount_in or not amount_out or not gas_price:
                     continue
-
-
-                transaction_receipt, transaction_successful, transaction_complete = self.client.get_transaction_receipt(txn_hash=txn_hash, wait=False)
+                
+                #transaction_receipt, transaction_successful, transaction_complete = self.client.get_transaction_receipt(txn_hash=txn_hash, wait=False)
+                transaction_complete = router_txn.transaction.get_transaction_receipt(wait=False)
                 
                 if transaction_complete:
                     print("Too slow....")
-                    print("Transaction successful: ",transaction_successful)
+                    print("Transaction successful: ",router_txn.successful)
                 else:    
                     print("Winning!!")
-                    print(txn_hash)
-                    amount_out_from_token_2 = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price)
-                    token_pair.token_2.approve_token()
-                    transaction_receipt, transaction_successful, transaction_complete = self.client.get_transaction_receipt(txn_hash=txn_hash, wait=True)
-                    amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
-                    token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
+                    print(router_txn.transaction.hash)
+                    #amount_out_from_token_2 = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price)
+                    #token_pair.token_2.approve_token()
+
+                    #try:
+                    #    transaction_complete = router_txn.transaction.get_transaction_receipt(wait=True)
+                    #except TimeExhausted as e:
+                    #    pass
+                    
+                    #amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
+                    #token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
                     
                     #start = time.perf_counter()
                     #end = time.perf_counter()
