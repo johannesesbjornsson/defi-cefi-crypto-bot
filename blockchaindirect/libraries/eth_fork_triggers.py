@@ -91,18 +91,18 @@ class Triggers(object):
                 
                 if transaction_complete:
                     print("Too slow....")
-                    print("Transaction successful: ",router_txn.successful)
+                    print("Transaction successful: ",router_txn.transaction.successful)
                 else:    
                     print("Winning!!")
                     print(router_txn.transaction.hash)
                     #amount_out_from_token_2 = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price)
                     #token_pair.token_2.approve_token()
 
-                    #try:
-                    #    transaction_complete = router_txn.transaction.get_transaction_receipt(wait=True)
-                    #except TimeExhausted as e:
-                    #    pass
-                    
+                    try:
+                        transaction_complete = router_txn.transaction.get_transaction_receipt(wait=True)
+                    except TimeExhausted as e:
+                        pass
+
                     #amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
                     #token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
                     

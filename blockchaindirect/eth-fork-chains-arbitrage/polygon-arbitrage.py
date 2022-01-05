@@ -58,12 +58,12 @@ def main():
 
 
 if __name__ == '__main__':
-    import cProfile
-    import pstats
-    pr = cProfile.Profile()
-    pr.enable()
-    main()
-    pr.disable()
-    ps = pstats.Stats(pr)
-    ps.print_stats()
+    #import cProfile
+    #import pstats
+    #pr = cProfile.Profile()
+    #pr.enable()
     #main()
+    #pr.disable()
+    #ps = pstats.Stats(pr)
+    #ps.print_stats()
+    main()
