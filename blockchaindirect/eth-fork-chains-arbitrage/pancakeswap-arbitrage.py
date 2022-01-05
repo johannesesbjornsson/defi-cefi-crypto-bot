@@ -2,6 +2,7 @@ import cfg as cfg
 import itertools
 import sys
 import arbitrage
+import time
 sys.path.insert(0,'../libraries')
 from eth_fork_client import Client
 from eth_fork_token import Token
@@ -17,18 +18,17 @@ def main():
         #["WETH", "WMATIC"],
         #["QUICK", "LINK"]
     ]
-    token_1 = Token(client, "USDC")
 
     triggers = Triggers(client)
-    import time
+
     while True:
         triggers.get_pending_transactions()
         #print("Taking a wee break")
         #time.sleep(2)
-        break
+        #break
 
 
-
+    token_1 = Token(client, "USDC")
     from_range = [0.1,0.1]
     for li in lists:
         token_2 = Token(client, li[0])

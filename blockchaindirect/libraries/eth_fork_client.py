@@ -36,7 +36,7 @@ class Client(object):
             factory_contract_name = "pancake_factory"  
             self.get_bep20_tokens()
             self.slippage = 0.99 
-            self.default_gas_limit = 250000
+            self.default_gas_limit = 300000
             self.max_gas_price = self.web3.toWei('5','gwei')
         elif blockchain == "avalanche":
             self.api_key = api_key

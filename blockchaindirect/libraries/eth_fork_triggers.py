@@ -14,9 +14,11 @@ class Triggers(object):
         self.client = client
         if self.client.blockchain == "polygon":
             self.token_to_scan_for = self.client.web3.toChecksumAddress("0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270")
-            self.scan_token_value = 5
+            self.scan_token_value = 0.1
+            self.minimum_scanned_transaction = 5
         elif self.client.blockchain == "bsc":
             self.token_to_scan_for =  self.client.web3.toChecksumAddress("0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c")
+            self.minimum_scanned_transaction = 1
             self.scan_token_value = 0.005
 
         self.token_1 = Token(self.client,self.token_to_scan_for)
@@ -43,7 +45,7 @@ class Triggers(object):
             elif "amountOutMin" in txn_input:
                 txn_amount = self.token_1.from_wei(txn_input["amountOutMin"])
 
-            if txn_amount > self.scan_token_value:
+            if txn_amount > self.minimum_scanned_transaction:
                 print("Transaction value:",txn_amount)
                 amount_in = self.token_1.to_wei(self.scan_token_value)
                 amount_out = token_pair.get_amount_token_2_out(amount_in)
