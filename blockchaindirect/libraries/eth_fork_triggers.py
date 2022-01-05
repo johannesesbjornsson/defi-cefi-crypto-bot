@@ -14,8 +14,10 @@ class Triggers(object):
         self.client = client
         if self.client.blockchain == "polygon":
             self.token_to_scan_for = self.client.web3.toChecksumAddress("0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270")
+            self.scan_token_value = 5
         elif self.client.blockchain == "bsc":
             self.token_to_scan_for =  self.client.web3.toChecksumAddress("0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c")
+            self.scan_token_value = 0.005
 
         self.token_1 = Token(self.client,self.token_to_scan_for)
         self.client.web3.middleware_onion.inject(geth_poa_middleware, layer=0)
@@ -25,7 +27,7 @@ class Triggers(object):
         amount_in = None
         amount_out = None
         try:
-            input_token, out_token = txn_input["path"]
+            input_token, out_token = txn_input["path"][-2:]
             if out_token == self.token_to_scan_for:
                 token_2 = Token(self.client,input_token)
                 token_pair = TokenPair(self.client, self.token_1, token_2)
@@ -41,9 +43,9 @@ class Triggers(object):
             elif "amountOutMin" in txn_input:
                 txn_amount = self.token_1.from_wei(txn_input["amountOutMin"])
 
-            if txn_amount > 5:
+            if txn_amount > self.scan_token_value:
                 print("Transaction value:",txn_amount)
-                amount_in = self.token_1.to_wei(0.1)
+                amount_in = self.token_1.to_wei(self.scan_token_value)
                 amount_out = token_pair.get_amount_token_2_out(amount_in)
                 gas_price = gas_price + self.client.web3.toWei('1','gwei')
 
@@ -63,12 +65,14 @@ class Triggers(object):
                 continue
 
             txn = Transaction(self.client, transaction_info)
+
+
             
             #try:
             #    entry = self.client.web3.eth.get_transaction(txn_hash)
             #except TransactionNotFound as e:
             #    continue
-            print(txn)
+            
             if txn.to == self.client.router_contract_address and txn.block_number is None :
                 #router_txn = RouterTransaction(txn)
                 #txn_input = self.client.router_contract.decode_function_input(entry["input"])
@@ -95,16 +99,16 @@ class Triggers(object):
                 else:    
                     print("Winning!!")
                     print(router_txn.transaction.hash)
-                    #amount_out_from_token_2 = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price)
-                    #token_pair.token_2.approve_token()
+                    amount_out_from_token_2 = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price)
+                    token_pair.token_2.approve_token()
 
                     try:
                         transaction_complete = router_txn.transaction.get_transaction_receipt(wait=True)
                     except TimeExhausted as e:
                         pass
 
-                    #amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
-                    #token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
+                    amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
+                    token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
                     
                     #start = time.perf_counter()
                     #end = time.perf_counter()

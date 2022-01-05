@@ -3,6 +3,7 @@ import token_config
 from web3.logs import STRICT, IGNORE, DISCARD, WARN
 from web3.exceptions import ContractLogicError, TransactionNotFound
 import re
+import time
 
 class Token(object):
 
@@ -52,7 +53,11 @@ class Token(object):
         if self.allowance_on_router == 0:
             value = self.client.web3.toWei(2**64-1,'ether')
             txn = self.token_contract.functions.approve(self.client.router_contract_address,value)
-            transaction_receipt = self.client.sign_and_send_transaction(txn)
+            #transaction_receipt = self.client.sign_and_send_transaction(txn)
+            transaction = Transaction(self.client, None)
+            transaction.create_transaction(txn)
+            transaction.sign_and_send_transaction()
+            transaction_complete = transaction.get_transaction_receipt(wait=True)
 
             self.allowance_on_router =  self.token_contract.functions.allowance(self.client.my_address,self.client.router_contract_address).call()
 
@@ -68,8 +73,15 @@ class Token(object):
 
 
 class Transaction(object):
-    def __init__(self, client, transaction_info):
+    def __init__(self, client, transaction_info=None):
         self.client = client
+        if transaction_info:
+            self.set_transaction_info(transaction_info)
+
+    def __str__(self):
+        return self.hash
+
+    def set_transaction_info(self, transaction_info):
         self.hash = self.client.web3.toHex(transaction_info["hash"])
         self.block_number = transaction_info["blockNumber"]
         self.gas = transaction_info["gas"]
@@ -77,9 +89,6 @@ class Transaction(object):
         self.input = transaction_info["input"]
         self.nonce = transaction_info["nonce"]
         self.to = transaction_info["to"]
-
-    def __str__(self):
-        return self.hash
 
     def get_transaction_receipt(self, wait=True):
         transaction_receipt = None
@@ -109,6 +118,42 @@ class Transaction(object):
 
         return transaction_complete
 
+    def create_transaction(self, transaction, gas_price=None):
+        if gas_price is None:
+            gas_price = self.client.web3.eth.gas_price
+            if gas_price > self.client.max_gas_price:
+                raise ValueError(f"Gas prices are currently to expensive: {gas_price}")
+
+        self.built_nonce = self.client.web3.eth.get_transaction_count(self.client.my_address)
+        self.built_gas_limit = self.client.default_gas_limit
+        self.built_gas_price = gas_price
+        self.built_from = self.client.my_address
+        self.built_transaction = transaction
+
+    def sign_and_send_transaction(self):
+        built_txn = self.built_transaction.buildTransaction({
+                'from': self.built_from,
+                'value': 0,
+                'gas': self.built_gas_limit, 
+                'gasPrice': self.built_gas_price,
+                'nonce': self.built_nonce,
+            })
+
+        signed_txn = self.client.web3.eth.account.sign_transaction(built_txn, private_key=self.client.private_key)
+        txn_hash = self.client.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
+
+        for i in range(10):
+            time.sleep(0.2)
+            try: 
+                transaction_info = self.client.web3.eth.get_transaction(txn_hash)
+                break
+            except TransactionNotFound as e:
+                transaction_info = None
+
+        self.set_transaction_info(transaction_info)
+        
+        return transaction_info
+
 class RouterTransaction(Transaction):
     def __init__(self, transaction, use_standard_contracts=True):
         self.client = transaction.client
@@ -128,9 +173,9 @@ class RouterTransaction(Transaction):
     def __str__(self):
         return self.transaction.hash
 
-    def get_transaction_amount_out(self, client, transaction):
+    def get_transaction_amount_out(self):
         if not self.transaction.successful:
-            raise LookupError(f"Transaction '{self.transaction.successful}' was not successful")
+            raise LookupError(f"Transaction '{self.transaction.hash}' was not successful")
 
         if self.client.blockchain == "polygon":
             log_location_index = -2

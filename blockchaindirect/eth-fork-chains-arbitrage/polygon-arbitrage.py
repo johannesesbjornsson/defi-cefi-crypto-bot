@@ -5,14 +5,11 @@ import sys
 import arbitrage
 sys.path.insert(0,'../libraries')
 from eth_fork_client import Client
-from eth_fork_token import Token
+from eth_fork_token import Token, Transaction
 from eth_fork_token_pair import TokenPair
 from eth_fork_triggers import Triggers
 import token_config
-
-from web3 import Web3
-
-
+import time
 
 def main():
     client = Client("polygon",cfg.my_polygon_address, cfg.private_key, cfg.polygon_api_key)
@@ -22,18 +19,20 @@ def main():
         #["WETH", "WMATIC"],
         #["QUICK", "LINK"]
     ]
-    token_1 = Token(client, "USDC")
-
-    triggers = Triggers(client)
-    import time
+    
+    #transaction_info = client.web3.eth.get_transaction("0x05cbf275d4a697910b681a36bad1fb9ae5ea1c5fde9cba9def2c6b4d49b18e27")
+    #txn = Transaction(client, transaction_info)
+    #print(transaction_info)
+    #print(txn.gas_price)
+    #print(txn.input)
     while True:
-        triggers.get_pending_transactions()
+        #triggers.get_pending_transactions()
         #print("Taking a wee break")
         #time.sleep(2)
         break
 
 
-
+    token_1 = Token(client, "USDC")
     from_range = [0.1,0.1]
     for li in lists:
         token_2 = Token(client, li[0])

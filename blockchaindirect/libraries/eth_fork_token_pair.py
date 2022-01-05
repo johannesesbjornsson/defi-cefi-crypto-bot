@@ -3,7 +3,7 @@ import time
 import token_config
 from web3.logs import STRICT, IGNORE, DISCARD, WARN
 from web3.exceptions import ContractLogicError, TransactionNotFound
-
+from eth_fork_token import Token, Transaction, RouterTransaction
 
 class TokenPair(object):
     def __init__(self, client, token_1, token_2):
@@ -28,7 +28,7 @@ class TokenPair(object):
 
     def set_pair_liquidity(self):
         try:
-            abi = self.client.get_abi(self.liquidity_pool_address)
+            abi = self.client.get_abi(self.liquidity_pool_address) #TODO use standard contracts
             liquidity_pool_contract = self.client.web3.eth.contract(address=self.liquidity_pool_address, abi=abi)
             reserves =  liquidity_pool_contract.functions.getReserves().call()
             reserves_token_1 = liquidity_pool_contract.functions.token0().call()
@@ -98,8 +98,14 @@ class TokenPair(object):
         from_token_amount = amount_in
         to_token_amount = int(amount_out * self.client.slippage)
         txn  = self.build_transaction(from_token, to_token, from_token_amount, to_token_amount)
-        transaction_receipt = self.client.sign_and_send_transaction(txn,gas_price)
-        amount_out = self.get_transaction_amount_out(transaction_receipt)
+        #transaction_receipt = self.client.sign_and_send_transaction(txn,gas_price)
+        #amount_out = self.get_transaction_amount_out(transaction_receipt)
+        transaction = Transaction(self.client, None)
+        transaction.create_transaction(txn,gas_price)
+        transaction.sign_and_send_transaction()
+        transaction_complete = transaction.get_transaction_receipt(wait=True)
+        router_transaction = RouterTransaction(transaction)
+        amount_out = router_transaction.get_transaction_amount_out()
 
         return amount_out
 
@@ -109,33 +115,39 @@ class TokenPair(object):
         from_token_amount = amount_in
         to_token_amount = int(amount_out * self.client.slippage)
         txn  = self.build_transaction(from_token, to_token, from_token_amount, to_token_amount)
-        transaction_receipt = self.client.sign_and_send_transaction(txn, gas_price)
-        amount_out = self.get_transaction_amount_out(transaction_receipt)
-
-        return amount_out
-
-    def get_transaction_amount_out(self,transaction_receipt):
-        if isinstance(transaction_receipt, str):
-            #transaction_receipt = self.client.web3.eth.wait_for_transaction_receipt(transaction_receipt)
-            transaction_receipt, transaction_successful, transaction_complete = self.client.get_transaction_receipt(txn_hash=txn_hash, wait=False)
-
-        if self.client.blockchain == "polygon":
-            log_location_index = -2
-        elif self.client.blockchain == "bsc":
-            log_location_index = -1
-
-        tx_dict = dict(transaction_receipt)
-        data = tx_dict["logs"][log_location_index]["data"]
-        address = tx_dict["logs"][log_location_index]["address"]
+        #transaction_receipt = self.client.sign_and_send_transaction(txn, gas_price)
+        #amount_out = self.get_transaction_amount_out(transaction_receipt)
+        transaction = Transaction(self.client, None)
+        transaction.create_transaction(txn,gas_price)
+        transaction.sign_and_send_transaction()
+        transaction_complete = transaction.get_transaction_receipt(wait=True)
+        router_transaction = RouterTransaction(transaction)
+        amount_out = router_transaction.get_transaction_amount_out()
         
-        address = self.client.web3.toChecksumAddress(address)
-        abi = self.client.get_abi(address)
-        contract = self.client.web3.eth.contract(address=address, abi=abi)
-        events = contract.events.Swap().processReceipt(transaction_receipt,errors=IGNORE)
-        decoded_data = dict(dict(list(events)[log_location_index])["args"])
-
-        if decoded_data["amount0Out"] != 0:
-            amount_out = decoded_data["amount0Out"]
-        elif decoded_data["amount1Out"] != 0:
-            amount_out = decoded_data["amount1Out"]
         return amount_out
+
+#    def get_transaction_amount_out(self,transaction_receipt):
+#        if isinstance(transaction_receipt, str):
+#            #transaction_receipt = self.client.web3.eth.wait_for_transaction_receipt(transaction_receipt)
+#            transaction_receipt, transaction_successful, transaction_complete = self.client.get_transaction_receipt(txn_hash=txn_hash, wait=False)
+#
+#        if self.client.blockchain == "polygon":
+#            log_location_index = -2
+#        elif self.client.blockchain == "bsc":
+#            log_location_index = -1
+#
+#        tx_dict = dict(transaction_receipt)
+#        data = tx_dict["logs"][log_location_index]["data"]
+#        address = tx_dict["logs"][log_location_index]["address"]
+#        
+#        address = self.client.web3.toChecksumAddress(address)
+#        abi = self.client.get_abi(address)
+#        contract = self.client.web3.eth.contract(address=address, abi=abi)
+#        events = contract.events.Swap().processReceipt(transaction_receipt,errors=IGNORE)
+#        decoded_data = dict(dict(list(events)[log_location_index])["args"])
+#
+#        if decoded_data["amount0Out"] != 0:
+#            amount_out = decoded_data["amount0Out"]
+#        elif decoded_data["amount1Out"] != 0:
+#            amount_out = decoded_data["amount1Out"]
+#        return amount_out
