@@ -27,8 +27,8 @@ def main():
         #break
 
 
-    token_1 = Token(client, "USDT")
-    from_range = [0.1,0.1]
+    token_1 = Token(client, "BUSD")
+    from_range = [0.1,1]
     for li in lists:
         token_2 = Token(client, li[0])
         token_3 = Token(client, li[1])
