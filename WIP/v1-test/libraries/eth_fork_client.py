@@ -112,17 +112,64 @@ class Client(object):
       
         return json_reponse["result"]
 
+
+#    def sign_and_send_transaction(self, transaction, gas_price=None):
+#        if gas_price is None:
+#            gas_price = self.web3.eth.gas_price
+#            if gas_price > self.max_gas_price:
+#                raise ValueError(f"Gas prices are currently to expensive: {gas_price}")
+#
+#        nonce = self.web3.eth.get_transaction_count(self.my_address)
+#        built_txn = transaction.buildTransaction({
+#                'from': self.my_address,
+#                'value': 0,
+#                'gas': self.default_gas_limit, 
+#                'gasPrice': gas_price,
+#                'nonce': nonce,
+#            })
+#
+#        signed_txn = self.web3.eth.account.sign_transaction(built_txn, private_key=self.private_key)
+#        txn_hash = self.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
+#        #transaction_receipt = self.web3.eth.wait_for_transaction_receipt(txn_hash)
+#        transaction_receipt, transaction_successful, transaction_complete = self.get_transaction_receipt(txn_hash=txn_hash, wait=True)
+#        
+#        return transaction_receipt
+#
+#    def get_transaction_receipt(self,txn_hash, wait=True):
+#        transaction_receipt = None
+#        transaction_successful = None
+#        transaction_complete = False
+#
+#        if wait:
+#            transaction_receipt = self.web3.eth.wait_for_transaction_receipt(txn_hash)
+#            transaction_complete = True
+#            transaction_successful = transaction_receipt["status"]
+#        else:
+#            try:
+#                transaction_receipt = self.web3.eth.get_transaction_receipt(txn_hash)
+#                transaction_complete = True
+#                transaction_successful = transaction_receipt["status"]
+#            except TransactionNotFound as e:
+#                transaction_complete = False
+#        
+#        if transaction_successful == 0:
+#            transaction_successful = False
+#        elif transaction_successful == 1:
+#            transaction_successful = True
+#
+#        return transaction_receipt, transaction_successful, transaction_complete
+#
                 
-#    def get_recent_transactions(self):
-#
-#        url = "https://deep-index.moralis.io/api/v2/{}?chain=polygon&limit=25".format(self.contract_address)
-#        response = requests.get(url, headers={"X-API-Key":"0ZMgWQz5RlFhsFYBHOXJqvDCDdYmkZ1KzzY2304zUmsfmBpszfa0Bo3cBnxy1atV"})
-#        json_reponse = json.loads(response.content)
-#
-#        for transaction in json_reponse["result"]:
-#            print(transaction["block_timestamp"])
-#            #print(transaction.keys())
-#            txn_input = self.router_contract.decode_function_input(transaction["input"])
-#            print(txn_input[1])
-#            #self.toChecksumAddress(txn_input[1]["path"][1])
-#            self.toChecksumAddress("USDT")
+    def get_recent_transactions(self):
+
+        url = "https://deep-index.moralis.io/api/v2/{}?chain=polygon&limit=25".format(self.contract_address)
+        response = requests.get(url, headers={"X-API-Key":"0ZMgWQz5RlFhsFYBHOXJqvDCDdYmkZ1KzzY2304zUmsfmBpszfa0Bo3cBnxy1atV"})
+        json_reponse = json.loads(response.content)
+
+        for transaction in json_reponse["result"]:
+            print(transaction["block_timestamp"])
+            #print(transaction.keys())
+            txn_input = self.router_contract.decode_function_input(transaction["input"])
+            print(txn_input[1])
+            #self.toChecksumAddress(txn_input[1]["path"][1])
+            self.toChecksumAddress("USDT")

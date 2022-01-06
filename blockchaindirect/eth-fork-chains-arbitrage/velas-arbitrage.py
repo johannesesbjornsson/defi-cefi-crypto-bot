@@ -12,24 +12,24 @@ import token_config
 import time
 
 def main():
-    client = Client("polygon",cfg.my_polygon_address, cfg.private_key, cfg.polygon_api_key)
+    client = Client("velas",cfg.my_polygon_address, cfg.private_key, cfg.polygon_api_key)
 
     lists = list(itertools.combinations(client.tokens_to_check, 2))
-    lists = [
-        #["WETH", "WMATIC"],
-        #["QUICK", "LINK"]
-    ]
-    
-    triggers = Triggers(client)
-    while True:
-        triggers.get_pending_transactions()
+    #lists = [
+    #   #["WETH", "WMATIC"],
+    #   #["QUICK", "LINK"]
+    #]
+
+    #triggers = Triggers(client)
+    #while True:
+    #    triggers.get_pending_transactions()
         #print("Taking a wee break")
         #time.sleep(2)
-        break
+        #break
 
 
-    token_1 = Token(client, "USDC")
-    from_range = [0.1,0.1]
+    token_1 = Token(client, "BUSD")
+    from_range = [0.2,1]
     for li in lists:
         token_2 = Token(client, li[0])
         token_3 = Token(client, li[1])
@@ -48,7 +48,7 @@ def main():
 
         found_arbitrage =  arbitrage_client.find_arbitrage()
         if found_arbitrage:
-            #arbitrage_client.execute_arbitrage()
+            arbitrage_client.execute_arbitrage()
             print("------------------------")
 
 
