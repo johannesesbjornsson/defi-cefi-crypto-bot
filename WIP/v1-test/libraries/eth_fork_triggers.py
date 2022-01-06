@@ -73,7 +73,18 @@ class Triggers(object):
             txn = Transaction(self.client, transaction_info)
 
 
+            
+            #try:
+            #    entry = self.client.web3.eth.get_transaction(txn_hash)
+            #except TransactionNotFound as e:
+            #    continue
+            
             if txn.to == self.client.router_contract_address and txn.block_number is None :
+                #router_txn = RouterTransaction(txn)
+                #txn_input = self.client.router_contract.decode_function_input(entry["input"])
+                #gas_price = entry["gasPrice"]
+                #function_called = txn_input[0]
+                #input_data = txn_input[1]
 
                 router_txn = RouterTransaction(txn)
                 
@@ -85,7 +96,7 @@ class Triggers(object):
                 if not token_pair or not amount_in or not amount_out or not gas_price:
                     continue
                 
-                
+                #transaction_receipt, transaction_successful, transaction_complete = self.client.get_transaction_receipt(txn_hash=txn_hash, wait=False)
                 transaction_complete = router_txn.transaction.get_transaction_receipt(wait=False)
                 
                 if transaction_complete:

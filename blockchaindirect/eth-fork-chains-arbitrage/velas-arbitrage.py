@@ -20,16 +20,16 @@ def main():
     #   #["QUICK", "LINK"]
     #]
 
-    triggers = Triggers(client)
-    while True:
-        triggers.get_pending_transactions()
+    #triggers = Triggers(client)
+    #while True:
+    #    triggers.get_pending_transactions()
         #print("Taking a wee break")
         #time.sleep(2)
         #break
 
 
     token_1 = Token(client, "BUSD")
-    from_range = [0.1,1]
+    from_range = [0.2,1]
     for li in lists:
         token_2 = Token(client, li[0])
         token_3 = Token(client, li[1])
