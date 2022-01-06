@@ -19,12 +19,7 @@ def main():
         #["WETH", "WMATIC"],
         #["QUICK", "LINK"]
     ]
-    
-    #transaction_info = client.web3.eth.get_transaction("0x05cbf275d4a697910b681a36bad1fb9ae5ea1c5fde9cba9def2c6b4d49b18e27")
-    #txn = Transaction(client, transaction_info)
-    #print(transaction_info)
-    #print(txn.gas_price)
-    #print(txn.input)
+
     while True:
         #triggers.get_pending_transactions()
         #print("Taking a wee break")

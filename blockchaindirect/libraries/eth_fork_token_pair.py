@@ -6,7 +6,7 @@ from web3.exceptions import ContractLogicError, TransactionNotFound
 from eth_fork_token import Token, Transaction, RouterTransaction
 
 class TokenPair(object):
-    def __init__(self, client, token_1, token_2):
+    def __init__(self, client, token_1, token_2, use_standard_contracts=True):
         self.client = client
         self.token_1 = token_1
         self.token_2 = token_2
@@ -15,6 +15,7 @@ class TokenPair(object):
         self.liquidity_pool_address = self.client.web3.toChecksumAddress(liquidity_pool_address)
         self.token_1_liquidity = None
         self.token_2_liquidity = None
+        self.use_standard_contracts = use_standard_contracts
 
     def __str__(self):
         return f"{self.token_1.symbol}: {self.token_1.address},\n{self.token_2.symbol}: {self.token_2.address},\nLiquidity_address: {self.liquidity_pool_address}"
@@ -28,7 +29,11 @@ class TokenPair(object):
 
     def set_pair_liquidity(self):
         try:
-            abi = self.client.get_abi(self.liquidity_pool_address) #TODO use standard contracts
+            if self.use_standard_contracts:
+                abi=contract_libarary.standard_contracts["liquidity_pool"]
+            else:
+                abi = self.client.get_abi(address)
+
             liquidity_pool_contract = self.client.web3.eth.contract(address=self.liquidity_pool_address, abi=abi)
             reserves =  liquidity_pool_contract.functions.getReserves().call()
             reserves_token_1 = liquidity_pool_contract.functions.token0().call()

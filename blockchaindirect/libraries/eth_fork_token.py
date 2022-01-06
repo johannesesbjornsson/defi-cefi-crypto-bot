@@ -76,19 +76,17 @@ class Transaction(object):
     def __init__(self, client, transaction_info=None):
         self.client = client
         if transaction_info:
-            self.set_transaction_info(transaction_info)
+            self.hash = self.client.web3.toHex(transaction_info["hash"])
+            self.block_number = transaction_info["blockNumber"]
+            self.gas_limit = transaction_info["gas"]
+            self.gas_price = transaction_info["gasPrice"]
+            self.input = transaction_info["input"]
+            self.nonce = transaction_info["nonce"]
+            self.to = transaction_info["to"]
+            self.from_address = transaction_info["from"]
 
     def __str__(self):
         return self.hash
-
-    def set_transaction_info(self, transaction_info):
-        self.hash = self.client.web3.toHex(transaction_info["hash"])
-        self.block_number = transaction_info["blockNumber"]
-        self.gas = transaction_info["gas"]
-        self.gas_price = transaction_info["gasPrice"]
-        self.input = transaction_info["input"]
-        self.nonce = transaction_info["nonce"]
-        self.to = transaction_info["to"]
 
     def get_transaction_receipt(self, wait=True):
         transaction_receipt = None
@@ -124,19 +122,19 @@ class Transaction(object):
             if gas_price > self.client.max_gas_price:
                 raise ValueError(f"Gas prices are currently to expensive: {gas_price}")
 
-        self.built_nonce = self.client.web3.eth.get_transaction_count(self.client.my_address)
-        self.built_gas_limit = self.client.default_gas_limit
-        self.built_gas_price = gas_price
-        self.built_from = self.client.my_address
+        self.nonce = self.client.web3.eth.get_transaction_count(self.client.my_address)
+        self.gas_limit = self.client.default_gas_limit
+        self.gas_price = gas_price
+        self.from_address = self.client.my_address
         self.built_transaction = transaction
 
     def sign_and_send_transaction(self):
         built_txn = self.built_transaction.buildTransaction({
-                'from': self.built_from,
+                'from': self.from_address,
                 'value': 0,
-                'gas': self.built_gas_limit, 
-                'gasPrice': self.built_gas_price,
-                'nonce': self.built_nonce,
+                'gas': self.gas_limit, 
+                'gasPrice': self.gas_price,
+                'nonce': self.nonce,
             })
 
         signed_txn = self.client.web3.eth.account.sign_transaction(built_txn, private_key=self.client.private_key)
@@ -150,8 +148,11 @@ class Transaction(object):
             except TransactionNotFound as e:
                 transaction_info = None
 
-        self.set_transaction_info(transaction_info)
-        
+        self.hash = txn_hash
+        self.block_number = transaction_info["blockNumber"]
+        self.to = transaction_info["to"]
+        self.input = transaction_info["input"]
+
         return transaction_info
 
 class RouterTransaction(Transaction):
