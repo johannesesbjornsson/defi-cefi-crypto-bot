@@ -38,18 +38,18 @@ class Client(object):
             self.slippage = 0.99 
             self.default_gas_limit = 300000
             self.max_gas_price = self.web3.toWei('5','gwei')
-        elif blockchain == "avalanche":
+        elif blockchain == "velas":
             self.api_key = api_key
-            provider_url = "https://speedy-nodes-nyc.moralis.io/0279106ed82b874b3e1b195d/avalanche/mainnet"
-            provider_ws = "wss://speedy-nodes-nyc.moralis.io/0279106ed82b874b3e1b195d/avalanche/mainnet/ws"
-            self.web3_ws = Web3(Web3.WebsocketProvider(provider_ws))
-            self.web3 = Web3(Web3.HTTPProvider(provider_url))    
-            router_contract_name = "pancake_router"
-            factory_contract_name = "pancake_factory"  
-            self.get_bep20_tokens()
-            self.slippage = 0.99 
-            self.default_gas_limit = 250000
-            self.max_gas_price = self.web3.toWei('30','nAVAX')
+            provider_url = "https://evmexplorer.velas.com/rpc"
+            #provider_ws = "wss://speedy-nodes-nyc.moralis.io/0279106ed82b874b3e1b195d/avalanche/mainnet/ws"
+            #self.web3_ws = Web3(Web3.WebsocketProvider(provider_ws))
+            self.web3 = Web3(Web3.HTTPProvider(provider_url)) 
+            router_contract_name = "wagyu_router"
+            factory_contract_name = "wagyu_factory"  
+            self.get_velas_tokens()
+            self.slippage = 0.995
+            self.default_gas_limit = 300000
+            self.max_gas_price = self.web3.toWei('5','gwei')
         else:
             raise ValueError(blockchain + "is not a supported blockchain")
 
@@ -93,6 +93,11 @@ class Client(object):
     def get_polygon_tokens(self):
         self.tokens_to_check = token_config.polygon_tokens
         self.known_tokens = token_config.polygon_all_tokens
+
+
+    def get_velas_tokens(self):
+        self.tokens_to_check = token_config.velas_tokens
+        self.known_tokens = token_config.all_velas_tokens
 
 
     def get_abi(self,address):

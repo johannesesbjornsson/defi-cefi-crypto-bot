@@ -64,11 +64,19 @@ polygon_base_tokens = {
     "DAI": "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063"
 }
 
-decimals_to_unit = {
-    6: "lovelace",
-    18: "ether"
-}
-# See https://web3js.readthedocs.io/en/v1.2.11/web3-utils.html#id82
-
 polygon_all_tokens = polygon_tokens.copy()
 polygon_all_tokens.update(polygon_base_tokens)
+
+velas_tokens = {
+    "WAG" : "0xaBf26902Fd7B624e0db40D31171eA9ddDf078351",
+    "WVLX" : "0xc579D1f3CF86749E05CD06f7ADe17856c2CE3126",
+    "VLXPAD": "0xa065e0858417Dfc7abC6f2BD4D0185332475C180",
+    "SCAR": "0x8d9fB713587174Ee97e91866050c383b5cEE6209"
+}
+velas_base_tokens = {
+    "BUSD" : "0xc111c29A988AE0C0087D97b33C6E6766808A3BD3",
+    "USDC": "0xe2C120f188eBd5389F71Cf4d9C16d05b62A58993",
+    "USDT": "0x01445C31581c354b7338AC35693AB2001B50b9aE"
+}
+all_velas_tokens = velas_tokens.copy()
+all_velas_tokens.update(velas_base_tokens)

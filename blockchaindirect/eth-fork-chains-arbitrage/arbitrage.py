@@ -17,6 +17,8 @@ class Arbitrage(object):
             self.minimum_profit = self.from_range[0] + 0.02
         elif self.client.blockchain == "polygon":
             self.minimum_profit =  self.from_range[0] + 0.01
+        elif self.client.blockchain == "velas":
+            self.minimum_profit =  self.from_range[0] + 0.1
 
     def get_sequence_1_amount_out(self, amount_in):
         amount_out = self.token_pair_1.get_amount_token_2_out(amount_in)
@@ -64,6 +66,9 @@ class Arbitrage(object):
 
         sequence_1_value = self.token_pair_1.token_1.from_wei(amount_out_sequence_1)
         sequence_2_value = self.token_pair_1.token_1.from_wei(amount_out_sequence_2)
+
+        print("amount_out_sequence_1:", sequence_1_value)
+        print("amount_out_sequence_2:", sequence_2_value)
 
         if sequence_1_value > sequence_2_value and sequence_1_value > self.minimum_profit:
             found_arbitrage = True

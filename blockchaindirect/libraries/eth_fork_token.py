@@ -182,6 +182,8 @@ class RouterTransaction(Transaction):
             log_location_index = -2
         elif self.client.blockchain == "bsc":
             log_location_index = -1
+        elif self.client.blockchain == "velas":
+            log_location_index = -1
 
         tx_dict = dict(self.transaction.receipt)
         data = tx_dict["logs"][log_location_index]["data"]
