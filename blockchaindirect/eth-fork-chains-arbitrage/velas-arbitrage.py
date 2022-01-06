@@ -20,8 +20,9 @@ def main():
     #   #["QUICK", "LINK"]
     #]
 
-    #while True:
-        #triggers.get_pending_transactions()
+    triggers = Triggers(client)
+    while True:
+        triggers.get_pending_transactions()
         #print("Taking a wee break")
         #time.sleep(2)
         #break

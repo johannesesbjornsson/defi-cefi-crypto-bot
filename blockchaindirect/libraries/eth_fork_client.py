@@ -41,8 +41,8 @@ class Client(object):
         elif blockchain == "velas":
             self.api_key = api_key
             provider_url = "https://evmexplorer.velas.com/rpc"
-            #provider_ws = "wss://speedy-nodes-nyc.moralis.io/0279106ed82b874b3e1b195d/avalanche/mainnet/ws"
-            #self.web3_ws = Web3(Web3.WebsocketProvider(provider_ws))
+            provider_ws = "wss://api.velas.com/"
+            self.web3_ws = Web3(Web3.WebsocketProvider(provider_ws))
             self.web3 = Web3(Web3.HTTPProvider(provider_url)) 
             router_contract_name = "wagyu_router"
             factory_contract_name = "wagyu_factory"  

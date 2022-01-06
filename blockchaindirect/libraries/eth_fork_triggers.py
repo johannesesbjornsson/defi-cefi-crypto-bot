@@ -20,6 +20,10 @@ class Triggers(object):
             self.token_to_scan_for =  self.client.web3.toChecksumAddress("0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c")
             self.minimum_scanned_transaction = 1
             self.scan_token_value = 0.005
+        elif self.client.blockchain == "velas":
+            self.token_to_scan_for =  self.client.web3.toChecksumAddress("0xc579D1f3CF86749E05CD06f7ADe17856c2CE3126")
+            self.minimum_scanned_transaction = 1
+            self.scan_token_value = 0.05
 
         self.token_1 = Token(self.client,self.token_to_scan_for)
         self.client.web3.middleware_onion.inject(geth_poa_middleware, layer=0)
@@ -101,16 +105,16 @@ class Triggers(object):
                 else:    
                     print("Winning!!")
                     print(router_txn.transaction.hash)
-                    amount_out_from_token_2 = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price)
-                    token_pair.token_2.approve_token()
-
-                    try:
-                        transaction_complete = router_txn.transaction.get_transaction_receipt(wait=True)
-                    except TimeExhausted as e:
-                        pass
-
-                    amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
-                    token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
+#                    amount_out_from_token_2 = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price)
+#                    token_pair.token_2.approve_token()
+#
+#                    try:
+#                        transaction_complete = router_txn.transaction.get_transaction_receipt(wait=True)
+#                    except TimeExhausted as e:
+#                        pass
+#
+#                    amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
+#                    token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
                     
                     #start = time.perf_counter()
                     #end = time.perf_counter()
