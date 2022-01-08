@@ -163,7 +163,7 @@ class Transaction(object):
             except TransactionNotFound as e:
                 transaction_info = None
 
-        self.hash = txn_hash
+        self.hash = self.client.web3.toHex(txn_hash) 
         self.block_number = transaction_info["blockNumber"]
         self.to = transaction_info["to"]
         self.input = transaction_info["input"]
