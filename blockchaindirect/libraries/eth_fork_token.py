@@ -1,7 +1,7 @@
 import contract_libarary
 import token_config
 from web3.logs import STRICT, IGNORE, DISCARD, WARN
-from web3.exceptions import ContractLogicError, TransactionNotFound
+from web3.exceptions import ContractLogicError, TransactionNotFound, TimeExhausted
 import re
 import time
 
@@ -57,7 +57,9 @@ class Token(object):
             transaction = Transaction(self.client, None)
             transaction.create_transaction(txn)
             transaction.sign_and_send_transaction()
-            transaction_complete = transaction.get_transaction_receipt(wait=True)
+            transaction_complete, transaction_successful = transaction.get_transaction_receipt(wait=True)
+            if not transaction_successful:
+                raise LookupError("Approve token was not successful")
 
             self.allowance_on_router =  self.token_contract.functions.allowance(self.client.my_address,self.client.router_contract_address).call()
 
@@ -109,9 +111,12 @@ class Transaction(object):
         transaction_complete = False
 
         if wait:
-            transaction_receipt = self.client.web3.eth.wait_for_transaction_receipt(self.hash)
-            transaction_complete = True
-            transaction_successful = transaction_receipt["status"]
+            try:
+                transaction_receipt = self.client.web3.eth.wait_for_transaction_receipt(self.hash)
+                transaction_complete = True
+                transaction_successful = transaction_receipt["status"]
+            except TimeExhausted as e:
+                transaction_complete = False
         else:
             try:
                 transaction_receipt = self.client.web3.eth.get_transaction_receipt(self.hash)
@@ -129,7 +134,7 @@ class Transaction(object):
         self.complete = transaction_complete
         self.receipt = transaction_receipt
 
-        return transaction_complete
+        return transaction_complete, transaction_successful
 
     def create_transaction(self, transaction, gas_price=None):
         if gas_price is None:

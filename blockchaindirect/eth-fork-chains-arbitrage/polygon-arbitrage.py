@@ -20,9 +20,8 @@ def main():
         #["QUICK", "LINK"]
     ]
     
-    
+    triggers = Triggers(client)
     while True:
-        triggers = Triggers(client)
         intercepted_transaction = triggers.intercept_transactions()
         if intercepted_transaction:
             break

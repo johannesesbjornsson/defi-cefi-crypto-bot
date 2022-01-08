@@ -107,7 +107,10 @@ class TokenPair(object):
         transaction = Transaction(self.client, None)
         transaction.create_transaction(txn,gas_price)
         transaction.sign_and_send_transaction()
-        transaction_complete = transaction.get_transaction_receipt(wait=True)
+        transaction_complete, transaction_successful = transaction.get_transaction_receipt(wait=True)
+        if not transaction_successful:
+            raise LookupError("Transaction not successful")
+
         router_transaction = RouterTransaction(transaction)
         amount_out = router_transaction.get_transaction_amount_out()
 
@@ -122,7 +125,9 @@ class TokenPair(object):
         transaction = Transaction(self.client, None)
         transaction.create_transaction(txn,gas_price)
         transaction.sign_and_send_transaction()
-        transaction_complete = transaction.get_transaction_receipt(wait=True)
+        transaction_complete, transaction_successful = transaction.get_transaction_receipt(wait=True)
+        if not transaction_successful:
+            raise LookupError("Transaction not successful")
         router_transaction = RouterTransaction(transaction)
         amount_out = router_transaction.get_transaction_amount_out()
         

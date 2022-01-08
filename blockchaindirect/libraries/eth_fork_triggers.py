@@ -78,6 +78,16 @@ class Triggers(object):
 
         return pending_router_transactions
 
+    #def find_replacement_transaction(self, tx_filter, router_txn):
+    #    pending_transactions = tx_filter.get_new_entries()
+    #    for transaction in pending_transactions:
+    #        txn_hash = self.client.web3.toHex(transaction)
+    #        txn = Transaction(self.client, txn_hash)
+    #        if not txn.found_transaction():
+    #            continue
+    #        if txn == router_txn.transaction:
+    #            print("Old", router_txn)
+    #            print("New", txn)
 
     def intercept_transactions(self):
         #eth_newPendingTransactionFilter
@@ -95,7 +105,7 @@ class Triggers(object):
             if not token_pair or not amount_in or not amount_out or not gas_price:
                 continue
             
-            transaction_complete = router_txn.transaction.get_transaction_receipt(wait=False)
+            transaction_complete, transaction_successful = router_txn.transaction.get_transaction_receipt(wait=False)
                 
             if transaction_complete:
                 print("Too slow....")
@@ -105,12 +115,13 @@ class Triggers(object):
                 print("Winning!!")
                 print(router_txn.transaction.hash)
                 intercepted_transaction = True
+                #new_tx_filter = self.client.web3_ws.eth.filter('pending')
+                #while True:
+                #    self.find_replacement_transaction(new_tx_filter,router_txn)
+
                 #amount_out_from_token_2 = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price)
                 #token_pair.token_2.approve_token()
-                #try:
-                #    transaction_complete = router_txn.transaction.get_transaction_receipt(wait=True)
-                #except TimeExhausted as e:
-                #    pass
+                #transaction_complete, transaction_successful = router_txn.transaction.get_transaction_receipt(wait=True)
                 #amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
                 #token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
                 #break
