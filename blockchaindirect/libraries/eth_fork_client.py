@@ -22,9 +22,13 @@ class Client(object):
             router_contract_name = "quickswap_router"
             factory_contract_name = "quickswap_factory"  
             self.get_polygon_tokens()
-            self.max_gas_price = self.web3.toWei('750','gwei')
+            self.max_gas_price = self.web3.toWei('250','gwei')
             self.default_gas_limit = 300000 #TODO have this be not fixed
             self.slippage = 0.995
+            self.token_to_scan_for = self.web3.toChecksumAddress("0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270")
+            self.scan_token_value = 0.1
+            self.minimum_scanned_transaction = 5
+            self.swap_log_location_index = -2
         elif blockchain == "bsc":
             self.api_key = api_key
             #provider_url = "https://bsc-dataseed.binance.org/"
@@ -38,6 +42,10 @@ class Client(object):
             self.slippage = 0.99 
             self.default_gas_limit = 300000
             self.max_gas_price = self.web3.toWei('5','gwei')
+            self.token_to_scan_for =  self.web3.toChecksumAddress("0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c")
+            self.minimum_scanned_transaction = 1
+            self.scan_token_value = 0.005
+            self.swap_log_location_index = -1
         elif blockchain == "velas":
             self.api_key = api_key
             provider_url = "https://evmexplorer.velas.com/rpc"
@@ -50,6 +58,10 @@ class Client(object):
             self.slippage = 0.995
             self.default_gas_limit = 300000
             self.max_gas_price = self.web3.toWei('5','gwei')
+            self.token_to_scan_for =  self.web3.toChecksumAddress("0xc579D1f3CF86749E05CD06f7ADe17856c2CE3126")
+            self.minimum_scanned_transaction = 1
+            self.scan_token_value = 0.05
+            self.swap_log_location_index = -1
         else:
             raise ValueError(blockchain + "is not a supported blockchain")
 
