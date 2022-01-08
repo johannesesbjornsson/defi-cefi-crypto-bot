@@ -100,7 +100,7 @@ class Transaction(object):
 
     def __eq__(self, other_transaction):
         if (isinstance(other_transaction, Transaction)):
-            return self.hash == other_transaction.hash and self.from_address == other_transaction.from_address
+            return self.nonce == other_transaction.nonce and self.from_address == other_transaction.from_address
         return False
 
     def get_transaction_receipt(self, wait=True):
