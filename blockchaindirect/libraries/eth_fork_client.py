@@ -22,7 +22,7 @@ class Client(object):
             router_contract_name = "quickswap_router"
             factory_contract_name = "quickswap_factory"  
             self.get_polygon_tokens()
-            self.max_gas_price = self.web3.toWei('750','gwei')
+            self.max_gas_price = self.web3.toWei('250','gwei')
             self.default_gas_limit = 300000 #TODO have this be not fixed
             self.slippage = 0.995
             self.token_to_scan_for = self.web3.toChecksumAddress("0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270")

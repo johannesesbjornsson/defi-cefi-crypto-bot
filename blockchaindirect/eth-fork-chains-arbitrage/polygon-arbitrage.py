@@ -25,7 +25,7 @@ def main():
         triggers.get_pending_transactions()
         #print("Taking a wee break")
         #time.sleep(2)
-        break
+        #break
 
 
     token_1 = Token(client, "USDC")
