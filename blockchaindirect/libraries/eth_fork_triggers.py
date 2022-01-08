@@ -62,6 +62,7 @@ class Triggers(object):
         return token_pair, amount_in, amount_out, gas_price
 
     def get_pending_transactions(self):
+        #eth_newPendingTransactionFilter
         tx_filter = self.client.web3_ws.eth.filter('pending')
         print("Taking a wee break")
         time.sleep(2)
