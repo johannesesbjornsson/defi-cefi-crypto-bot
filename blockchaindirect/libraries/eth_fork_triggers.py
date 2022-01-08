@@ -12,19 +12,9 @@ class Triggers(object):
 
     def __init__(self, client):
         self.client = client
-        if self.client.blockchain == "polygon":
-            self.token_to_scan_for = self.client.web3.toChecksumAddress("0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270")
-            self.scan_token_value = 0.1
-            self.minimum_scanned_transaction = 5
-        elif self.client.blockchain == "bsc":
-            self.token_to_scan_for =  self.client.web3.toChecksumAddress("0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c")
-            self.minimum_scanned_transaction = 1
-            self.scan_token_value = 0.005
-        elif self.client.blockchain == "velas":
-            self.token_to_scan_for =  self.client.web3.toChecksumAddress("0xc579D1f3CF86749E05CD06f7ADe17856c2CE3126")
-            self.minimum_scanned_transaction = 1
-            self.scan_token_value = 0.05
-
+        self.token_to_scan_for = self.client.token_to_scan_for
+        self.minimum_scanned_transaction = self.client.minimum_scanned_transaction
+        self.scan_token_value = self.client.scan_token_value
         self.token_1 = Token(self.client,self.token_to_scan_for)
         self.client.web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
@@ -65,13 +55,10 @@ class Triggers(object):
 
         for transaction in pending_transactions:
             txn_hash = self.client.web3.toHex(transaction)
-            try:
-                transaction_info = self.client.web3.eth.get_transaction(txn_hash)
-            except TransactionNotFound as e:
+            txn = Transaction(self.client, txn_hash)
+
+            if not txn.found_transaction():
                 continue
-
-            txn = Transaction(self.client, transaction_info)
-
 
             if txn.to == self.client.router_contract_address and txn.block_number is None :
 

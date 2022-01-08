@@ -73,20 +73,35 @@ class Token(object):
 
 
 class Transaction(object):
-    def __init__(self, client, transaction_info=None):
+    def __init__(self, client, transaction_hash=None):
         self.client = client
-        if transaction_info:
-            self.hash = self.client.web3.toHex(transaction_info["hash"])
-            self.block_number = transaction_info["blockNumber"]
-            self.gas_limit = transaction_info["gas"]
-            self.gas_price = transaction_info["gasPrice"]
-            self.input = transaction_info["input"]
-            self.nonce = transaction_info["nonce"]
-            self.to = transaction_info["to"]
-            self.from_address = transaction_info["from"]
+        if transaction_hash:
+            try:
+                transaction_info = self.client.web3.eth.get_transaction(transaction_hash)
+                self.hash = self.client.web3.toHex(transaction_info["hash"])
+                self.block_number = transaction_info["blockNumber"]
+                self.gas_limit = transaction_info["gas"]
+                self.gas_price = transaction_info["gasPrice"]
+                self.input = transaction_info["input"]
+                self.nonce = transaction_info["nonce"]
+                self.to = transaction_info["to"]
+                self.from_address = transaction_info["from"]
+            except TransactionNotFound as e:
+                self.hash = ""
 
     def __str__(self):
         return self.hash
+
+    def found_transaction(self):
+        if self.hash == "":
+            return False
+        else:
+            return True
+
+    def __eq__(self, other_transaction):
+        if (isinstance(other_transaction, Transaction)):
+            return self.hash == other_transaction.hash and self.from_address == other_transaction.from_address
+        return False
 
     def get_transaction_receipt(self, wait=True):
         transaction_receipt = None
@@ -178,12 +193,7 @@ class RouterTransaction(Transaction):
         if not self.transaction.successful:
             raise LookupError(f"Transaction '{self.transaction.hash}' was not successful")
 
-        if self.client.blockchain == "polygon":
-            log_location_index = -2
-        elif self.client.blockchain == "bsc":
-            log_location_index = -1
-        elif self.client.blockchain == "velas":
-            log_location_index = -1
+        log_location_index = self.client.swap_log_location_index
 
         tx_dict = dict(self.transaction.receipt)
         data = tx_dict["logs"][log_location_index]["data"]
