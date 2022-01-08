@@ -14,9 +14,9 @@ class TokenPair(object):
         
         liquidity_pool_address = self.client.factory_contract.functions.getPair(self.token_1.address, self.token_2.address).call()
         self.liquidity_pool_address = self.client.web3.toChecksumAddress(liquidity_pool_address)
-        #self.token_1_liquidity = None
-        #self.token_2_liquidity = None
-        self.set_pair_liquidity()
+        self.token_1_liquidity = None
+        self.token_2_liquidity = None
+        #self.set_pair_liquidity()
 
     def __str__(self):
         return f"{self.token_1.symbol}: {self.token_1.address},\n{self.token_2.symbol}: {self.token_2.address},\nLiquidity_address: {self.liquidity_pool_address}"
