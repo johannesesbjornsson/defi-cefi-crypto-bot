@@ -1,8 +1,9 @@
 import contract_libarary
 import time
 import token_config
+import asyncio
 from web3.logs import STRICT, IGNORE, DISCARD, WARN
-#from web3.exceptions import ContractLogicError, TransactionNotFound, TimeExhausted
+from web3.exceptions import TransactionNotFound
 from web3.middleware import geth_poa_middleware
 from eth_fork_token import Token
 from eth_fork_transaction import Transaction, RouterTransaction
@@ -62,33 +63,35 @@ class Triggers(object):
         return token_pair, amount_in, amount_out, gas_price
 
 
-    def get_router_contract_interactions(self, tx_filter):
+    async def fetch_single_router_transaction(self, transaction):
+        router_txn = None
+        transaction_hash = self.client.web3.toHex(transaction)
+        try:
+            transaction_info = await self.client.web3_asybc.eth.get_transaction(transaction_hash)
+            txn = Transaction(self.client, transaction_info)
+            if txn.to == self.client.router_contract_address and txn.block_number is None and txn.gas_price > self.client.web3.toWei('29','gwei'):
+                router_txn = RouterTransaction(txn)  
+        except TransactionNotFound as e:
+            txn = None
+        return router_txn
+        
+    async def get_router_contract_interactions(self, tx_filter):
         pending_router_transactions = []
         pending_transactions = tx_filter.get_new_entries()
-        for transaction in pending_transactions:
-            txn_hash = self.client.web3.toHex(transaction)
-            txn = Transaction(self.client, txn_hash)
+        if len(pending_transactions) == 0:
+            return []
 
-            if not txn.found_transaction():
+        done, pending = await asyncio.wait(
+            [self.fetch_single_router_transaction(arg) for arg in pending_transactions]
+        )
+        for result in done:
+            router_txn = result.result()
+            if not router_txn:
                 continue
-            if txn.to != self.client.router_contract_address or txn.block_number is not None:
-                continue
-            router_txn = RouterTransaction(txn)
             if router_txn.function_called.startswith("swap"):
                 pending_router_transactions.append(router_txn)
-
         return pending_router_transactions
 
-    #def find_replacement_transaction(self, tx_filter, router_txn):
-    #    pending_transactions = tx_filter.get_new_entries()
-    #    for transaction in pending_transactions:
-    #        txn_hash = self.client.web3.toHex(transaction)
-    #        txn = Transaction(self.client, txn_hash)
-    #        if not txn.found_transaction():
-    #            continue
-    #        if txn == router_txn.transaction:
-    #            print("Old", router_txn)
-    #            print("New", txn)
 
     def intercept_transactions(self):
         #eth_newPendingTransactionFilter
@@ -97,8 +100,13 @@ class Triggers(object):
 
         
         print("Taking a wee break")
-        time.sleep(2)
-        pending_transactions = self.get_router_contract_interactions(tx_filter)
+        time.sleep(1)
+        #start = time.perf_counter()
+
+        pending_transactions = asyncio.run(self.get_router_contract_interactions(tx_filter))
+
+        #end = time.perf_counter()
+        #print("Time elapsed",end - start)
 
         for router_txn in pending_transactions:
 

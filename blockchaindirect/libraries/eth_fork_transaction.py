@@ -6,30 +6,23 @@ import re
 import time
 
 class Transaction(object):
-    def __init__(self, client, transaction_hash=None):
+    def __init__(self, client, transaction_info=None):
         self.client = client
-        if transaction_hash:
-            try:
-                transaction_info = self.client.web3.eth.get_transaction(transaction_hash)
-                self.hash = self.client.web3.toHex(transaction_info["hash"])
-                self.block_number = transaction_info["blockNumber"]
-                self.gas_limit = transaction_info["gas"]
-                self.gas_price = transaction_info["gasPrice"]
-                self.input = transaction_info["input"]
-                self.nonce = transaction_info["nonce"]
-                self.to = transaction_info["to"]
-                self.from_address = transaction_info["from"]
-            except TransactionNotFound as e:
-                self.hash = ""
+        if transaction_info:
+            self.hash = self.client.web3.toHex(transaction_info["hash"])
+            self.block_number = transaction_info["blockNumber"]
+            self.gas_limit = transaction_info["gas"]
+            self.gas_price = transaction_info["gasPrice"]
+            self.input = transaction_info["input"]
+            self.nonce = transaction_info["nonce"]
+            self.to = transaction_info["to"]
+            self.from_address = transaction_info["from"]
+        else:
+            self.hash = ""
+
 
     def __str__(self):
         return self.hash
-
-    def found_transaction(self):
-        if self.hash == "":
-            return False
-        else:
-            return True
 
     def __eq__(self, other_transaction):
         if (isinstance(other_transaction, Transaction)):
