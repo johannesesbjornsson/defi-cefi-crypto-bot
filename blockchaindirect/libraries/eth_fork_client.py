@@ -5,7 +5,7 @@ from web3 import Web3
 import time
 import token_config
 from web3.logs import STRICT, IGNORE, DISCARD, WARN
-from web3.exceptions import ContractLogicError, TransactionNotFound
+#from web3.exceptions import ContractLogicError, TransactionNotFound
 
 
 class Client(object):

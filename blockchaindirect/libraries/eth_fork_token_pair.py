@@ -2,8 +2,9 @@ import contract_libarary
 import time
 import token_config
 from web3.logs import STRICT, IGNORE, DISCARD, WARN
-from web3.exceptions import ContractLogicError, TransactionNotFound
-from eth_fork_token import Token, Transaction, RouterTransaction
+from web3.exceptions import ContractLogicError #, TransactionNotFound
+from eth_fork_token import Token
+from eth_fork_transaction import Transaction, RouterTransaction
 
 class TokenPair(object):
     def __init__(self, client, token_1, token_2, use_standard_contracts=True):

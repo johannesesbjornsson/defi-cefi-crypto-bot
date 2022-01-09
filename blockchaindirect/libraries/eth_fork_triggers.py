@@ -2,9 +2,10 @@ import contract_libarary
 import time
 import token_config
 from web3.logs import STRICT, IGNORE, DISCARD, WARN
-from web3.exceptions import ContractLogicError, TransactionNotFound, TimeExhausted
+#from web3.exceptions import ContractLogicError, TransactionNotFound, TimeExhausted
 from web3.middleware import geth_poa_middleware
-from eth_fork_token import Token, Transaction, RouterTransaction
+from eth_fork_token import Token
+from eth_fork_transaction import Transaction, RouterTransaction
 from eth_fork_token_pair import TokenPair
 
 
@@ -110,20 +111,23 @@ class Triggers(object):
             if transaction_complete:
                 print("Too slow....")
                 print("Transaction successful: ",router_txn.transaction.successful)
-                print(router_txn.transaction.hash)
+                print("Txn hash", router_txn.transaction.hash)
+                print("Gas price", router_txn.transaction.gas_price)
+                print("Sender address", router_txn.transaction.from_address)
             else:    
                 print("Winning!!")
-                print(router_txn.transaction.hash)
+                print("Txn hash", router_txn.transaction.hash)
+                print("Gas price", router_txn.transaction.gas_price)
+                print("Sender address", router_txn.transaction.from_address)
                 intercepted_transaction = True
                 #new_tx_filter = self.client.web3_ws.eth.filter('pending')
                 #while True:
                 #    self.find_replacement_transaction(new_tx_filter,router_txn)
-
                 #amount_out_from_token_2 = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price)
                 #token_pair.token_2.approve_token()
                 #transaction_complete, transaction_successful = router_txn.transaction.get_transaction_receipt(wait=True)
                 #amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
                 #token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
-                #break
                 
                 print("--------")
+        return intercepted_transaction
