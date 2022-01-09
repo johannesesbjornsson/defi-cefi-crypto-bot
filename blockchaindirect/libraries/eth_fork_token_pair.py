@@ -110,7 +110,7 @@ class TokenPair(object):
         transaction.sign_and_send_transaction()
         transaction_complete, transaction_successful = transaction.get_transaction_receipt(wait=True)
         if not transaction_successful:
-            raise LookupError("Transaction not successful")
+            raise LookupError(f"{transaction.hash} Transaction not successful")
 
         router_transaction = RouterTransaction(transaction)
         amount_out = router_transaction.get_transaction_amount_out()
@@ -128,7 +128,7 @@ class TokenPair(object):
         transaction.sign_and_send_transaction()
         transaction_complete, transaction_successful = transaction.get_transaction_receipt(wait=True)
         if not transaction_successful:
-            raise LookupError("Transaction not successful")
+            raise LookupError(f"{transaction.hash} Transaction not successful")
         router_transaction = RouterTransaction(transaction)
         amount_out = router_transaction.get_transaction_amount_out()
         

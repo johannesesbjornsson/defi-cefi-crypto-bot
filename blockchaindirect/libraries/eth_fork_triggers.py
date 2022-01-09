@@ -73,11 +73,14 @@ class Triggers(object):
                 router_txn = RouterTransaction(txn)  
         except TransactionNotFound as e:
             txn = None
+        except socket.gaierror as e:
+            print("Socker error")
+            txn = None
         return router_txn
         
-    async def get_router_contract_interactions(self, tx_filter):
+    async def get_router_contract_interactions(self, pending_transactions):
         pending_router_transactions = []
-        pending_transactions = tx_filter.get_new_entries()
+        
         if len(pending_transactions) == 0:
             return []
 
@@ -103,12 +106,14 @@ class Triggers(object):
         time.sleep(1)
         #start = time.perf_counter()
 
-        pending_transactions = asyncio.run(self.get_router_contract_interactions(tx_filter))
+        pending_transactions = tx_filter.get_new_entries()
+
+        pending_router_transactions = asyncio.run(self.get_router_contract_interactions(pending_transactions))
 
         #end = time.perf_counter()
         #print("Time elapsed",end - start)
 
-        for router_txn in pending_transactions:
+        for router_txn in pending_router_transactions:
 
             token_pair, amount_in, amount_out, gas_price = self.handle_swap_transaction(router_txn.transaction.gas_price, router_txn.input_data)
             if not token_pair or not amount_in or not amount_out or not gas_price:
@@ -131,11 +136,11 @@ class Triggers(object):
                 #new_tx_filter = self.client.web3_ws.eth.filter('pending')
                 #while True:
                 #    self.find_replacement_transaction(new_tx_filter,router_txn)
-                #amount_out_from_token_2 = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price)
-                #token_pair.token_2.approve_token()
-                #transaction_complete, transaction_successful = router_txn.transaction.get_transaction_receipt(wait=True)
-                #amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
-                #token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
+                amount_out_from_token_2 = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price)
+                token_pair.token_2.approve_token()
+                transaction_complete, transaction_successful = router_txn.transaction.get_transaction_receipt(wait=True)
+                amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
+                token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
                 
                 print("--------")
         return intercepted_transaction
