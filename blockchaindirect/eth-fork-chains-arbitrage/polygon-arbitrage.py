@@ -26,11 +26,9 @@ def main():
         intercepted_transaction = triggers.intercept_transactions()
         if intercepted_transaction:
             break
-    #    triggers.get_pending_transactions()
         #print("Taking a wee break")
         #time.sleep(2)
         #break
-
 
     token_1 = Token(client, "USDC")
     from_range = [0.1,0.1]

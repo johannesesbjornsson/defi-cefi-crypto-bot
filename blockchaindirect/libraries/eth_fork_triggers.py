@@ -3,6 +3,7 @@ import time
 import token_config
 import asyncio
 from socket import gaierror
+from aiohttp.client_exceptions import ClientConnectorError
 from web3.logs import STRICT, IGNORE, DISCARD, WARN
 from web3.exceptions import TransactionNotFound
 from web3.middleware import geth_poa_middleware
@@ -20,6 +21,8 @@ class Triggers(object):
         self.scan_token_value = self.client.scan_token_value
         self.token_1 = Token(self.client,self.token_to_scan_for)
         self.client.web3.middleware_onion.inject(geth_poa_middleware, layer=0)
+        #eth_newPendingTransactionFilter
+        self.tx_filter = self.client.web3_ws.eth.filter('pending')
 
     def handle_swap_transaction(self, gas_price, router_txn):
         token_pair = None
@@ -40,13 +43,18 @@ class Triggers(object):
         if token_pair:
             if len(router_txn.path) == 2 and router_txn.amount_in:
                 txn_amount = self.token_1.from_wei(router_txn.amount_in)
+                liquidity_impact = token_pair.get_liquidity_impact_of_token_1_for_token_2(txn_amount)
             elif router_txn.amount_out:
                 txn_amount = self.token_1.from_wei(token_pair.get_amount_token_1_out(router_txn.amount_out))
+                liquidity_impact = token_pair.get_liquidity_impact_of_token_1_for_token_2(txn_amount)
             else: 
                 txn_amount = 0
+                liquidity_impact = 0
 
-            if txn_amount > self.minimum_scanned_transaction:
-                print("Transaction value:",txn_amount)
+            #if txn_amount > self.minimum_scanned_transaction:
+            if liquidity_impact > 0.005:
+                print("Transaction value:", liquidity_impact)
+                print("Liquidty impact ",txn_amount)
                 amount_in = self.token_1.to_wei(self.scan_token_value)
                 amount_out = token_pair.get_amount_token_2_out(amount_in)
                 my_gas_price = gas_price + self.client.web3.toWei('1','gwei')
@@ -54,19 +62,25 @@ class Triggers(object):
         return token_pair, amount_in, amount_out, my_gas_price
 
 
-    async def fetch_single_router_transaction(self, transaction):
+    async def fetch_single_transaction(self, transaction, compare_transaction=None):
         router_txn = None
         transaction_hash = self.client.web3.toHex(transaction)
         try:
             transaction_info = await self.client.web3_asybc.eth.get_transaction(transaction_hash)
             txn = Transaction(self.client, transaction_info)
-            if txn.to == self.client.router_contract_address and txn.block_number is None and txn.gas_price > self.client.web3.toWei('29','gwei'):
-                router_txn = RouterTransaction(txn)  
+            if not compare_transaction and txn.to == self.client.router_contract_address and txn.block_number is None and txn.gas_price > self.client.web3.toWei('29','gwei'):
+                router_txn = RouterTransaction(txn)
+            elif compare_transaction and compare_transaction == txn:
+                router_txn = txn
         except TransactionNotFound as e:
             txn = None
         except gaierror as e:
-            print("Socker error")
+            #print("Socker error")
             txn = None
+        except ClientConnectorError as e:
+            #print("Network error")
+            txn = None
+
         return router_txn
         
     async def get_router_contract_interactions(self, pending_transactions):
@@ -76,7 +90,7 @@ class Triggers(object):
             return []
 
         done, pending = await asyncio.wait(
-            [self.fetch_single_router_transaction(arg) for arg in pending_transactions]
+            [self.fetch_single_transaction(arg,compare_transaction=None) for arg in pending_transactions]
         )
         for result in done:
             router_txn = result.result()
@@ -87,9 +101,39 @@ class Triggers(object):
         return pending_router_transactions
 
 
+    async def watch_competing_transaction(self, transaction):
+        transaction_complete, transaction_successful = transaction.get_transaction_receipt(wait=False)
+        time_started = time.time()
+        while transaction_complete != True or 360 < time.time() - time_started:
+            pending_transactions = self.tx_filter.get_new_entries()
+            if len(pending_transactions) == 0:
+                time.sleep(1)
+                continue
+            
+            done, pending = await asyncio.wait(
+                [self.fetch_single_transaction(arg,compare_transaction=transaction) for arg in pending_transactions]
+            )
+
+            for result in done:
+                txn = result.result()
+                if not txn:
+                    continue
+                print("Overwriting transaction found")
+                print(txn)
+                print(txn.hash)
+                print(txn.gas)
+                
+            
+            
+            print("wathcing....", )
+            time.sleep(1)
+            transaction_complete, transaction_successful = transaction.get_transaction_receipt(wait=False)
+    
+        return transaction_complete, transaction_successful
+
     def intercept_transactions(self):
         #eth_newPendingTransactionFilter
-        tx_filter = self.client.web3_ws.eth.filter('pending')
+        #tx_filter = self.client.web3_ws.eth.filter('pending')
         intercepted_transaction = False
 
         
@@ -97,7 +141,7 @@ class Triggers(object):
         time.sleep(1)
         #start = time.perf_counter()
 
-        pending_transactions = tx_filter.get_new_entries()
+        pending_transactions = self.tx_filter.get_new_entries()
 
         pending_router_transactions = asyncio.run(self.get_router_contract_interactions(pending_transactions))
 
@@ -112,23 +156,23 @@ class Triggers(object):
             
             transaction_complete, transaction_successful = router_txn.transaction.get_transaction_receipt(wait=False)
                 
-            if transaction_complete:
-                print("Too slow....")
-                print("Transaction successful: ",router_txn.transaction.successful)
-                print("Txn hash", router_txn.transaction.hash)
-                print("Gas price", router_txn.transaction.gas_price)
-                print("Sender address", router_txn.transaction.from_address)
-            else:    
+            #if transaction_complete:
+            #    print("Too slow....")
+            #    print("Transaction successful: ",router_txn.transaction.successful)
+            #    print("Txn hash", router_txn.transaction.hash)
+            #    print("Gas price", router_txn.transaction.gas_price)
+            #    print("Sender address", router_txn.transaction.from_address)
+            #else:
+            if not transaction_complete:    
                 print("Winning!!")
                 print("Txn hash", router_txn.transaction.hash)
                 print("Gas price", router_txn.transaction.gas_price)
                 print("Sender address", router_txn.transaction.from_address)
                 intercepted_transaction = True
-                #new_tx_filter = self.client.web3_ws.eth.filter('pending')
-                #while True:
-                #    self.find_replacement_transaction(new_tx_filter,router_txn)
+
                 #amount_out_from_token_2 = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price)
                 #token_pair.token_2.approve_token()
+                asyncio.run(self.watch_competing_transaction(router_txn.transaction))
                 #transaction_complete, transaction_successful = router_txn.transaction.get_transaction_receipt(wait=True)
                 #amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
                 #token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
