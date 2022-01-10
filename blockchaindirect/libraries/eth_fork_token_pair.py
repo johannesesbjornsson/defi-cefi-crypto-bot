@@ -99,14 +99,16 @@ class TokenPair(object):
         transaction = Transaction(self.client, None)
         transaction.create_transaction(txn,gas_price)
         transaction.sign_and_send_transaction()
-        transaction_complete, transaction_successful = transaction.get_transaction_receipt(wait=True)
-        if not transaction_successful:
-            raise LookupError(f"{transaction.hash} Transaction not successful")
-
         router_transaction = RouterTransaction(transaction)
-        amount_out = router_transaction.get_transaction_amount_out()
 
-        return amount_out
+        return router_transaction
+#        transaction_complete, transaction_successful = transaction.get_transaction_receipt(wait=True)
+#        if not transaction_successful:
+#            raise LookupError(f"{transaction.hash} Transaction not successful")
+#
+#        router_transaction = RouterTransaction(transaction)
+#        amount_out = router_transaction.get_transaction_amount_out()
+#        return amount_out
 
     def swap_token_2_for_token_1(self, amount_in, amount_out, gas_price=None):
         from_token = self.token_2.address
@@ -117,10 +119,14 @@ class TokenPair(object):
         transaction = Transaction(self.client, None)
         transaction.create_transaction(txn,gas_price)
         transaction.sign_and_send_transaction()
-        transaction_complete, transaction_successful = transaction.get_transaction_receipt(wait=True)
-        if not transaction_successful:
-            raise LookupError(f"{transaction.hash} Transaction not successful")
+
         router_transaction = RouterTransaction(transaction)
-        amount_out = router_transaction.get_transaction_amount_out()
         
-        return amount_out
+        return router_transaction
+
+        #transaction_complete, transaction_successful = transaction.get_transaction_receipt(wait=True)
+        #if not transaction_successful:
+        #    raise LookupError(f"{transaction.hash} Transaction not successful")
+        #router_transaction = RouterTransaction(transaction)
+        #amount_out = router_transaction.get_transaction_amount_out()
+        #return amount_out

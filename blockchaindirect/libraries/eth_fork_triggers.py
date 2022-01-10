@@ -57,7 +57,7 @@ class Triggers(object):
                 print("Liquidty impact ",txn_amount)
                 amount_in = self.token_1.to_wei(self.scan_token_value)
                 amount_out = token_pair.get_amount_token_2_out(amount_in)
-                my_gas_price = gas_price + self.client.web3.toWei('1','gwei')
+                my_gas_price = gas_price + self.client.web3.toWei('5','gwei')
 
         return token_pair, amount_in, amount_out, my_gas_price
 
@@ -126,7 +126,7 @@ class Triggers(object):
             
             
             print("wathcing....", )
-            time.sleep(1)
+            time.sleep(2)
             transaction_complete, transaction_successful = transaction.get_transaction_receipt(wait=False)
     
         return transaction_complete, transaction_successful
@@ -156,26 +156,28 @@ class Triggers(object):
             
             transaction_complete, transaction_successful = router_txn.transaction.get_transaction_receipt(wait=False)
                 
-            #if transaction_complete:
-            #    print("Too slow....")
-            #    print("Transaction successful: ",router_txn.transaction.successful)
-            #    print("Txn hash", router_txn.transaction.hash)
-            #    print("Gas price", router_txn.transaction.gas_price)
-            #    print("Sender address", router_txn.transaction.from_address)
-            #else:
-            if not transaction_complete:    
+            if transaction_complete:
+                print("Too slow....")
+                #print("Transaction successful: ",router_txn.transaction.successful)
+                #print("Txn hash", router_txn.transaction.hash)
+                #print("Gas price", router_txn.transaction.gas_price)
+                #print("Sender address", router_txn.transaction.from_address)
+            else:
+            #if not transaction_complete:    
                 print("Winning!!")
                 print("Txn hash", router_txn.transaction.hash)
                 print("Gas price", router_txn.transaction.gas_price)
                 print("Sender address", router_txn.transaction.from_address)
                 intercepted_transaction = True
 
-                #amount_out_from_token_2 = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price)
-                #token_pair.token_2.approve_token()
-                asyncio.run(self.watch_competing_transaction(router_txn.transaction))
-                #transaction_complete, transaction_successful = router_txn.transaction.get_transaction_receipt(wait=True)
-                #amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
-                #token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
+                my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=gas_price, wait=False)
+                token_pair.token_2.approve_token()
+                #asyncio.run(self.watch_competing_transaction(router_txn.transaction))
+                transaction_complete, transaction_successful = my_router_transaction.transaction.get_transaction_receipt(wait=True)
+                
+                amount_out_from_token_2 = my_router_transaction.get_transaction_amount_out()
+                amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
+                token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
                 
                 print("--------")
         return intercepted_transaction
