@@ -170,7 +170,7 @@ class Triggers(object):
                 print("Sender address", router_txn.transaction.from_address)
                 intercepted_transaction = True
 
-                my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=gas_price, wait=False)
+                my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=gas_price)
                 token_pair.token_2.approve_token()
                 #asyncio.run(self.watch_competing_transaction(router_txn.transaction))
                 transaction_complete, transaction_successful = my_router_transaction.transaction.get_transaction_receipt(wait=True)

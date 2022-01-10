@@ -16,7 +16,7 @@ class Client(object):
         if blockchain == "polygon":
             self.api_key = api_key
             provider_url = "https://speedy-nodes-nyc.moralis.io/0279106ed82b874b3e1b195d/polygon/mainnet"
-            #provider_url = "https://polygon-rpc.com"
+            provider_url = "https://polygon-rpc.com"
             #provider_url = "https://matic.slingshot.finance"
             provider_ws = "wss://speedy-nodes-nyc.moralis.io/0279106ed82b874b3e1b195d/polygon/mainnet/ws"
             self.web3_ws = Web3(Web3.WebsocketProvider(provider_ws))
