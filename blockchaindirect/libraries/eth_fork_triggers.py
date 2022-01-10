@@ -66,6 +66,7 @@ class Triggers(object):
         router_txn = None
         transaction_hash = self.client.web3.toHex(transaction)
         try:
+            #transaction_info = await self.client.web3_asybc.eth.get_transaction(transaction_hash)
             transaction_info = await self.client.web3_asybc.eth.get_transaction(transaction_hash)
             txn = Transaction(self.client, transaction_info)
             if not compare_transaction and txn.to == self.client.router_contract_address and txn.block_number is None and txn.gas_price > self.client.web3.toWei('29','gwei'):
@@ -171,10 +172,11 @@ class Triggers(object):
                 intercepted_transaction = True
 
                 my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=gas_price)
-                token_pair.token_2.approve_token()
+    
                 #asyncio.run(self.watch_competing_transaction(router_txn.transaction))
                 transaction_complete, transaction_successful = my_router_transaction.transaction.get_transaction_receipt(wait=True)
-                
+                token_pair.token_2.approve_token()
+
                 amount_out_from_token_2 = my_router_transaction.get_transaction_amount_out()
                 amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
                 token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
