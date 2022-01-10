@@ -2,6 +2,7 @@ import contract_libarary
 import time
 import token_config
 import asyncio
+from socket import gaierror
 from web3.logs import STRICT, IGNORE, DISCARD, WARN
 from web3.exceptions import TransactionNotFound
 from web3.middleware import geth_poa_middleware
@@ -20,12 +21,13 @@ class Triggers(object):
         self.token_1 = Token(self.client,self.token_to_scan_for)
         self.client.web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
-    def handle_swap_transaction(self, gas_price, txn_input):
+    def handle_swap_transaction(self, gas_price, router_txn):
         token_pair = None
         amount_in = None
         amount_out = None
+        my_gas_price = None
         try:
-            input_token, out_token = txn_input["path"][:2]
+            input_token, out_token = router_txn.path[-2:]
             if input_token == self.token_to_scan_for:
                 token_2 = Token(self.client,out_token)
                 token_pair = TokenPair(self.client, self.token_1, token_2)
@@ -36,31 +38,20 @@ class Triggers(object):
             token_pair = None
         
         if token_pair:
-            if "amountIn" in txn_input:
-                txn_amount = self.token_1.from_wei(txn_input["amountIn"])
-            elif "amountInMax" in txn_input:
-                txn_amount = self.token_1.from_wei(txn_input["amountInMax"])
-            else:
-                
-                if "amountOut" in txn_input:
-                    amount_out = txn_input["amountOut"]
-                elif "amountOutMin" in txn_input:
-                    amount_out = txn_input["amountOutMin"]
-                
-                if len(txn_input["path"]) == 2:
-                    txn_amount = self.token_1.from_wei(token_pair.get_amount_token_1_out(amount_out))
-                else:
-                    print("unable to get txn amount in")
-                    # Find a way to deal with this (when there are three or more tokens)
-                    txn_amount = 0
+            if len(router_txn.path) == 2 and router_txn.amount_in:
+                txn_amount = self.token_1.from_wei(router_txn.amount_in)
+            elif router_txn.amount_out:
+                txn_amount = self.token_1.from_wei(token_pair.get_amount_token_1_out(router_txn.amount_out))
+            else: 
+                txn_amount = 0
 
             if txn_amount > self.minimum_scanned_transaction:
                 print("Transaction value:",txn_amount)
                 amount_in = self.token_1.to_wei(self.scan_token_value)
                 amount_out = token_pair.get_amount_token_2_out(amount_in)
-                gas_price = gas_price + self.client.web3.toWei('1','gwei')
+                my_gas_price = gas_price + self.client.web3.toWei('1','gwei')
 
-        return token_pair, amount_in, amount_out, gas_price
+        return token_pair, amount_in, amount_out, my_gas_price
 
 
     async def fetch_single_router_transaction(self, transaction):
@@ -73,7 +64,7 @@ class Triggers(object):
                 router_txn = RouterTransaction(txn)  
         except TransactionNotFound as e:
             txn = None
-        except socket.gaierror as e:
+        except gaierror as e:
             print("Socker error")
             txn = None
         return router_txn
@@ -115,7 +106,7 @@ class Triggers(object):
 
         for router_txn in pending_router_transactions:
 
-            token_pair, amount_in, amount_out, gas_price = self.handle_swap_transaction(router_txn.transaction.gas_price, router_txn.input_data)
+            token_pair, amount_in, amount_out, gas_price = self.handle_swap_transaction(router_txn.transaction.gas_price, router_txn)
             if not token_pair or not amount_in or not amount_out or not gas_price:
                 continue
             
@@ -136,11 +127,11 @@ class Triggers(object):
                 #new_tx_filter = self.client.web3_ws.eth.filter('pending')
                 #while True:
                 #    self.find_replacement_transaction(new_tx_filter,router_txn)
-                amount_out_from_token_2 = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price)
-                token_pair.token_2.approve_token()
-                transaction_complete, transaction_successful = router_txn.transaction.get_transaction_receipt(wait=True)
-                amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
-                token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
+                #amount_out_from_token_2 = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price)
+                #token_pair.token_2.approve_token()
+                #transaction_complete, transaction_successful = router_txn.transaction.get_transaction_receipt(wait=True)
+                #amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
+                #token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
                 
                 print("--------")
         return intercepted_transaction

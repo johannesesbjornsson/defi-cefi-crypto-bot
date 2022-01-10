@@ -112,6 +112,25 @@ class RouterTransaction(Transaction):
         else:
           self.function_called =  txn_input[0]
 
+        if "path" in txn_input[1]:
+            self.path = txn_input[1]["path"]
+        else:
+            self.path = None
+
+        if "amountIn" in txn_input[1]:
+            self.amount_in = txn_input[1]["amountIn"]
+        elif "amountInMax" in txn_input[1]:
+            self.amount_in = txn_input[1]["amountInMax"]
+        else:
+            self.amount_in = None
+
+        if "amountOut" in txn_input[1]:
+            self.amount_out = txn_input[1]["amountOut"]
+        elif "amountOutMin" in txn_input[1]:
+            self.amount_out = txn_input[1]["amountOutMin"]
+        else:
+            self.amount_out = None
+
         self.input_data = txn_input[1]
 
 
