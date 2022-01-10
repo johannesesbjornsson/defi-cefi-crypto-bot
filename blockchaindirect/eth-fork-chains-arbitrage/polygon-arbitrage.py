@@ -5,7 +5,8 @@ import sys
 import arbitrage
 sys.path.insert(0,'../libraries')
 from eth_fork_client import Client
-from eth_fork_token import Token, Transaction
+from eth_fork_token import Token
+from eth_fork_transaction import Transaction
 from eth_fork_token_pair import TokenPair
 from eth_fork_triggers import Triggers
 import token_config
@@ -22,7 +23,10 @@ def main():
     
     triggers = Triggers(client)
     while True:
-        triggers.get_pending_transactions()
+        intercepted_transaction = triggers.intercept_transactions()
+        if intercepted_transaction:
+            break
+    #    triggers.get_pending_transactions()
         #print("Taking a wee break")
         #time.sleep(2)
         #break

@@ -2,8 +2,9 @@ import contract_libarary
 import time
 import token_config
 from web3.logs import STRICT, IGNORE, DISCARD, WARN
-from web3.exceptions import ContractLogicError, TransactionNotFound
-from eth_fork_token import Token, Transaction, RouterTransaction
+from web3.exceptions import ContractLogicError #, TransactionNotFound
+from eth_fork_token import Token
+from eth_fork_transaction import Transaction, RouterTransaction
 
 class TokenPair(object):
     def __init__(self, client, token_1, token_2, use_standard_contracts=True):
@@ -14,9 +15,9 @@ class TokenPair(object):
         
         liquidity_pool_address = self.client.factory_contract.functions.getPair(self.token_1.address, self.token_2.address).call()
         self.liquidity_pool_address = self.client.web3.toChecksumAddress(liquidity_pool_address)
-        #self.token_1_liquidity = None
-        #self.token_2_liquidity = None
-        self.set_pair_liquidity()
+        self.token_1_liquidity = None
+        self.token_2_liquidity = None
+        #self.set_pair_liquidity()
 
     def __str__(self):
         return f"{self.token_1.symbol}: {self.token_1.address},\n{self.token_2.symbol}: {self.token_2.address},\nLiquidity_address: {self.liquidity_pool_address}"
@@ -107,7 +108,10 @@ class TokenPair(object):
         transaction = Transaction(self.client, None)
         transaction.create_transaction(txn,gas_price)
         transaction.sign_and_send_transaction()
-        transaction_complete = transaction.get_transaction_receipt(wait=True)
+        transaction_complete, transaction_successful = transaction.get_transaction_receipt(wait=True)
+        if not transaction_successful:
+            raise LookupError(f"{transaction.hash} Transaction not successful")
+
         router_transaction = RouterTransaction(transaction)
         amount_out = router_transaction.get_transaction_amount_out()
 
@@ -122,7 +126,9 @@ class TokenPair(object):
         transaction = Transaction(self.client, None)
         transaction.create_transaction(txn,gas_price)
         transaction.sign_and_send_transaction()
-        transaction_complete = transaction.get_transaction_receipt(wait=True)
+        transaction_complete, transaction_successful = transaction.get_transaction_receipt(wait=True)
+        if not transaction_successful:
+            raise LookupError(f"{transaction.hash} Transaction not successful")
         router_transaction = RouterTransaction(transaction)
         amount_out = router_transaction.get_transaction_amount_out()
         

@@ -5,7 +5,9 @@ from web3 import Web3
 import time
 import token_config
 from web3.logs import STRICT, IGNORE, DISCARD, WARN
-from web3.exceptions import ContractLogicError, TransactionNotFound
+from web3.eth import AsyncEth
+
+#from web3.exceptions import ContractLogicError, TransactionNotFound
 
 
 class Client(object):
@@ -19,6 +21,7 @@ class Client(object):
             provider_ws = "wss://speedy-nodes-nyc.moralis.io/0279106ed82b874b3e1b195d/polygon/mainnet/ws"
             self.web3_ws = Web3(Web3.WebsocketProvider(provider_ws))
             self.web3 = Web3(Web3.HTTPProvider(provider_url))
+            self.web3_asybc = Web3(Web3.AsyncHTTPProvider(provider_url),modules={'eth': (AsyncEth,)}, middlewares=[])
             router_contract_name = "quickswap_router"
             factory_contract_name = "quickswap_factory"  
             self.get_polygon_tokens()
@@ -36,6 +39,7 @@ class Client(object):
             provider_ws = "wss://speedy-nodes-nyc.moralis.io/0279106ed82b874b3e1b195d/bsc/mainnet/ws"
             self.web3_ws = Web3(Web3.WebsocketProvider(provider_ws))
             self.web3 = Web3(Web3.HTTPProvider(provider_url))    
+            self.web3_asybc = Web3(Web3.AsyncHTTPProvider(provider_url),modules={'eth': (AsyncEth,)}, middlewares=[])
             router_contract_name = "pancake_router"
             factory_contract_name = "pancake_factory"  
             self.get_bep20_tokens()
@@ -51,7 +55,8 @@ class Client(object):
             provider_url = "https://evmexplorer.velas.com/rpc"
             provider_ws = "wss://api.velas.com/"
             self.web3_ws = Web3(Web3.WebsocketProvider(provider_ws))
-            self.web3 = Web3(Web3.HTTPProvider(provider_url)) 
+            self.web3 = Web3(Web3.HTTPProvider(provider_url))
+            self.web3_asybc = Web3(Web3.AsyncHTTPProvider(provider_url),modules={'eth': (AsyncEth,)}, middlewares=[])
             router_contract_name = "wagyu_router"
             factory_contract_name = "wagyu_factory"  
             self.get_velas_tokens()
