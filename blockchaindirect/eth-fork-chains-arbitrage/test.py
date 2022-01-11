@@ -10,6 +10,7 @@ client = Client("polygon",cfg.my_polygon_address, cfg.private_key, cfg.polygon_a
 
 txns = [
 "0x12b2b4a510348d96753b924a69c5f1eea38defa64d9c519a6bcfe92d838a8618",
+"0x12b2b4a510348d96753b924a69c5f1eea38defa64d9c519a6bcfe92d838a8618",
 ]
 
 async def fetch_single_transaction(transaction_hash):
@@ -36,12 +37,25 @@ async def fetch_transactions(n):
         saved_txns.append(d.result())
     return saved_txns
 
+async def test():
+    return 1
+
+async def test1():
+    return 1
+
+async def test2():
+    all_groups = asyncio.wait((await test(), await test1()))
 
 
 if __name__ == "__main__":
     start = time.perf_counter()
     #saved_txns = asyncio.run(fetch_transactions(txns))
     #print(saved_txns)
-    saved_txns = asyncio.run(fetch_single_transaction(txns[0]))
+    #saved_txns = asyncio.run(fetch_single_transaction(txns[0]))
+    #asyncio.run((test(),test1()))
+    #loop = asyncio.get_event_loop()
+    all_groups = asyncio.run(test2())
+    #results = loop.run_until_complete(all_groups)
+    #loop.close()
     end = time.perf_counter()
     print("Time elapsed",end - start)

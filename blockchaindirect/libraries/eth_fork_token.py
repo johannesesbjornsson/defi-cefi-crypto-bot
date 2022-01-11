@@ -1,5 +1,6 @@
 import contract_libarary
 import token_config
+import asyncio
 #from web3.logs import STRICT, IGNORE, DISCARD, WARN
 #from web3.exceptions import ContractLogicError, TransactionNotFound, TimeExhausted
 #import re
@@ -29,12 +30,24 @@ class Token(object):
             self.token_contract = self.client.web3.eth.contract(address=self.address, abi=self.abi)
             self.set_proxy_details()
 
-        self.symbol = self.token_contract.functions.symbol().call()
-        self.allowance_on_router =  self.token_contract.functions.allowance(self.client.my_address,self.client.router_contract_address).call()
-        self.decimals = self.token_contract.functions.decimals().call()
+        asyncio.run(self.fetch_remote_token_info())
     
     def __str__(self):
         return self.address
+
+    async def fetch_remote_token_info(self):
+        done, pending = await asyncio.wait(
+            [self.fetch_symbol(), self.fetch_allowance(), self.fetch_decimals()]
+        )
+
+    async def fetch_symbol(self):
+        self.symbol = self.token_contract.functions.symbol().call()
+
+    async def fetch_allowance(self):
+        self.allowance_on_router =  self.token_contract.functions.allowance(self.client.my_address,self.client.router_contract_address).call()
+
+    async def fetch_decimals(self):
+        self.decimals = self.token_contract.functions.decimals().call()
 
     def set_proxy_details(self):
         is_proxy = False
