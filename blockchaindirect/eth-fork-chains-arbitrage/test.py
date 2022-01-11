@@ -17,7 +17,11 @@ async def fetch_single_transaction(transaction_hash):
     #print(f"Printing {n}")
     #await asyncio.sleep(1)
     #f = n +"1"
-    #transaction_hash = client.web3.toHex(transaction)
+    try:
+        transaction_hash = client.web3.toHex(transaction_hash)
+    except TypeError as e:
+        transaction_hash = transaction_hash
+
     print(transaction_hash)
     transaction_info = await client.web3_asybc.eth.get_transaction(transaction_hash)
     txn = Transaction(client, transaction_info)
@@ -36,7 +40,8 @@ async def fetch_transactions(n):
 
 if __name__ == "__main__":
     start = time.perf_counter()
-    saved_txns = asyncio.run(fetch_transactions(txns))
-    print(saved_txns)
+    #saved_txns = asyncio.run(fetch_transactions(txns))
+    #print(saved_txns)
+    saved_txns = asyncio.run(fetch_single_transaction(txns[0]))
     end = time.perf_counter()
     print("Time elapsed",end - start)

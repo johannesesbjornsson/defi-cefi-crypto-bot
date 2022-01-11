@@ -22,7 +22,7 @@ class Client(object):
             self.web3_ws = Web3(Web3.WebsocketProvider(provider_ws))
             self.web3 = Web3(Web3.HTTPProvider(provider_url))
             self.web3_priority = Web3(Web3.HTTPProvider(provider_priority_url))
-            self.web3_asybc = Web3(Web3.AsyncHTTPProvider(provider_priority_url),modules={'eth': (AsyncEth,)}, middlewares=[])
+            self.web3_asybc = Web3(Web3.AsyncHTTPProvider(provider_url),modules={'eth': (AsyncEth,)}, middlewares=[])
             router_contract_name = "quickswap_router"
             factory_contract_name = "quickswap_factory"  
             self.get_polygon_tokens()

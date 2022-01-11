@@ -3,7 +3,7 @@ import time
 import token_config
 import asyncio
 from socket import gaierror
-from aiohttp.client_exceptions import ClientConnectorError
+from aiohttp.client_exceptions import ClientConnectorError, ClientResponseError
 from web3.logs import STRICT, IGNORE, DISCARD, WARN
 from web3.exceptions import TransactionNotFound
 from web3.middleware import geth_poa_middleware
@@ -15,6 +15,8 @@ from eth_fork_token_pair import TokenPair
 class Triggers(object):
 
     def __init__(self, client):
+        self.successful_requests = 0
+        self.failed_requests = 0
         self.client = client
         self.token_to_scan_for = self.client.token_to_scan_for
         self.minimum_scanned_transaction = self.client.minimum_scanned_transaction
@@ -57,31 +59,43 @@ class Triggers(object):
                 print("Liquidty impact ",txn_amount)
                 amount_in = self.token_1.to_wei(self.scan_token_value)
                 amount_out = token_pair.get_amount_token_2_out(amount_in)
-                my_gas_price = gas_price + self.client.web3.toWei('5','gwei')
+                my_gas_price = gas_price + self.client.web3.toWei('1','gwei')
 
         return token_pair, amount_in, amount_out, my_gas_price
 
 
     async def fetch_single_transaction(self, transaction, compare_transaction=None):
+        #start = time.perf_counter()
         router_txn = None
-        transaction_hash = self.client.web3.toHex(transaction)
+        if isinstance(transaction, str):
+            transaction_hash = transaction
+        else:
+            transaction_hash = self.client.web3.toHex(transaction)
+
         try:
-            #transaction_info = await self.client.web3_asybc.eth.get_transaction(transaction_hash)
             transaction_info = await self.client.web3_asybc.eth.get_transaction(transaction_hash)
+            self.successful_requests += 1
             txn = Transaction(self.client, transaction_info)
             if not compare_transaction and txn.to == self.client.router_contract_address and txn.block_number is None and txn.gas_price > self.client.web3.toWei('29','gwei'):
                 router_txn = RouterTransaction(txn)
             elif compare_transaction and compare_transaction == txn:
                 router_txn = txn
         except TransactionNotFound as e:
+            self.failed_requests += 1
             txn = None
         except gaierror as e:
             #print("Socker error")
+            self.failed_requests += 1
             txn = None
         except ClientConnectorError as e:
+            self.failed_requests += 1
             #print("Network error")
             txn = None
-
+        except ClientResponseError as e:
+            self.failed_requests += 1
+            txn = None
+        #end = time.perf_counter()
+        #print("Time elapsed",end - start)  
         return router_txn
         
     async def get_router_contract_interactions(self, pending_transactions):
@@ -140,24 +154,28 @@ class Triggers(object):
         
         print("Taking a wee break")
         time.sleep(1)
-        #start = time.perf_counter()
 
         pending_transactions = self.tx_filter.get_new_entries()
 
         pending_router_transactions = asyncio.run(self.get_router_contract_interactions(pending_transactions))
 
-        #end = time.perf_counter()
-        #print("Time elapsed",end - start)
+
 
         for router_txn in pending_router_transactions:
-
+            start = time.perf_counter()
             token_pair, amount_in, amount_out, gas_price = self.handle_swap_transaction(router_txn.transaction.gas_price, router_txn)
             if not token_pair or not amount_in or not amount_out or not gas_price:
                 continue
             
-            transaction_complete, transaction_successful = router_txn.transaction.get_transaction_receipt(wait=False)
-                
-            if transaction_complete:
+            #transaction_complete, transaction_successful = router_txn.transaction.get_transaction_receipt(wait=False)
+            txn =  asyncio.run(self.fetch_single_transaction(router_txn.transaction.hash))
+            if not txn:
+                continue
+            
+            end = time.perf_counter()
+            print("Time elapsed",end - start)  
+
+            if txn.transaction.block_number:
                 print("Too slow....")
                 #print("Transaction successful: ",router_txn.transaction.successful)
                 #print("Txn hash", router_txn.transaction.hash)
@@ -174,12 +192,19 @@ class Triggers(object):
                 my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=gas_price)
     
                 #asyncio.run(self.watch_competing_transaction(router_txn.transaction))
-                transaction_complete, transaction_successful = my_router_transaction.transaction.get_transaction_receipt(wait=True)
-                token_pair.token_2.approve_token()
 
-                amount_out_from_token_2 = my_router_transaction.get_transaction_amount_out()
-                amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
-                token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
+                transaction_complete, transaction_successful = my_router_transaction.transaction.get_transaction_receipt(wait=True)
+                if transaction_successful:
+                    token_pair.token_2.approve_token()
+
+                    transaction_complete, transaction_successful = router_txn.transaction.get_transaction_receipt(wait=True)
+                    amount_out_from_token_2 = my_router_transaction.get_transaction_amount_out()
+                    amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
+                    token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
                 
+                print("Successsful requests", self.successful_requests)
+                print("Failed requests", self.failed_requests)
                 print("--------")
+        
+
         return intercepted_transaction
