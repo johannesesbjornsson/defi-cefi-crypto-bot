@@ -29,25 +29,44 @@ class Token(object):
             self.abi = self.client.get_abi(self.address)
             self.token_contract = self.client.web3.eth.contract(address=self.address, abi=self.abi)
             self.set_proxy_details()
+        
+        
+        #self.allowance_on_router =  self.token_contract.functions.allowance(self.client.my_address,self.client.router_contract_address).call()
+        self.decimals = self.token_contract.functions.decimals().call()
+        self.token_symbol = None
+        self.allowance = None
 
-        asyncio.run(self.fetch_remote_token_info())
+        #self.symbol = self.token_contract.functions.symbol().call()
+        #asyncio.run(self.fetch_remote_token_info())
     
     def __str__(self):
         return self.address
 
-    async def fetch_remote_token_info(self):
-        done, pending = await asyncio.wait(
-            [self.fetch_symbol(), self.fetch_allowance(), self.fetch_decimals()]
-        )
+    @property 
+    def symbol(self):
+        if not self.token_symbol:
+            self.token_symbol = self.token_contract.functions.symbol().call()
+        return self.token_symbol
 
-    async def fetch_symbol(self):
-        self.symbol = self.token_contract.functions.symbol().call()
+    @property 
+    def allowance_on_router(self):
+        if not self.allowance:
+            self.token_symbol = self.token_contract.functions.allowance(self.client.my_address,self.client.router_contract_address).call()
+        return self.allowance
 
-    async def fetch_allowance(self):
-        self.allowance_on_router =  self.token_contract.functions.allowance(self.client.my_address,self.client.router_contract_address).call()
-
-    async def fetch_decimals(self):
-        self.decimals = self.token_contract.functions.decimals().call()
+#    async def fetch_remote_token_info(self):
+#        done, pending = await asyncio.wait(
+#            [self.fetch_symbol(), self.fetch_allowance(), self.fetch_decimals()]
+#        )
+#
+#    async def fetch_symbol(self):
+#        self.symbol = self.token_contract.functions.symbol().call()
+#
+#    async def fetch_allowance(self):
+#        self.allowance_on_router =  self.token_contract.functions.allowance(self.client.my_address,self.client.router_contract_address).call()
+#
+#    async def fetch_decimals(self):
+#        self.decimals = self.token_contract.functions.decimals().call()
 
     def set_proxy_details(self):
         is_proxy = False
@@ -65,7 +84,7 @@ class Token(object):
         self.token_contract = token_contract
 
     def approve_token(self):
-        if self.allowance_on_router == 0:
+        if self.allowance == 0:
             value = self.client.web3.toWei(2**64-1,'ether')
             txn = self.token_contract.functions.approve(self.client.router_contract_address,value)
             #transaction_receipt = self.client.sign_and_send_transaction(txn)
@@ -76,7 +95,7 @@ class Token(object):
             if not transaction_successful:
                 raise LookupError("Approve token was not successful")
 
-            self.allowance_on_router =  self.token_contract.functions.allowance(self.client.my_address,self.client.router_contract_address).call()
+            self.allowance =  self.token_contract.functions.allowance(self.client.my_address,self.client.router_contract_address).call()
 
         return True
 

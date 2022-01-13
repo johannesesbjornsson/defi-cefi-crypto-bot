@@ -20,11 +20,8 @@ class TokenPair(object):
             abi=contract_libarary.standard_contracts["liquidity_pool"]
         else:
             abi = self.client.get_abi(address)
-        self.liquidity_pool_contract = self.client.web3.eth.contract(address=self.liquidity_pool_address, abi=abi)
-        #self.token_1_liquidity = None
-        #self.token_2_liquidity = None
-        #self.set_pair_liquidity()
-        asyncio.run(self.set_pair_liquidity())
+
+        self.set_pair_liquidity()
 
     def __str__(self):
         return f"{self.token_1.symbol}: {self.token_1.address},\n{self.token_2.symbol}: {self.token_2.address},\nLiquidity_address: {self.liquidity_pool_address}"
@@ -44,26 +41,28 @@ class TokenPair(object):
         liquidity_impact = amount_in/self.token_2_liquidity
         return liquidity_impact
 
-    async def get_token_1_reserves(self):
-        self.reserves_token_1 = self.liquidity_pool_contract.functions.token0().call()
-    
-    async def get_token_2_reserves(self):
-        self.reserves_token_2 = self.liquidity_pool_contract.functions.token1().call()
+#    async def get_token_1_reserves(self):
+#        self.reserves_token_1 = self.liquidity_pool_contract.functions.token0().call()
+#    
+#    async def get_token_2_reserves(self):
+#        self.reserves_token_2 = self.liquidity_pool_contract.functions.token1().call()
+#
+#    async def get_reserves_raw(self):
+#        self.reserves_raw =  self.liquidity_pool_contract.functions.getReserves().call()
+#
+#    async def set_pair_liquidity(self):
 
-    async def get_reserves_raw(self):
-        self.reserves_raw =  self.liquidity_pool_contract.functions.getReserves().call()
-
-    async def set_pair_liquidity(self):
+    def set_pair_liquidity(self):
         try:
-            done, pending = await asyncio.wait(
-                [self.get_token_1_reserves(), self.get_token_2_reserves(), self.get_reserves_raw()]
-            )
-            reserves = self.reserves_raw
-            reserves_token_1 = self.reserves_token_1
-            reserves_token_2 = self.reserves_token_2
-            #reserves =  liquidity_pool_contract.functions.getReserves().call()
-            #reserves_token_1 = liquidity_pool_contract.functions.token0().call()
-            #reserves_token_2 = liquidity_pool_contract.functions.token1().call()
+            if self.use_standard_contracts:
+                abi=contract_libarary.standard_contracts["liquidity_pool"]
+            else:
+                abi = self.client.get_abi(address)
+
+            liquidity_pool_contract = self.client.web3.eth.contract(address=self.liquidity_pool_address, abi=abi)
+            reserves =  liquidity_pool_contract.functions.getReserves().call()
+            reserves_token_1 = liquidity_pool_contract.functions.token0().call()
+            reserves_token_2 = liquidity_pool_contract.functions.token1().call()
         except ValueError as e:
             reserves_token_1 = self.token_1.address
             reserves_token_2 = self.token_2.address

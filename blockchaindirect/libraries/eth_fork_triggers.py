@@ -123,7 +123,7 @@ class Triggers(object):
     async def watch_competing_transaction(self, transaction):
         transaction_complete, transaction_successful = transaction.get_transaction_receipt(wait=False)
         time_started = time.time()
-        while transaction_complete != True or 360 < time.time() - time_started:
+        while transaction_complete != True and 360 < time.time() - time_started:
             pending_transactions = self.tx_filter.get_new_entries()
             if len(pending_transactions) == 0:
                 time.sleep(1)
@@ -144,8 +144,8 @@ class Triggers(object):
                 
             
             
-            print("wathcing....", )
-            time.sleep(2)
+            print("wathcing....", time.time() - time_started)
+            time.sleep(5)
             transaction_complete, transaction_successful = transaction.get_transaction_receipt(wait=False)
     
         return transaction_complete, transaction_successful
@@ -157,7 +157,7 @@ class Triggers(object):
 
         
         print("Taking a wee break")
-        time.sleep(1)
+        time.sleep(0.2)
 
         pending_transactions = self.tx_filter.get_new_entries()
 
@@ -173,17 +173,16 @@ class Triggers(object):
 
     
             
-            txn =  asyncio.run(self.fetch_single_transaction(router_txn.transaction.hash))
-            if not txn:
-                continue
+            #txn =  asyncio.run(self.fetch_single_transaction(router_txn.transaction.hash))
+            #if not txn:
+            #    continue
 
             end = time.perf_counter()
             print("Time elapsed",end - start)  
 
-            #end = time.perf_counter()
-            #print("Time elapsed",end - start)  
-            print(txn.transaction.block_number)
-            if txn.transaction.block_number:
+            if 1 == 2:
+            #print(txn.transaction.block_number)
+            #if txn.transaction.block_number:
                 print("Too slow....")
                 #print("Transaction successful: ",router_txn.transaction.successful)
                 #print("Txn hash", router_txn.transaction.hash)
@@ -195,7 +194,7 @@ class Triggers(object):
                 print("Txn hash", router_txn.transaction.hash)
                 print("Gas price", router_txn.transaction.gas_price)
                 print("Sender address", router_txn.transaction.from_address)
-                print("Function called", router_txn.function_called)
+                print("Raw input data", router_txn.function_called, router_txn.input_data)
                 intercepted_transaction = True
 
                 
@@ -205,8 +204,12 @@ class Triggers(object):
                 my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=gas_price)
                 transaction_complete, transaction_successful = my_router_transaction.transaction.get_transaction_receipt(wait=True)
                 if transaction_successful:
+                    #txn =  asyncio.run(self.fetch_single_transaction(router_txn.transaction.hash))
                     token_pair.token_2.approve_token()
-                    transaction_complete, transaction_successful = router_txn.transaction.get_transaction_receipt(wait=True)
+
+                    #transaction_complete, transaction_successful = router_txn.transaction.get_transaction_receipt(wait=True)
+                    asyncio.run(self.watch_competing_transaction(router_txn.transaction))
+
                     amount_out_from_token_2 = my_router_transaction.get_transaction_amount_out()
                     amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
                     token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
