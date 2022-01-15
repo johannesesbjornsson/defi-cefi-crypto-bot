@@ -23,7 +23,7 @@ def main():
     
     triggers = Triggers(client)
     #test = []
-    #token_1 = Token(client, "USDC")
+    token_1 = Token(client, "USDC")
     #token_2 = Token(client, "USDT")
     while True:
         #start = time.perf_counter()

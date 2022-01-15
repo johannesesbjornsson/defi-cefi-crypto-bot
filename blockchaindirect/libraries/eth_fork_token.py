@@ -51,7 +51,7 @@ class Token(object):
     @property 
     def allowance_on_router(self):
         if not self.allowance:
-            self.token_symbol = self.token_contract.functions.allowance(self.client.my_address,self.client.router_contract_address).call()
+            self.allowance = self.token_contract.functions.allowance(self.client.my_address,self.client.router_contract_address).call()
         return self.allowance
 
 #    async def fetch_remote_token_info(self):
@@ -84,7 +84,7 @@ class Token(object):
         self.token_contract = token_contract
 
     def approve_token(self):
-        if self.allowance == 0:
+        if self.allowance_on_router == 0:
             value = self.client.web3.toWei(2**64-1,'ether')
             txn = self.token_contract.functions.approve(self.client.router_contract_address,value)
             #transaction_receipt = self.client.sign_and_send_transaction(txn)
@@ -95,7 +95,7 @@ class Token(object):
             if not transaction_successful:
                 raise LookupError("Approve token was not successful")
 
-            self.allowance =  self.token_contract.functions.allowance(self.client.my_address,self.client.router_contract_address).call()
+            #self.allowance =  self.token_contract.functions.allowance(self.client.my_address,self.client.router_contract_address).call()
 
         return True
 
