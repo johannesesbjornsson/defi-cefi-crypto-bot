@@ -37,7 +37,7 @@ class Triggers(object):
             if input_token == self.token_to_scan_for:
                 token_2 = Token(self.client,out_token)
                 token_pair = TokenPair(self.client, self.token_1, token_2)
-
+                
             else:
                 token_pair = None
         except ValueError as e:
@@ -68,13 +68,14 @@ class Triggers(object):
     def filter_transaction(self, txn, compare_transaction=None):
         matching_txn = None
         if not compare_transaction and txn.to == self.client.router_contract_address and txn.block_number is None and txn.gas_price > self.client.web3.toWei('29','gwei'):
+        #if not compare_transaction and txn.to == self.client.router_contract_address and txn.block_number is not None and txn.gas_price > self.client.web3.toWei('29','gwei'):
             router_txn = RouterTransaction(txn)
             if router_txn.function_called.startswith("swap"):
                 matching_txn = router_txn
             
         elif compare_transaction and compare_transaction == txn:
             matching_txn = txn
-        
+    
         return matching_txn
 
     async def fetch_single_transaction(self, transaction, compare_transaction=None):
@@ -109,7 +110,8 @@ class Triggers(object):
             self.failed_requests += 1
             txn = None
         #end = time.perf_counter()
-        #print("Time elapsed",end - start)  
+        #print("Time elapsed",end - start)
+
         return matching_txn
         
     async def get_router_contract_interactions(self, pending_transactions):
@@ -125,7 +127,8 @@ class Triggers(object):
             router_txn = result.result()
             if not router_txn:
                 continue
-            
+            pending_router_transactions.append(router_txn)
+        
         return pending_router_transactions
 
 
