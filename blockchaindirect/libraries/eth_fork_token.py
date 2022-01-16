@@ -90,7 +90,14 @@ class Token(object):
             #transaction_receipt = self.client.sign_and_send_transaction(txn)
             transaction = Transaction(self.client, None)
             transaction.create_transaction(txn)
-            transaction.sign_and_send_transaction()
+            try:
+                transaction.sign_and_send_transaction()
+            except ValueError as e:
+                if "message" in e and e["message"] == "nonce too low":
+                    print("Having to resend transaction")
+                    transaction.nonce += 1
+                    transaction.sign_and_send_transaction()
+
             transaction_complete, transaction_successful = transaction.get_transaction_receipt(wait=True)
             if not transaction_successful:
                 raise LookupError("Approve token was not successful")

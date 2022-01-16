@@ -55,7 +55,7 @@ class Triggers(object):
                 liquidity_impact = 0
 
             #if txn_amount > self.minimum_scanned_transaction:
-            if liquidity_impact > 0.005 and txn_amount > 0.1:
+            if liquidity_impact > 0.008 and txn_amount > 0.1:
                 print("Transaction value:", txn_amount)
                 print("Liquidty impact ",liquidity_impact)
                 amount_in = self.token_1.to_wei(self.scan_token_value)
@@ -170,6 +170,10 @@ class Triggers(object):
         
         #print("Taking a wee break")
         time.sleep(0.2)
+        if self.client.web3.eth.gas_price > self.client.web3.toWei('90','gwei'):
+            print("Gas prices to high atm...")
+            time.sleep(60)
+            return False
 
         pending_transactions = self.tx_filter.get_new_entries()
 
@@ -206,7 +210,6 @@ class Triggers(object):
                 print("Txn hash", router_txn.transaction.hash)
                 print("Gas price", router_txn.transaction.gas_price)
                 print("Sender address", router_txn.transaction.from_address)
-                print("Raw input data", router_txn.function_called, router_txn.input_data)
                 intercepted_transaction = True
 
                 

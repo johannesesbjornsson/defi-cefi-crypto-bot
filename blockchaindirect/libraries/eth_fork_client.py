@@ -30,7 +30,7 @@ class Client(object):
             self.default_gas_limit = 300000 #TODO have this be not fixed
             self.slippage = 0.995
             self.token_to_scan_for = self.web3.toChecksumAddress("0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270")
-            self.scan_token_value = 0.1
+            self.scan_token_value = 0.2
             self.minimum_scanned_transaction = 5
             self.swap_log_location_index = -2
         elif blockchain == "bsc":

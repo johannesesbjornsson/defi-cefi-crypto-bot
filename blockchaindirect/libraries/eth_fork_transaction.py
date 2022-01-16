@@ -82,12 +82,7 @@ class Transaction(object):
             })
 
         signed_txn = self.client.web3.eth.account.sign_transaction(built_txn, private_key=self.client.private_key)
-        try:
-            txn_hash = self.client.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
-        except ValueError as e:
-            print(e)
-            print(e.message)
-            raise ValueError(str(e))
+        txn_hash = self.client.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
 
         for i in range(10):
             time.sleep(0.2)
