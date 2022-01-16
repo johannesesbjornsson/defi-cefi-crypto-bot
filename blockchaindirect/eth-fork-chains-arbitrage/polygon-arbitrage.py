@@ -64,6 +64,7 @@ def main():
 
 
 if __name__ == '__main__':
+    print("Starting application")
     #import cProfile
     #import pstats
     #pr = cProfile.Profile()
