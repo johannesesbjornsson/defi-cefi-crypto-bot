@@ -152,7 +152,7 @@ class Triggers(object):
                 print("Overwriting transaction found")
                 print(txn)
                 print(txn.gas_price)
-                txn = transaction
+                transaction = txn
                 
             
             
@@ -225,7 +225,14 @@ class Triggers(object):
 
                     amount_out_from_token_2 = my_router_transaction.get_transaction_amount_out()
                     amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
-                    token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
+                    my_router_return_transaction = token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
+                    transaction_complete, transaction_successful = my_router_return_transaction.transaction.get_transaction_receipt(wait=True)
+                    if transaction_successful:
+                        print("It all went swimmingly")
+                    else:
+                        raise StopIteration(f"{my_router_return_transaction.transaction.hash} was not successful")
+
+
                 
                 print("--------")
                 print("Successsful requests", self.successful_requests)
