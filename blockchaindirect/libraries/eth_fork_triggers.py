@@ -114,7 +114,7 @@ class Triggers(object):
 
         return matching_txn
         
-    async def get_router_contract_interactions(self, pending_transactions):
+    async def get_router_contract_interaction(self, pending_transactions):
         pending_router_transactions = []
         
         if len(pending_transactions) == 0:
@@ -125,9 +125,9 @@ class Triggers(object):
         )
         for result in done:
             router_txn = result.result()
-            if not router_txn:
-                continue
-            pending_router_transactions.append(router_txn)
+            if router_txn:
+                pending_router_transactions.append(router_txn)
+                break
         
         return pending_router_transactions
 
@@ -177,7 +177,7 @@ class Triggers(object):
 
         pending_transactions = self.tx_filter.get_new_entries()
 
-        pending_router_transactions = asyncio.run(self.get_router_contract_interactions(pending_transactions))
+        pending_router_transactions = asyncio.run(self.get_router_contract_interaction(pending_transactions))
 
 
 
