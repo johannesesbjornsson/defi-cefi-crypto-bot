@@ -22,16 +22,8 @@ def main():
     ]
     
     triggers = Triggers(client)
-    #test = []
-    token_1 = Token(client, "USDC")
-    #token_2 = Token(client, "USDT")
+
     while True:
-        #start = time.perf_counter()
-        #token_1 = Token(client, "USDC")
-        #token_pair_1 = TokenPair(client, token_1, token_2)
-        #end = time.perf_counter()
-        #test.append(end - start)
-        #print("Time elapsed average", sum(test) / len(test))
         intercepted_transaction = triggers.intercept_transactions()
         if intercepted_transaction:
             break

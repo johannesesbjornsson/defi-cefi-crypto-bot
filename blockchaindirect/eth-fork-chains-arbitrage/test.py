@@ -6,6 +6,7 @@ from eth_fork_client import Client
 from eth_fork_token import Token
 from eth_fork_transaction import Transaction
 from eth_fork_triggers import Triggers
+from eth_fork_token_pair import TokenPair
 import cfg as cfg
 
 
@@ -60,15 +61,22 @@ if __name__ == "__main__":
     triggers = Triggers(client)
     test = []
     while True:
-        
-
         start = time.perf_counter()
-        pending_router_transactions = asyncio.run(triggers.get_router_contract_interaction(pending_transactions))
+
+
+        token_1 = Token(client, "USDC")
+        token_2 = Token(client, "USDT")
+        token_pair_1 = TokenPair(client, token_1, token_2)
+
         
-        for txn in pending_router_transactions:
-            triggers.handle_swap_transaction(txn)
+        #pending_router_transactions = asyncio.run(triggers.get_router_contract_interaction(pending_transactions))
+        #
+        #for txn in pending_router_transactions:
+        #    triggers.handle_swap_transaction(txn)
         end = time.perf_counter()
         test.append(end - start)
         print("-----------------------")
         print("Time elapsed average: ", sum(test) / len(test))
         print("-----------------------")
+        #break
+        time.sleep(2)
