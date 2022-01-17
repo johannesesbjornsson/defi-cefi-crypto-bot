@@ -54,7 +54,6 @@ class Triggers(object):
                 txn_amount = 0
                 liquidity_impact = 0
 
-            #if txn_amount > self.minimum_scanned_transaction:
             if liquidity_impact > 0.008 and txn_amount > 0.1:
                 print("Transaction value:", txn_amount)
                 print("Liquidty impact ",liquidity_impact)
@@ -69,7 +68,6 @@ class Triggers(object):
         matching_txn = None
         if not compare_transaction and txn.to == self.client.router_contract_address and txn.block_number is None and txn.gas_price > self.client.web3.toWei('29','gwei'):
             router_txn = RouterTransaction(txn)
-            #if router_txn.function_called.startswith("swap"):
             if router_txn.function_called == "swapExactETHForTokens" or router_txn.function_called == "swapETHForExactTokens":
                 matching_txn = router_txn
             
