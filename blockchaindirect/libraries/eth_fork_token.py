@@ -10,7 +10,7 @@ from eth_fork_transaction import Transaction
 
 class Token(object):
 
-    def __init__(self, client, token, use_standard_contracts=True):
+    def __init__(self, client, token):
         self.known_tokens = client.known_tokens
         self.client = client
 
@@ -21,15 +21,10 @@ class Token(object):
             self.address = self.client.web3.toChecksumAddress(self.known_tokens[token])
             self.name = token
 
-        if use_standard_contracts:
-            self.token_contract = self.client.web3.eth.contract(
-                address=self.address, 
-                abi=contract_libarary.standard_contracts["token"])
-        else:
-            self.abi = self.client.get_abi(self.address)
-            self.token_contract = self.client.web3.eth.contract(address=self.address, abi=self.abi)
-            self.set_proxy_details()
         
+        self.token_contract = self.client.web3.eth.contract(
+            address=self.address, 
+            abi=contract_libarary.standard_contracts["token"])
         
         #self.allowance_on_router =  self.token_contract.functions.allowance(self.client.my_address,self.client.router_contract_address).call()
         self.decimals = self.token_contract.functions.decimals().call()

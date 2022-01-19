@@ -11,19 +11,19 @@ from eth_abi import decode_abi
 from eth_utils import to_bytes
 
 
+#import json
+#import httpx
+
 class TokenPair(object):
-    def __init__(self, client, token_1, token_2, use_standard_contracts=True):
+    def __init__(self, client, token_1, token_2):
         self.client = client
         self.token_1 = token_1
         self.token_2 = token_2
-        self.use_standard_contracts = use_standard_contracts
         
         liquidity_pool_address = self.client.factory_contract.functions.getPair(self.token_1.address, self.token_2.address).call()
         self.liquidity_pool_address = self.client.web3.toChecksumAddress(liquidity_pool_address)
-        if self.use_standard_contracts:
-            abi=contract_libarary.standard_contracts["liquidity_pool"]
-        else:
-            abi = self.client.get_abi(address)
+
+        abi=contract_libarary.standard_contracts["liquidity_pool"]
 
         #time.sleep(5)
         self.set_pair_liquidity()
@@ -46,33 +46,64 @@ class TokenPair(object):
         liquidity_impact = amount_in/self.token_2_liquidity
         return liquidity_impact
 
-    async def get_token_1_reserves(self, liquidity_pool_contract):
-        params = liquidity_pool_contract.encodeABI(fn_name="token0",args=[])
-        output = await self.client.web3_asybc.eth.call({"to": self.liquidity_pool_address, "data": params})
-        decoded = decode_abi(["address"], output)[0]
-        address = self.client.web3.toChecksumAddress(decoded)
-        self.token_1_reserves_raw = address
-    
-    async def get_token_2_reserves(self, liquidity_pool_contract):
-        params = liquidity_pool_contract.encodeABI(fn_name="token1",args=[])
-        output = await self.client.web3_asybc.eth.call({"to": self.liquidity_pool_address, "data": params})
-        decoded = decode_abi(["address"], output)[0]
-        address = self.client.web3.toChecksumAddress(decoded)
-        self.token_2_reserves_raw = address
-
-    async def get_reserves_raw(self, liquidity_pool_contract):
-        params = liquidity_pool_contract.encodeABI(fn_name="getReserves",args=[])
-        output = await self.client.web3_asybc.eth.call({"to": self.liquidity_pool_address, "data": params})
-        decoded = decode_abi(['uint112','uint112','uint32'], output)
-        self.reserves_raw = decoded
-
-    async def get_pair_liquidity_raw(self, liquidity_pool_contract):
-        done, pending = await asyncio.wait([
-            self.get_token_1_reserves(liquidity_pool_contract),
-            self.get_token_2_reserves(liquidity_pool_contract),
-            self.get_reserves_raw(liquidity_pool_contract)
-        ])
-        return self.reserves_raw, self.token_1_reserves_raw, self.token_2_reserves_raw 
+#    async def get_token_1_reserves(self, client, liquidity_pool_contract):
+#        #params = liquidity_pool_contract.encodeABI(fn_name="token0",args=[])
+#        #output = await self.client.web3_asybc.eth.call({"to": self.liquidity_pool_address, "data": params})
+#        #decoded = decode_abi(["address"], output)[0]
+#        #address = self.client.web3.toChecksumAddress(decoded)
+#        #self.token_1_reserves_raw = address
+#
+#        params = liquidity_pool_contract.encodeABI(fn_name="token0",args=[])
+#        data = {"jsonrpc": "2.0", "method": "eth_call", "params": [{"to": self.liquidity_pool_address, "data": params}, "latest"], "id": 1}
+#        response = await client.post("https://polygon-rpc.com", headers={"Content-Type":"application/json"},json=data)
+#        hex_str = response.json()["result"]
+#        decoded = decode_abi(['address'], to_bytes(hexstr=hex_str))[0]
+#        address = self.client.web3.toChecksumAddress(decoded)
+#        self.token_1_reserves_raw = address
+#
+#    async def get_token_2_reserves(self, client, liquidity_pool_contract):
+#        #params = liquidity_pool_contract.encodeABI(fn_name="token1",args=[])
+#        #output = await self.client.web3_asybc.eth.call({"to": self.liquidity_pool_address, "data": params})
+#        #decoded = decode_abi(["address"], output)[0]
+#        #address = self.client.web3.toChecksumAddress(decoded)
+#        #self.token_2_reserves_raw = address
+#
+#        params = liquidity_pool_contract.encodeABI(fn_name="token1",args=[])
+#        data = {"jsonrpc": "2.0", "method": "eth_call", "params": [{"to": self.liquidity_pool_address, "data": params}, "latest"], "id": 1}
+#        response = await client.post("https://polygon-rpc.com", headers={"Content-Type":"application/json"},json=data)
+#        hex_str = response.json()["result"]
+#        decoded = decode_abi(['address'], to_bytes(hexstr=hex_str))[0]
+#        address = self.client.web3.toChecksumAddress(decoded)
+#        self.token_2_reserves_raw = address
+#
+#    async def get_reserves_raw(self, client, liquidity_pool_contract):
+#        #params = liquidity_pool_contract.encodeABI(fn_name="getReserves",args=[])
+#        #output = await self.client.web3_asybc.eth.call({"to": self.liquidity_pool_address, "data": params})
+#        #decoded = decode_abi(['uint112','uint112','uint32'], output)
+#        #self.reserves_raw = decoded
+#
+#        params = liquidity_pool_contract.encodeABI(fn_name="getReserves",args=[])
+#        data = {"jsonrpc": "2.0", "method": "eth_call", "params": [{"to": self.liquidity_pool_address, "data": params}, "latest"], "id": 1}
+#        response = await client.post(url="https://polygon-rpc.com",headers={"Content-Type":"application/json"},json=data)
+#        hex_str = response.json()["result"]
+#        decoded = decode_abi(['uint112','uint112','uint32'], to_bytes(hexstr=hex_str))
+#        self.reserves_raw = decoded
+#
+#
+#    async def get_pair_liquidity_raw(self, liquidity_pool_contract):
+#        #done, pending = await asyncio.wait([
+#        #    self.get_token_1_reserves(liquidity_pool_contract),
+#        #    self.get_token_2_reserves(liquidity_pool_contract),
+#        #    self.get_reserves_raw(liquidity_pool_contract)
+#        #])
+#        async with httpx.AsyncClient() as client:
+#            tasks = [
+#                self.get_token_1_reserves(client,liquidity_pool_contract),
+#                self.get_token_2_reserves(client,liquidity_pool_contract),
+#                self.get_reserves_raw(client,liquidity_pool_contract)
+#            ]
+#            results = await asyncio.gather(*tasks)
+#        return self.reserves_raw, self.token_1_reserves_raw, self.token_2_reserves_raw 
 
     def get_pair_liquidity(self,liquidity_pool_contract):
         reserves =  liquidity_pool_contract.functions.getReserves().call()
@@ -82,15 +113,12 @@ class TokenPair(object):
 
     def set_pair_liquidity(self):
         try:
-            if self.use_standard_contracts:
-                abi=contract_libarary.standard_contracts["liquidity_pool"]
-            else:
-                abi = self.client.get_abi(address)
+            
+            abi=contract_libarary.standard_contracts["liquidity_pool"]
 
             liquidity_pool_contract = self.client.web3.eth.contract(address=self.liquidity_pool_address, abi=abi)
 
-            # curl -H "Content-Type: application/json" https://polygon-rpc.com -d'{"jsonrpc": "2.0", "method": "eth_call", "params": [{"to": "0x2cF7252e74036d1Da831d11089D326296e64a728", "data": "0xd21220a7"}, "latest"], "id": 7}'
-            #   reserves, reserves_token_1, reserves_token_2 = asyncio.run(self.get_pair_liquidity_raw(liquidity_pool_contract))
+            #reserves, reserves_token_1, reserves_token_2 = asyncio.run(self.get_pair_liquidity_raw(liquidity_pool_contract))
             reserves, reserves_token_1, reserves_token_2 = self.get_pair_liquidity(liquidity_pool_contract)
             
         except ValueError as e:

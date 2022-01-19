@@ -100,10 +100,9 @@ class Transaction(object):
         return transaction_info
 
 class RouterTransaction(Transaction):
-    def __init__(self, transaction, use_standard_contracts=True):
+    def __init__(self, transaction):
         self.client = transaction.client
         self.transaction = transaction
-        self.use_standard_contracts = use_standard_contracts
         txn_input = self.client.router_contract.decode_function_input(self.transaction.input)
 
         function_called = re.search("^<Function ([^\(]*)", str(txn_input[0]))
@@ -149,10 +148,7 @@ class RouterTransaction(Transaction):
         
         address = self.client.web3.toChecksumAddress(address)
         
-        if self.use_standard_contracts:
-            abi=contract_libarary.standard_contracts["liquidity_pool"]
-        else:
-            abi = self.client.get_abi(address)
+        abi=contract_libarary.standard_contracts["liquidity_pool"]
 
         contract = self.client.web3.eth.contract(address=address, abi=abi)
         events = contract.events.Swap().processReceipt(self.transaction.receipt,errors=IGNORE)
