@@ -27,15 +27,10 @@ class TokenPair(object):
         try:
             abi=contract_libarary.standard_contracts["liquidity_pool"]
             self.liquidity_pool_contract = self.client.web3.eth.contract(address=self.liquidity_pool_address, abi=abi)
-            self.reserves_raw =  self.liquidity_pool_contract.functions.getReserves().call()[0:2]
         except ValueError as e:
             self.liquidity_pool_contract = None
-            self.reserves_raw = [None, None]
 
-        self.token_1_liquidity = None
-        self.token_2_liquidity = None
-        #self.set_pair_liquidity()
-        
+        self.set_pair_liquidity()
 
     def __str__(self):
         return f"{self.token_1.symbol}: {self.token_1.address},\n{self.token_2.symbol}: {self.token_2.address},\nLiquidity_address: {self.liquidity_pool_address}"
@@ -114,29 +109,17 @@ class TokenPair(object):
 #            results = await asyncio.gather(*tasks)
 #        return self.reserves_raw, self.token_1_reserves_raw, self.token_2_reserves_raw 
 
-    def quick_router_transction_analysis(self,router_txn):
-        reserves = self.reserves_raw
-        reserves_token_1 = self.liquidity_pool_contract.functions.token0().call()
-        if router_txn.amount_in is not None:
-            if reserves_token_1 == self.token_1.address:
-                impact = router_txn.amount_in/reserves[0]
-            else:
-                impact = router_txn.amount_in/reserves[1]
-            transaction_value = router_txn.amount_in
-        elif router_txn.amount_out is not None:
-            if reserves_token_1 == self.token_1.address:
-                impact = router_txn.amount_out/reserves[1]
-                transaction_value = (self.token_1.from_wei(reserves[0])/self.token_2.from_wei(reserves[1])) * self.token_2.from_wei(router_txn.amount_out)
-            else:
-                impact = router_txn.amount_out/reserves[0]
-                transaction_value = (self.token_1.from_wei(reserves[1])/self.token_2.from_wei(reserves[0])) * self.token_2.from_wei(router_txn.amount_out)
-                
-        return impact, transaction_value
-
-    def set_pair_liquidity(self):
-        reserves = self.reserves_raw
+    def get_pair_liquidity(self):
+        reserves =  self.liquidity_pool_contract.functions.getReserves().call()
         reserves_token_1 = self.liquidity_pool_contract.functions.token0().call()
         reserves_token_2 = self.liquidity_pool_contract.functions.token1().call()
+        return reserves, reserves_token_1, reserves_token_2
+
+    def set_pair_liquidity(self):
+
+        #reserves, reserves_token_1, reserves_token_2 = asyncio.run(self.get_pair_liquidity_raw())
+        reserves, reserves_token_1, reserves_token_2 = self.get_pair_liquidity()
+        
 
         if reserves_token_1 == self.token_1.address and reserves_token_2 == self.token_2.address:
             token_1_liquidity = reserves[0]

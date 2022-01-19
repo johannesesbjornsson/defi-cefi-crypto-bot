@@ -12,14 +12,6 @@ import cfg as cfg
 
 pending_transactions = [
 "0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
 ]
 
 #async def fetch_single_transaction(transaction_hash):
@@ -78,16 +70,16 @@ if __name__ == "__main__":
         
 
 
-        token_1 = Token(client, "USDC")
-        token_2 = Token(client, "USDT")
+        #token_1 = Token(client, "USDC")
+        #token_2 = Token(client, "USDT")
         start = time.perf_counter()
-        token_pair_1 = TokenPair(client, token_1, token_2)
+        #token_pair_1 = TokenPair(client, token_1, token_2)
 
         
-        #pending_router_transactions = asyncio.run(triggers.get_router_contract_interaction(pending_transactions))
-        #
-        #for txn in pending_router_transactions:
-        #    triggers.handle_swap_transaction(txn)
+        pending_router_transactions = asyncio.run(triggers.get_router_contract_interaction(pending_transactions))
+        
+        for txn in pending_router_transactions:
+            triggers.handle_swap_transaction(txn)
         end = time.perf_counter()
         test.append(end - start)
         print("-----------------------")
