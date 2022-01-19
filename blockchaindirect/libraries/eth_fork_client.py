@@ -15,8 +15,8 @@ class Client(object):
     def __init__(self, blockchain, my_address, private_key, api_key):
         if blockchain == "polygon":
             self.api_key = api_key
-            provider_url = "https://speedy-nodes-nyc.moralis.io/0279106ed82b874b3e1b195d/polygon/mainnet"
-            #provider_url = "https://polygon-rpc.com"
+            #provider_url = "https://speedy-nodes-nyc.moralis.io/0279106ed82b874b3e1b195d/polygon/mainnet"
+            provider_url = "https://polygon-rpc.com"
             #provider_url = "https://matic.slingshot.finance"
             provider_ws = "wss://speedy-nodes-nyc.moralis.io/0279106ed82b874b3e1b195d/polygon/mainnet/ws"
             self.web3_ws = Web3(Web3.WebsocketProvider(provider_ws))
@@ -29,7 +29,7 @@ class Client(object):
             self.default_gas_limit = 300000 #TODO have this be not fixed
             self.slippage = 0.995
             self.token_to_scan_for = self.web3.toChecksumAddress("0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270")
-            self.scan_token_value = 0.1
+            self.scan_token_value = 0.2
             self.minimum_scanned_transaction = 5
             self.swap_log_location_index = -2
         elif blockchain == "bsc":
@@ -84,28 +84,29 @@ class Client(object):
         self.factory_contract = self.web3.eth.contract(address=contract_address, abi=abi)
 
     def get_bep20_tokens(self,exclude_tokens=["BUSD", "USDT","USDC","SAFEMOON"]):
-        url = "https://api.pancakeswap.info/api/v2/pairs"
-        response = requests.get(url)
-        json_reponse = json.loads(response.content)["data"]
-        known_tokens = {}
-        for pair in json_reponse:
-            token_1 = pair.split("_")[0]
-            token_2 = pair.split("_")[1]
-            token_1_symbol = json_reponse[pair]["base_symbol"]
-            token_2_symbol = json_reponse[pair]["quote_symbol"]
-            if token_1_symbol in exclude_tokens or token_2_symbol in exclude_tokens:
-                #skip stable coins
-                continue
-            elif token_1_symbol not in known_tokens:
-                known_tokens[token_1_symbol] = token_1
-            elif token_2_symbol not in known_tokens:
-                known_tokens[token_2_symbol] = token_2
+        #url = "https://api.pancakeswap.info/api/v2/pairs"
+        #response = requests.get(url)
+        #json_reponse = json.loads(response.content)["data"]
+        #known_tokens = {}
+        #for pair in json_reponse:
+        #    token_1 = pair.split("_")[0]
+        #    token_2 = pair.split("_")[1]
+        #    token_1_symbol = json_reponse[pair]["base_symbol"]
+        #    token_2_symbol = json_reponse[pair]["quote_symbol"]
+        #    if token_1_symbol in exclude_tokens or token_2_symbol in exclude_tokens:
+        #        #skip stable coins
+        #        continue
+        #    elif token_1_symbol not in known_tokens:
+        #        known_tokens[token_1_symbol] = token_1
+        #    elif token_2_symbol not in known_tokens:
+        #        known_tokens[token_2_symbol] = token_2
+        #self.tokens_to_check = known_tokens
+        #all_tokens = known_tokens.copy()
+        #all_tokens.update(token_config.bep20_all_tokens)
+        #self.known_tokens = all_tokens
 
-        self.tokens_to_check = known_tokens
-
-        all_tokens = known_tokens.copy()
-        all_tokens.update(token_config.bep20_all_tokens)
-        self.known_tokens = all_tokens
+        self.tokens_to_check = token_config.bep20_tokens
+        self.known_tokens = token_config.bep20_all_tokens
 
     def get_polygon_tokens(self):
         self.tokens_to_check = token_config.polygon_tokens

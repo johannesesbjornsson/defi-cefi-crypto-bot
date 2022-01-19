@@ -13,4 +13,4 @@ print(amount)
 # Hexstrings https://web3py.readthedocs.io/en/stable/web3.main.html
 
 #1 -> 1000000000000000000
-print(Web3.toBytes(0))
+print(web3.toHex(text='(<Function token1()>, {})'))

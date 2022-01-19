@@ -100,10 +100,9 @@ class Transaction(object):
         return transaction_info
 
 class RouterTransaction(Transaction):
-    def __init__(self, transaction, use_standard_contracts=True):
+    def __init__(self, transaction):
         self.client = transaction.client
         self.transaction = transaction
-        self.use_standard_contracts = use_standard_contracts
         txn_input = self.client.router_contract.decode_function_input(self.transaction.input)
 
         function_called = re.search("^<Function ([^\(]*)", str(txn_input[0]))
@@ -111,6 +110,25 @@ class RouterTransaction(Transaction):
           self.function_called = function_called.group(1)
         else:
           self.function_called =  txn_input[0]
+
+        if "path" in txn_input[1]:
+            self.path = txn_input[1]["path"]
+        else:
+            self.path = None
+
+        if "amountIn" in txn_input[1]:
+            self.amount_in = txn_input[1]["amountIn"]
+        elif "amountInMax" in txn_input[1]:
+            self.amount_in = txn_input[1]["amountInMax"]
+        else:
+            self.amount_in = None
+
+        if "amountOut" in txn_input[1]:
+            self.amount_out = txn_input[1]["amountOut"]
+        elif "amountOutMin" in txn_input[1]:
+            self.amount_out = txn_input[1]["amountOutMin"]
+        else:
+            self.amount_out = None
 
         self.input_data = txn_input[1]
 
@@ -130,10 +148,7 @@ class RouterTransaction(Transaction):
         
         address = self.client.web3.toChecksumAddress(address)
         
-        if self.use_standard_contracts:
-            abi=contract_libarary.standard_contracts["liquidity_pool"]
-        else:
-            abi = self.client.get_abi(address)
+        abi=contract_libarary.standard_contracts["liquidity_pool"]
 
         contract = self.client.web3.eth.contract(address=address, abi=abi)
         events = contract.events.Swap().processReceipt(self.transaction.receipt,errors=IGNORE)
