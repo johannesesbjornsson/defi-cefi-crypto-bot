@@ -70,7 +70,6 @@ class Triggers(object):
         return matching_txn
 
     async def fetch_single_transaction(self, transaction, compare_transaction=None):
-        #start = time.perf_counter()
         matching_txn = None
         if isinstance(transaction, str):
             transaction_hash = transaction
@@ -87,12 +86,10 @@ class Triggers(object):
             self.failed_requests += 1
             txn = None
         except gaierror as e:
-            #print("Socker error")
             self.failed_requests += 1
             txn = None
         except ClientConnectorError as e:
             self.failed_requests += 1
-            #print("Network error")
             txn = None
         except ClientResponseError as e:
             self.failed_requests += 1
@@ -100,8 +97,6 @@ class Triggers(object):
         except TimeoutError as e:
             self.failed_requests += 1
             txn = None
-        #end = time.perf_counter()
-        #print("Time elapsed",end - start)
 
         return matching_txn
         
@@ -158,8 +153,7 @@ class Triggers(object):
         #tx_filter = self.client.web3_ws.eth.filter('pending')
         intercepted_transaction = False
 
-        
-        #print("Taking a wee break")
+    
         time.sleep(0.2)
         if self.client.web3.eth.gas_price > self.client.max_gas_price:
             print("Gas prices to high atm...")

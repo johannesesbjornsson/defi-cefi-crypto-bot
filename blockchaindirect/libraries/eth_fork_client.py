@@ -89,27 +89,6 @@ class Client(object):
         self.factory_contract = self.web3.eth.contract(address=contract_address, abi=abi)
 
     def get_bep20_tokens(self,exclude_tokens=["BUSD", "USDT","USDC","SAFEMOON"]):
-        #url = "https://api.pancakeswap.info/api/v2/pairs"
-        #response = requests.get(url)
-        #json_reponse = json.loads(response.content)["data"]
-        #known_tokens = {}
-        #for pair in json_reponse:
-        #    token_1 = pair.split("_")[0]
-        #    token_2 = pair.split("_")[1]
-        #    token_1_symbol = json_reponse[pair]["base_symbol"]
-        #    token_2_symbol = json_reponse[pair]["quote_symbol"]
-        #    if token_1_symbol in exclude_tokens or token_2_symbol in exclude_tokens:
-        #        #skip stable coins
-        #        continue
-        #    elif token_1_symbol not in known_tokens:
-        #        known_tokens[token_1_symbol] = token_1
-        #    elif token_2_symbol not in known_tokens:
-        #        known_tokens[token_2_symbol] = token_2
-        #self.tokens_to_check = known_tokens
-        #all_tokens = known_tokens.copy()
-        #all_tokens.update(token_config.bep20_all_tokens)
-        #self.known_tokens = all_tokens
-
         self.tokens_to_check = token_config.bep20_tokens
         self.known_tokens = token_config.bep20_all_tokens
 
@@ -134,18 +113,3 @@ class Client(object):
             json_reponse = json.loads(response.content)
       
         return json_reponse["result"]
-
-                
-#    def get_recent_transactions(self):
-#
-#        url = "https://deep-index.moralis.io/api/v2/{}?chain=polygon&limit=25".format(self.contract_address)
-#        response = requests.get(url, headers={"X-API-Key":"0ZMgWQz5RlFhsFYBHOXJqvDCDdYmkZ1KzzY2304zUmsfmBpszfa0Bo3cBnxy1atV"})
-#        json_reponse = json.loads(response.content)
-#
-#        for transaction in json_reponse["result"]:
-#            print(transaction["block_timestamp"])
-#            #print(transaction.keys())
-#            txn_input = self.router_contract.decode_function_input(transaction["input"])
-#            print(txn_input[1])
-#            #self.toChecksumAddress(txn_input[1]["path"][1])
-#            self.toChecksumAddress("USDT")

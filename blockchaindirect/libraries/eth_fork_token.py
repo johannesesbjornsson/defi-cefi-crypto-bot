@@ -1,10 +1,6 @@
 import contract_libarary
 import token_config
 import asyncio
-#from web3.logs import STRICT, IGNORE, DISCARD, WARN
-#from web3.exceptions import ContractLogicError, TransactionNotFound, TimeExhausted
-#import re
-#import time
 from eth_fork_transaction import Transaction
 
 
