@@ -61,7 +61,9 @@ class Triggers(object):
         if not compare_transaction and txn.to == self.client.router_contract_address and txn.block_number is None and txn.gas_price > self.client.min_gas_price_of_scanned_txn:
         #if not compare_transaction and txn.to == self.client.router_contract_address and txn.block_number is not None and txn.gas_price > self.client.web3.toWei('29','gwei'):
             router_txn = RouterTransaction(txn)
-            if router_txn.function_called == "swapExactETHForTokens" or router_txn.function_called == "swapETHForExactTokens":
+            #if router_txn.function_called == "swapExactETHForTokens" or router_txn.function_called == "swapETHForExactTokens":
+            #    matching_txn = router_txn
+            if router_txn.function_called.startswith('swap'):
                 matching_txn = router_txn
             
         elif compare_transaction and compare_transaction == txn:
@@ -121,7 +123,7 @@ class Triggers(object):
     async def watch_competing_transaction(self, transaction):
         transaction_complete, transaction_successful = transaction.get_transaction_receipt(wait=False)
         time_started = time.time()
-        while transaction_complete == False and 360 > time.time() - time_started:
+        while transaction_successful == False and 360 > time.time() - time_started:
             pending_transactions = self.tx_filter.get_new_entries()
             if len(pending_transactions) == 0:
                 time.sleep(1)
