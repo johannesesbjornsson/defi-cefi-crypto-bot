@@ -21,6 +21,7 @@ class Triggers(object):
         self.client = client
         self.token_to_scan_for = self.client.token_to_scan_for
         self.minimum_scanned_transaction = self.client.minimum_scanned_transaction
+        self.minimum_liquidity_impact = self.client.minimum_liquidity_impact
         self.scan_token_value = self.client.scan_token_value
         self.token_1 = Token(self.client,self.token_to_scan_for)
         self.client.web3.middleware_onion.inject(geth_poa_middleware, layer=0)
@@ -32,6 +33,7 @@ class Triggers(object):
         amount_in = None
         amount_out = None
         my_gas_price = None
+        liquidity_impact = None
         try:
             input_token, out_token = router_txn.path[-2:]
             if input_token == self.token_to_scan_for:
@@ -46,12 +48,12 @@ class Triggers(object):
         if token_pair:
             liquidity_impact, txn_value = token_pair.quick_router_transction_analysis(router_txn)
 
-            if liquidity_impact > 0.008 and txn_value > 5:
+            if liquidity_impact > self.minimum_liquidity_impact and txn_value > self.minimum_scanned_transaction:
                 amount_in = self.token_1.to_wei(self.scan_token_value)
                 amount_out = token_pair.get_amount_token_2_out(amount_in)
-                my_gas_price = router_txn.transaction.gas_price + self.client.web3.toWei('2','gwei')
+                my_gas_price = router_txn.transaction.gas_price + self.client.gas_price_frontrunning_increase
 
-        return token_pair, amount_in, amount_out, my_gas_price
+        return token_pair, amount_in, amount_out, my_gas_price, liquidity_impact
 
 
     def filter_transaction(self, txn, compare_transaction=None):
@@ -172,7 +174,7 @@ class Triggers(object):
 
         for router_txn in pending_router_transactions:
             start = time.perf_counter()
-            token_pair, amount_in, amount_out, gas_price = self.handle_swap_transaction(router_txn)
+            token_pair, amount_in, amount_out, gas_price, liquidity_impact = self.handle_swap_transaction(router_txn)
             if not token_pair or not amount_in or not amount_out or not gas_price:
                 continue
 
@@ -199,22 +201,23 @@ class Triggers(object):
                 print("Txn hash", router_txn.transaction.hash)
                 print("Gas price", router_txn.transaction.gas_price)
                 print("Sender address", router_txn.transaction.from_address)
+                print("Liquidity impact", liquidity_impact)
                 intercepted_transaction = True
 
-                #my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=gas_price)
-                #transaction_complete, transaction_successful = my_router_transaction.transaction.get_transaction_receipt(wait=True)
-                #print("Initial swap status", transaction_successful)
-                #if transaction_successful:
-                #    token_pair.token_2.approve_token()
-                #    asyncio.run(self.watch_competing_transaction(router_txn.transaction))
-                #    amount_out_from_token_2 = my_router_transaction.get_transaction_amount_out()
-                #    amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
-                #    my_router_return_transaction = token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
-                #    transaction_complete, transaction_successful = my_router_return_transaction.transaction.get_transaction_receipt(wait=True)
-                #    if transaction_successful:
-                #        print("It all went swimmingly")
-                #    else:
-                #        raise StopIteration(f"{my_router_return_transaction.transaction.hash} was not successful")
+                my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=gas_price)
+                transaction_complete, transaction_successful = my_router_transaction.transaction.get_transaction_receipt(wait=True)
+                print("Initial swap status", transaction_successful)
+                if transaction_successful:
+                    token_pair.token_2.approve_token()
+                    asyncio.run(self.watch_competing_transaction(router_txn.transaction))
+                    amount_out_from_token_2 = my_router_transaction.get_transaction_amount_out()
+                    amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
+                    my_router_return_transaction = token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
+                    transaction_complete, transaction_successful = my_router_return_transaction.transaction.get_transaction_receipt(wait=True)
+                    if transaction_successful:
+                        print("It all went swimmingly")
+                    else:
+                        raise StopIteration(f"{my_router_return_transaction.transaction.hash} was not successful")
 
 
                 

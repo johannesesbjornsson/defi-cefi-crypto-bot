@@ -32,9 +32,11 @@ class Client(object):
             self.token_to_scan_for = self.web3.toChecksumAddress("0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270")
             self.scan_token_value = 0.2
             self.minimum_scanned_transaction = 5
+            self.minimum_liquidity_impact = 0.009
             self.swap_log_location_index = -2
         elif blockchain == "bsc":
             provider_url = "https://bsc-dataseed.binance.org/"
+            #provider_url = "https://bsc-dataseed1.defibit.io/"
             #provider_url = "https://speedy-nodes-nyc.moralis.io/0279106ed82b874b3e1b195d/bsc/mainnet"
             provider_ws = "wss://speedy-nodes-nyc.moralis.io/0279106ed82b874b3e1b195d/bsc/mainnet/ws"
             self.web3_ws = Web3(Web3.WebsocketProvider(provider_ws))
@@ -43,13 +45,14 @@ class Client(object):
             router_contract_name = "pancake_router"
             factory_contract_name = "pancake_factory"  
             self.get_bep20_tokens()
-            self.slippage = 0.99 
+            self.slippage = 0.995 
             self.default_gas_limit = 400000
             self.max_gas_price = self.web3.toWei('6','gwei')
             self.min_gas_price_of_scanned_txn = self.web3.toWei('4.9','gwei')
             self.gas_price_frontrunning_increase = self.web3.toWei('0.1','gwei')
             self.token_to_scan_for =  self.web3.toChecksumAddress("0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c")
-            self.minimum_scanned_transaction = 1
+            self.minimum_scanned_transaction = 0.2
+            self.minimum_liquidity_impact = 0.02
             self.scan_token_value = 0.005
             self.swap_log_location_index = -1
         elif blockchain == "velas":
