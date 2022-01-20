@@ -71,7 +71,7 @@ class Triggers(object):
     
         return matching_txn
 
-    async def fetch_single_transaction(self, transaction, compare_transaction=None):
+    async def fetch_single_transaction(self, transaction, compare_transaction=None, handle_transaction=False):
         matching_txn = None
         if isinstance(transaction, str):
             transaction_hash = transaction
@@ -100,6 +100,10 @@ class Triggers(object):
             self.failed_requests += 1
             txn = None
 
+        if handle_transaction and matching_txn:
+            token_pair, amount_in, amount_out, my_gas_price, liquidity_impact = self.handle_swap_transaction(matching_txn)
+            matching_txn = (matching_txn, token_pair, amount_in, amount_out, my_gas_price, liquidity_impact)
+
         return matching_txn
         
     async def get_router_contract_interaction(self, pending_transactions):
@@ -109,7 +113,7 @@ class Triggers(object):
             return []
 
         done, pending = await asyncio.wait(
-            [self.fetch_single_transaction(arg,compare_transaction=None) for arg in pending_transactions]
+            [self.fetch_single_transaction(arg,compare_transaction=None,handle_transaction=True) for arg in pending_transactions]
         )
         for result in done:
             router_txn = result.result()
@@ -168,20 +172,19 @@ class Triggers(object):
 
 
 
-        for router_txn in pending_router_transactions:
-            start = time.perf_counter()
-            token_pair, amount_in, amount_out, gas_price, liquidity_impact = self.handle_swap_transaction(router_txn)
-            if not token_pair or not amount_in or not amount_out or not gas_price:
-                continue
-
+        for hande_tuple in pending_router_transactions:
+            router_txn = hande_tuple[0]
+            token_pair = hande_tuple[1]
+            amount_in = hande_tuple[2]
+            amount_out = hande_tuple[3]
+            gas_price = hande_tuple[4]
+            liquidity_impact = hande_tuple[5]
     
             
             #txn =  asyncio.run(self.fetch_single_transaction(router_txn.transaction.hash))
             #if not txn:
             #    continue
 
-            end = time.perf_counter()
-            print("Time elapsed",end - start)  
 
             if 1 == 2:
             #print(txn.transaction.block_number)
