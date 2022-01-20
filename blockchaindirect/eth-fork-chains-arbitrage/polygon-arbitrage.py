@@ -13,7 +13,7 @@ import token_config
 import time
 
 def main():
-    client = Client("polygon",cfg.my_polygon_address, cfg.private_key, cfg.polygon_api_key)
+    client = Client("polygon",cfg.my_polygon_address, cfg.private_key)
 
     lists = list(itertools.combinations(client.tokens_to_check, 2))
     lists = [

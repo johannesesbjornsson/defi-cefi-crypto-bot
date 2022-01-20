@@ -2,31 +2,33 @@ import cfg as cfg
 import itertools
 import sys
 import arbitrage
-import time
 sys.path.insert(0,'../libraries')
 from eth_fork_client import Client
 from eth_fork_token import Token
+from eth_fork_transaction import Transaction
 from eth_fork_token_pair import TokenPair
 from eth_fork_triggers import Triggers
 import token_config
+import time
 
 def main():
-    client = Client("bsc",cfg.my_bep20_address, cfg.private_key, cfg.bsc_scan_api_key)
+    client = Client("bsc",cfg.my_bep20_address, cfg.private_key)
 
     lists = list(itertools.combinations(client.tokens_to_check, 2))
     lists = [
         #["WETH", "WMATIC"],
         #["QUICK", "LINK"]
     ]
-
+    
     triggers = Triggers(client)
 
     while True:
-        triggers.get_pending_transactions()
+        intercepted_transaction = triggers.intercept_transactions()
+        if intercepted_transaction:
+            break
         #print("Taking a wee break")
         #time.sleep(2)
         #break
-
 
     token_1 = Token(client, "USDC")
     from_range = [0.1,0.1]
@@ -53,6 +55,7 @@ def main():
 
 
 if __name__ == '__main__':
+    print("Starting application")
     #import cProfile
     #import pstats
     #pr = cProfile.Profile()
