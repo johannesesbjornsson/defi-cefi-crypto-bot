@@ -168,9 +168,10 @@ class Triggers(object):
 
         pending_transactions = self.tx_filter.get_new_entries()
 
+        start = time.perf_counter()
         pending_router_transactions = asyncio.run(self.get_router_contract_interaction(pending_transactions))
-
-
+        end = time.perf_counter()
+        print("Time elapsed: ", end - start)
 
         for hande_tuple in pending_router_transactions:
             router_txn = hande_tuple[0]
