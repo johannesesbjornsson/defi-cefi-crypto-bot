@@ -117,7 +117,9 @@ class TokenPair(object):
     def quick_router_transction_analysis(self,router_txn):
         reserves = self.reserves_raw
         reserves_token_1 = self.liquidity_pool_contract.functions.token0().call()
-        if router_txn.amount_in is not None:
+        impact = 0
+        transaction_value = 0
+        if router_txn.amount_in is not None and len(router_txn.path) == 2:
             if reserves_token_1 == self.token_1.address:
                 impact = router_txn.amount_in/reserves[0]
             else:
@@ -130,7 +132,7 @@ class TokenPair(object):
             else:
                 impact = router_txn.amount_out/reserves[0]
                 transaction_value = (self.token_1.from_wei(reserves[1])/self.token_2.from_wei(reserves[0])) * self.token_2.from_wei(router_txn.amount_out)
-                
+
         return impact, transaction_value
 
     def set_pair_liquidity(self):

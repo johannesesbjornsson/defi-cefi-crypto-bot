@@ -160,7 +160,7 @@ class Triggers(object):
         intercepted_transaction = False
 
     
-        time.sleep(0.2)
+        #time.sleep(0.2)
         if self.client.web3.eth.gas_price > self.client.max_gas_price:
             print("Gas prices to high atm...")
             time.sleep(60)
