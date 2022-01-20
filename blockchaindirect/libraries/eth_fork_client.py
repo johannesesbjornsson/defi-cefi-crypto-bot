@@ -45,7 +45,7 @@ class Client(object):
             router_contract_name = "pancake_router"
             factory_contract_name = "pancake_factory"  
             self.get_bep20_tokens()
-            self.slippage = 0.995
+            self.slippage = 0.99
             self.default_gas_limit = 400000
             self.max_gas_price = self.web3.toWei('6','gwei')
             self.min_gas_price_of_scanned_txn = self.web3.toWei('4.9','gwei')

@@ -103,7 +103,7 @@ class Triggers(object):
         if handle_transaction and matching_txn:
             token_pair, amount_in, amount_out, my_gas_price, liquidity_impact = self.handle_swap_transaction(matching_txn)
             matching_txn = (matching_txn, token_pair, amount_in, amount_out, my_gas_price, liquidity_impact)
-
+                
         return matching_txn
         
     async def get_router_contract_interaction(self, pending_transactions):
@@ -179,6 +179,8 @@ class Triggers(object):
             amount_out = hande_tuple[3]
             gas_price = hande_tuple[4]
             liquidity_impact = hande_tuple[5]
+            if not token_pair or not amount_in or not amount_out or not gas_price:
+                continue
     
             
             #txn =  asyncio.run(self.fetch_single_transaction(router_txn.transaction.hash))
