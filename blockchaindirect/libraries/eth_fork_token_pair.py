@@ -56,11 +56,17 @@ class TokenPair(object):
         return True
 
     def get_liquidity_impact_of_token_1_for_token_2(self,amount_in):
-        liquidity_impact = amount_in/self.token_1_liquidity
+        try:
+            liquidity_impact = amount_in/self.token_1_liquidity
+        except ZeroDivisionError as e:
+            liquidity_impact = 0
         return liquidity_impact
 
     def get_liquidity_impact_of_token_2_for_token_1(self,amount_in):
-        liquidity_impact = amount_in/self.token_2_liquidity
+        try:
+            liquidity_impact = amount_in/self.token_2_liquidity
+        except ZeroDivisionError as e:
+            liquidity_impact = 0        
         return liquidity_impact
 
     async def asynchronous_object_init(self):
@@ -91,36 +97,17 @@ class TokenPair(object):
         return liquidity_pool_address, liquidity_pool_contract, token_1_liquidity, token_2_liquidity
 
     def quick_router_transction_analysis(self,router_txn):
-        #reserves = self.liquidity_pool_contract.functions.getReserves().call()[0:2]
-        #reserves_token_1 = self.liquidity_pool_contract.functions.token0().call()
         impact = 0
         transaction_value = 0
 
         if router_txn.amount_in is not None and len(router_txn.path) == 2:
-            impact = self.token_1.from_wei(router_txn.amount_in)/self.token_1_liquidity
-            transaction_value = router_txn.amount_in
-            print("1")
+            #impact = self.token_1.from_wei(router_txn.amount_in)/self.token_1_liquidity
+            impact = self.get_liquidity_impact_of_token_1_for_token_2(self.token_1.from_wei(router_txn.amount_in))
+            transaction_value = self.token_1.from_wei(router_txn.amount_in)
         elif router_txn.amount_out is not None:
-            impact = self.token_2.from_wei(router_txn.amount_out)/self.token_2_liquidity
+            #impact = self.token_2.from_wei(router_txn.amount_out)/self.token_2_liquidity
+            impact = self.get_liquidity_impact_of_token_2_for_token_1(self.token_2.from_wei(router_txn.amount_out))
             transaction_value = (self.token_1_liquidity/self.token_2_liquidity) * self.token_2.from_wei(router_txn.amount_out)
-        
-        #print("txn impact",impact)
-        #print("txn value",transaction_value)
-        #print(router_txn)
-        #print("----")
-        #if router_txn.amount_in is not None and len(router_txn.path) == 2:
-        #    if reserves_token_1 == self.token_1.address:
-        #        impact = router_txn.amount_in/reserves[0]
-        #    else:
-        #        impact = router_txn.amount_in/reserves[1]
-        #    transaction_value = router_txn.amount_in
-        #elif router_txn.amount_out is not None:
-        #    if reserves_token_1 == self.token_1.address:
-        #        impact = router_txn.amount_out/reserves[1]
-        #        transaction_value = (self.token_1.from_wei(reserves[0])/self.token_2.from_wei(reserves[1])) * self.token_2.from_wei(router_txn.amount_out)
-        #    else:
-        #        impact = router_txn.amount_out/reserves[0]
-        #        transaction_value = (self.token_1.from_wei(reserves[1])/self.token_2.from_wei(reserves[0])) * self.token_2.from_wei(router_txn.amount_out)
 
         return impact, transaction_value
 
