@@ -3,6 +3,9 @@ import token_config
 import asyncio
 from eth_fork_transaction import Transaction
 
+import asyncio
+import nest_asyncio
+nest_asyncio.apply()
 
 class Token(object):
 
@@ -21,7 +24,6 @@ class Token(object):
         self.token_contract = self.client.web3.eth.contract(
             address=self.address, 
             abi=contract_libarary.standard_contracts["token"])
-
         self.decimals = self.token_contract.functions.decimals().call()
         self.token_symbol = None
         self.allowance = None

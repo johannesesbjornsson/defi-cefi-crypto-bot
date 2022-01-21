@@ -37,8 +37,8 @@ class Triggers(object):
         try:
             input_token, out_token = router_txn.path[-2:]
             if input_token == self.token_to_scan_for:
-                token_2 = Token(self.client,out_token)
-                token_pair = TokenPair(self.client, self.token_1, token_2)
+                token_2 = Token(self.client, out_token)
+                token_pair = TokenPair(self.client, self.token_1, token_2, True)
                 
             else:
                 token_pair = None

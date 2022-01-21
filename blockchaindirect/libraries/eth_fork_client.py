@@ -7,8 +7,11 @@ import token_config
 from web3.logs import STRICT, IGNORE, DISCARD, WARN
 from web3.eth import AsyncEth
 
-#from web3.exceptions import ContractLogicError, TransactionNotFound
-
+from eth_abi import decode_abi
+from eth_utils import to_bytes
+import asyncio
+import nest_asyncio
+nest_asyncio.apply()
 
 class Client(object):
 
@@ -87,6 +90,7 @@ class Client(object):
         abi = json.loads(contract_details["abi"])
         contract_address = self.web3.toChecksumAddress(contract_details["address"])
         self.factory_contract = self.web3.eth.contract(address=contract_address, abi=abi)
+        self.factory_contract_address = contract_address
 
     def get_bep20_tokens(self,exclude_tokens=["BUSD", "USDT","USDC","SAFEMOON"]):
         self.tokens_to_check = token_config.bep20_tokens
@@ -113,3 +117,22 @@ class Client(object):
             json_reponse = json.loads(response.content)
       
         return json_reponse["result"]
+
+    async def eth_call_raw_async(self, contract, contract_address, fn_name, fn_arguments_format, args):
+        params = contract.encodeABI(fn_name=fn_name, args=args)
+        output = await self.web3_asybc.eth.call({"to": contract_address, "data": params})
+        decoded = decode_abi(fn_arguments_format, output)
+        return decoded
+
+    def eth_call_raw(self, contract, contract_address , fn_name, fn_arguments_format, args):
+        params = contract.encodeABI(fn_name=fn_name, args=args)
+        output = self.web3.eth.call({"to": contract_address, "data": params})
+        decoded = decode_abi(fn_arguments_format, output)
+        return decoded
+
+#        #params = liquidity_pool_contract.encodeABI(fn_name="getReserves",args=[])
+#        #data = {"jsonrpc": "2.0", "method": "eth_call", "params": [{"to": self.liquidity_pool_address, "data": params}, "latest"], "id": 1}
+#        #response = await client.post(url="https://polygon-rpc.com",headers={"Content-Type":"application/json"},json=data)
+#        #hex_str = response.json()["result"]
+#        #decoded = decode_abi(['uint112','uint112','uint32'], to_bytes(hexstr=hex_str))
+#        #self.reserves_raw = decoded

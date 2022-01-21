@@ -12,6 +12,33 @@ import cfg as cfg
 
 pending_transactions = [
 "0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
+"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
+"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
+"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
+"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
+"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
+"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
+"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
+"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
+"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
+"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
+"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
+"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
+"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
+"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
+"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
+"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
+"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
+"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
+"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
+"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
+"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
+"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
+"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
+"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
+"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
+"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
+"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
 ]
 
 
@@ -39,8 +66,8 @@ def test_req():
     
 
 if __name__ == "__main__":
-    #client = Client("polygon",cfg.my_polygon_address, cfg.private_key)
-    client = Client("bsc",cfg.my_polygon_address, cfg.private_key)
+    client = Client("polygon",cfg.my_polygon_address, cfg.private_key)
+    #client = Client("bsc",cfg.my_polygon_address, cfg.private_key)
     triggers = Triggers(client)
     test = []
     #test_req()
@@ -52,19 +79,22 @@ if __name__ == "__main__":
         #token_2 = Token(client, "BUSD")
         #start = time.perf_counter()
         #token_pair_1 = TokenPair(client, token_1, token_2)
+        #token_pair_2 = TokenPair(client, token_1, token_2)
         #transaction_info = client.web3.eth.get_transaction("0xdb72da926b63793996df7cf48b7a58d9656afd3666defcf92a6068dab78d8c5a")
         #txn = Transaction(client,transaction_info)
         #router_txn = RouterTransaction(txn)
-        break
+        #token_pair_1.quick_router_transction_analysis(router_txn)
+        #token_pair_2.quick_router_transction_analysis(router_txn)
+        #break
 
+        start = time.perf_counter()
+        pending_router_transactions = asyncio.run(triggers.get_router_contract_interaction(pending_transactions))
         
-        #pending_router_transactions = asyncio.run(triggers.get_router_contract_interaction(pending_transactions))
-        #for txn in pending_router_transactions:
-        #    triggers.handle_swap_transaction(txn)
-        #end = time.perf_counter()
-        #test.append(end - start)
-        #print("-----------------------")
-        #print("Time elapsed average: ", sum(test) / len(test))
-        #print("-----------------------")
-        ##break
-        #time.sleep(2)
+        
+        end = time.perf_counter()
+        test.append(end - start)
+        print("-----------------------")
+        print("Time elapsed average: ", sum(test) / len(test))
+        print("-----------------------")
+        #break
+        time.sleep(2)
