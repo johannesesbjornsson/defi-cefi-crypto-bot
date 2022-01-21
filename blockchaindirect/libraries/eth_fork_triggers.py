@@ -113,7 +113,7 @@ class Triggers(object):
         if handle_transaction and matching_txn:
             my_txn, liquidity_impact, token_pair = self.handle_swap_transaction(matching_txn)
             if my_txn and liquidity_impact and token_pair:
-                matching_txn = (matching_txn, my_txn, liquidity_impact)
+                matching_txn = (matching_txn, my_txn, token_pair, liquidity_impact)
             else:
                 matching_txn = None
                 
@@ -158,7 +158,6 @@ class Triggers(object):
                 print(txn)
                 print(txn.gas_price)
                 transaction = txn
-                
             
             
             print("wathcing....", time.time() - time_started)
@@ -189,7 +188,9 @@ class Triggers(object):
         for hande_tuple in pending_router_transactions:
             router_txn = hande_tuple[0]
             my_router_transaction = hande_tuple[1]
-            liquidity_impact = hande_tuple[2]
+            token_pair = hande_tuple[2]
+            liquidity_impact = hande_tuple[3]
+            
     
             
             #txn =  asyncio.run(self.fetch_single_transaction(router_txn.transaction.hash))
