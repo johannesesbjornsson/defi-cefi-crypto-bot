@@ -11,34 +11,8 @@ import cfg as cfg
 
 
 pending_transactions = [
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
+#"0x5fd2b41e32392662a61af5cd0518311760fc71937784b4159ebaef1ce4a19881",
+"0x39a2380a9d7a796699b12eeb3ed030f53854a6be855dc9dc982336c8ad2888fa",
 ]
 
 
@@ -66,8 +40,8 @@ def test_req():
     
 
 if __name__ == "__main__":
-    client = Client("polygon",cfg.my_polygon_address, cfg.private_key)
-    #client = Client("bsc",cfg.my_polygon_address, cfg.private_key)
+    #client = Client("polygon",cfg.my_polygon_address, cfg.private_key)
+    client = Client("bsc",cfg.my_polygon_address, cfg.private_key)
     triggers = Triggers(client)
     test = []
     #test_req()
@@ -89,6 +63,9 @@ if __name__ == "__main__":
 
         start = time.perf_counter()
         pending_router_transactions = asyncio.run(triggers.get_router_contract_interaction(pending_transactions))
+        for txn in pending_router_transactions:
+            print (txn[0].input_data)
+            print (txn[2])
         
         
         end = time.perf_counter()
@@ -96,5 +73,5 @@ if __name__ == "__main__":
         print("-----------------------")
         print("Time elapsed average: ", sum(test) / len(test))
         print("-----------------------")
-        #break
+        break
         time.sleep(2)

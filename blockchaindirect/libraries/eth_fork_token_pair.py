@@ -97,12 +97,17 @@ class TokenPair(object):
         transaction_value = 0
 
         if router_txn.amount_in is not None and len(router_txn.path) == 2:
-            impact = router_txn.amount_in/self.token_1_liquidity
+            impact = self.token_1.from_wei(router_txn.amount_in)/self.token_1_liquidity
             transaction_value = router_txn.amount_in
+            print("1")
         elif router_txn.amount_out is not None:
             impact = self.token_2.from_wei(router_txn.amount_out)/self.token_2_liquidity
-            transaction_value = (self.token_2_liquidity/self.token_2_liquidity) * self.token_2.from_wei(router_txn.amount_out)
-
+            transaction_value = (self.token_1_liquidity/self.token_2_liquidity) * self.token_2.from_wei(router_txn.amount_out)
+        
+        #print("txn impact",impact)
+        #print("txn value",transaction_value)
+        #print(router_txn)
+        #print("----")
         #if router_txn.amount_in is not None and len(router_txn.path) == 2:
         #    if reserves_token_1 == self.token_1.address:
         #        impact = router_txn.amount_in/reserves[0]
