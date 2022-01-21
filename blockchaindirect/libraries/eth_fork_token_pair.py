@@ -114,12 +114,11 @@ class TokenPair(object):
     def get_pair_liquidity(self):
         reserves = self.liquidity_pool_contract.functions.getReserves().call()[0:2]
         reserves_token_1 = self.liquidity_pool_contract.functions.token0().call()
-        reserves_token_2 = self.liquidity_pool_contract.functions.token1().call()
 
-        if reserves_token_1 == self.token_1.address and reserves_token_2 == self.token_2.address:
+        if reserves_token_1 == self.token_1.address:
             token_1_liquidity = reserves[0]
             token_2_liquidity = reserves[1]
-        elif reserves_token_2 == self.token_1.address and reserves_token_1 == self.token_2.address:
+        elif reserves_token_1 == self.token_2.address:
             token_1_liquidity = reserves[1]
             token_2_liquidity = reserves[0]
 

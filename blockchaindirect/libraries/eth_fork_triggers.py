@@ -36,6 +36,7 @@ class Triggers(object):
         my_gas_price = None
         liquidity_impact = None
         my_router_transaction = None
+        function_start = time.perf_counter()
         try:
             input_token, out_token = router_txn.path[-2:]
             if input_token == self.token_to_scan_for:
@@ -62,7 +63,8 @@ class Triggers(object):
                 if self.performing_transaction == False and amount_in is not None and  amount_out is not None:
                     self.performing_transaction = True
                     my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=my_gas_price)
-
+                    function_end = time.perf_counter()
+                    print("Function time elapsed: ", function_end - function_start,"\n-------")
         return my_router_transaction, liquidity_impact, token_pair
 
 
