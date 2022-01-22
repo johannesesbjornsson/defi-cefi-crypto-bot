@@ -31,7 +31,7 @@ class Client(object):
             self.max_gas_price = self.web3.toWei('150','gwei')
             self.min_gas_price_of_scanned_txn = self.web3.toWei('29','gwei')
             self.gas_price_frontrunning_increase = self.web3.toWei('1','gwei')
-            self.default_gas_price = self.web3.toWei('30','gwei')
+            self.default_gas_price = self.web3.toWei('35','gwei')
             self.default_gas_limit = 400000 #TODO have this be not fixed
             self.slippage = 0.995
             self.token_to_scan_for = self.web3.toChecksumAddress("0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270")
