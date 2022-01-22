@@ -55,7 +55,7 @@ class Triggers(object):
             liquidity_impact, txn_value = token_pair.quick_router_transction_analysis(router_txn)
             if liquidity_impact > self.minimum_liquidity_impact and txn_value > self.minimum_scanned_transaction:
                 amount_in = self.token_1.to_wei(self.scan_token_value)
-                amount_out = token_pair.get_amount_token_2_out(amount_in)
+                amount_out = token_pair.get_amount_token_2_out(amount_in, offline_calculation=True)
                 my_gas_price = router_txn.transaction.gas_price + self.client.gas_price_frontrunning_increase
 
                 

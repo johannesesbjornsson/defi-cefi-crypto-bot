@@ -126,19 +126,31 @@ class TokenPair(object):
         token_2_liquidity = self.token_2.from_wei(token_2_liquidity)
         return token_1_liquidity, token_2_liquidity
 
-    def get_amount_token_2_out(self, amount_in):
-        try:
-            amount_out = self.client.router_contract.functions.getAmountsOut(amount_in,[self.token_1.address,self.token_2.address]).call()[1]
-        except ContractLogicError as e:
-            amount_out = 0 
+    def get_amount_token_2_out(self, amount_in, offline_calculation=False):
+        if offline_calculation:
+            constant_product = self.token_2_liquidity * self.token_1_liquidity        
+            new_token_2 = constant_product/( self.token_1_liquidity + self.token_1.from_wei(amount_in))
+            amount_out_non_wei = (self.token_2_liquidity - new_token_2) * (1- self.client.router_swap_fee)   
+            amount_out = self.token_2.to_wei(amount_out_non_wei)
+        else:
+            try:
+                amount_out = self.client.router_contract.functions.getAmountsOut(amount_in,[self.token_1.address,self.token_2.address]).call()[1]
+            except ContractLogicError as e:
+                amount_out = 0
         
         return amount_out
 
-    def get_amount_token_1_out(self, amount_in):
-        try:
-            amount_out = self.client.router_contract.functions.getAmountsOut(amount_in,[self.token_2.address,self.token_1.address]).call()[1]
-        except ContractLogicError as e:
-            amount_out = 0 
+    def get_amount_token_1_out(self, amount_in, offline_calculation=False):
+        if offline_calculation:
+            constant_product = self.token_2_liquidity * self.token_1_liquidity        
+            new_token_1 = constant_product/( self.token_2_liquidity + self.token_2.from_wei(amount_in))
+            amount_out_non_wei = (self.token_1_liquidity - new_token_1) * (1- self.client.router_swap_fee)   
+            amount_out = self.token_1.to_wei(amount_out_non_wei)
+        else:
+            try:
+                amount_out = self.client.router_contract.functions.getAmountsOut(amount_in,[self.token_2.address,self.token_1.address]).call()[1]
+            except ContractLogicError as e:
+                amount_out = 0
         
         return amount_out
 

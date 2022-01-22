@@ -25,9 +25,10 @@ class Client(object):
             self.web3 = Web3(Web3.HTTPProvider(provider_url))
             self.web3_asybc = Web3(Web3.AsyncHTTPProvider(provider_url),modules={'eth': (AsyncEth,)}, middlewares=[])
             router_contract_name = "quickswap_router"
-            factory_contract_name = "quickswap_factory"  
+            factory_contract_name = "quickswap_factory"
+            self.router_swap_fee = 0.003  
             self.get_polygon_tokens()
-            self.max_gas_price = self.web3.toWei('1500','gwei')
+            self.max_gas_price = self.web3.toWei('150','gwei')
             self.min_gas_price_of_scanned_txn = self.web3.toWei('29','gwei')
             self.gas_price_frontrunning_increase = self.web3.toWei('1','gwei')
             self.default_gas_price = self.web3.toWei('30','gwei')
@@ -47,7 +48,8 @@ class Client(object):
             self.web3 = Web3(Web3.HTTPProvider(provider_url))    
             self.web3_asybc = Web3(Web3.AsyncHTTPProvider(provider_url),modules={'eth': (AsyncEth,)}, middlewares=[])
             router_contract_name = "pancake_router"
-            factory_contract_name = "pancake_factory"  
+            factory_contract_name = "pancake_factory"
+            self.router_swap_fee = 0.0025 
             self.get_bep20_tokens()
             self.slippage = 0.99
             self.default_gas_limit = 400000
