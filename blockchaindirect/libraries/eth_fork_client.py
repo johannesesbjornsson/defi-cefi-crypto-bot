@@ -62,6 +62,27 @@ class Client(object):
             self.minimum_liquidity_impact = 0.02
             self.scan_token_value = 0.005
             self.swap_log_location_index = -1
+        elif blockchain == "ftm":
+            provider_url = "https://rpc.ftm.tools/"
+            provider_ws = "wss://speedy-nodes-nyc.moralis.io/0279106ed82b874b3e1b195d/fantom/mainnet/ws"
+            self.web3_ws = Web3(Web3.WebsocketProvider(provider_ws))
+            self.web3 = Web3(Web3.HTTPProvider(provider_url))    
+            self.web3_asybc = Web3(Web3.AsyncHTTPProvider(provider_url),modules={'eth': (AsyncEth,)}, middlewares=[])
+            router_contract_name = "spooky_router"
+            factory_contract_name = "spooky_factory"
+            self.router_swap_fee = 0.0025 
+            self.get_ftm_tokens()
+            self.slippage = 0.99
+            self.default_gas_limit = 400000
+            self.default_gas_price = self.web3.toWei('1000','gwei')
+            self.max_gas_price = self.web3.toWei('2000','gwei')
+            self.min_gas_price_of_scanned_txn = self.web3.toWei('1000','gwei')
+            self.gas_price_frontrunning_increase = self.web3.toWei('500','gwei')
+            self.token_to_scan_for =  self.web3.toChecksumAddress("0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83")
+            self.minimum_scanned_transaction = 5
+            self.minimum_liquidity_impact = 0.02
+            self.scan_token_value = 0.2
+            self.swap_log_location_index = -1
         elif blockchain == "velas":
             provider_url = "https://evmexplorer.velas.com/rpc"
             provider_ws = "wss://api.velas.com/"
@@ -104,11 +125,13 @@ class Client(object):
         self.tokens_to_check = token_config.polygon_tokens
         self.known_tokens = token_config.polygon_all_tokens
 
-
     def get_velas_tokens(self):
         self.tokens_to_check = token_config.velas_tokens
         self.known_tokens = token_config.all_velas_tokens
 
+    def get_ftm_tokens(self):
+        self.tokens_to_check = token_config.ftm_tokens
+        self.known_tokens = token_config.all_ftm_tokens
 
     def get_abi(self,address):
         if self.blockchain == "bsc":

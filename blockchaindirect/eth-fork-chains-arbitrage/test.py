@@ -41,16 +41,14 @@ def test_req():
 
 if __name__ == "__main__":
     #client = Client("polygon",cfg.my_polygon_address, cfg.private_key)
-    client = Client("bsc",cfg.my_polygon_address, cfg.private_key)
+    client = Client("ftm",cfg.my_polygon_address, cfg.private_key)
     triggers = Triggers(client)
     test = []
     #test_req()
     while True:
-        
 
-
-        token_1 = Token(client, "BUSD")
-        token_2 = Token(client, "WBNB")
+        token_1 = Token(client, "WFTM")
+        token_2 = Token(client, "ETH")
         #token_1 = Token(client, "WMATIC")
         #token_2 = Token(client, "USDC")
         

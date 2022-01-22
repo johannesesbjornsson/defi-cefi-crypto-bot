@@ -83,3 +83,14 @@ velas_base_tokens = {
 }
 all_velas_tokens = velas_tokens.copy()
 all_velas_tokens.update(velas_base_tokens)
+
+ftm_tokens = {
+    "ETH" : "0x74b23882a30290451A17c44f4F05243b6b58C76d"
+}
+ftm_base_tokens = {
+    "WFTM" : "0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83"
+}
+
+
+all_ftm_tokens = ftm_tokens.copy()
+all_ftm_tokens.update(ftm_base_tokens)
