@@ -36,7 +36,7 @@ class Triggers(object):
         my_gas_price = None
         liquidity_impact = None
         my_router_transaction = None
-        function_start = time.perf_counter()
+        #function_start = time.perf_counter()
         try:
             input_token, out_token = router_txn.path[-2:]
             if input_token == self.token_to_scan_for:
@@ -53,18 +53,21 @@ class Triggers(object):
         
         if token_pair:
             liquidity_impact, txn_value = token_pair.quick_router_transction_analysis(router_txn)
-
             if liquidity_impact > self.minimum_liquidity_impact and txn_value > self.minimum_scanned_transaction:
                 amount_in = self.token_1.to_wei(self.scan_token_value)
                 amount_out = token_pair.get_amount_token_2_out(amount_in)
                 my_gas_price = router_txn.transaction.gas_price + self.client.gas_price_frontrunning_increase
 
-                #my_router_transaction = "dummy val"
-                if self.performing_transaction == False and amount_in is not None and  amount_out is not None:
-                    self.performing_transaction = True
-                    my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=my_gas_price)
-                    function_end = time.perf_counter()
-                    print("Function time elapsed: ", function_end - function_start,"\n-------")
+                
+                #if self.performing_transaction == False and amount_in is not None and  amount_out is not None:
+                #    self.performing_transaction = True
+                #    my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=my_gas_price)
+                #    function_end = time.perf_counter()
+                #    print("Function time elapsed: ", function_end - function_start,"\n-------")
+                my_router_transaction = "dummy val"
+                #function_end = time.perf_counter()
+                #print("Function time elapsed: ", function_end - function_start,"\n-------")
+
         return my_router_transaction, liquidity_impact, token_pair
 
 
