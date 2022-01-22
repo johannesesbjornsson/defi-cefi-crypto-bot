@@ -62,10 +62,10 @@ class Transaction(object):
 
     def create_transaction(self, transaction, gas_price=None):
         if gas_price is None:
-            gas_price = self.client.default_gas_price
-            #gas_price = self.client.web3.eth.gas_price
-            #if gas_price > self.client.max_gas_price:
-            #    raise ValueError(f"Gas prices are currently to expensive: {gas_price}")
+            #gas_price = self.client.default_gas_price
+            gas_price = self.client.web3.eth.gas_price
+            if gas_price > self.client.max_gas_price:
+                raise ValueError(f"Gas prices are currently to expensive: {gas_price}")
 
         self.nonce = self.client.web3.eth.get_transaction_count(self.client.my_address)
         self.gas_limit = self.client.default_gas_limit
