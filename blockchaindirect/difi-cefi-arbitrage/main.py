@@ -5,7 +5,7 @@ import sys
 import arbitrage
 sys.path.insert(0,'../libraries')
 from pancakeswap_client import Client
-import token_config
+
 from binance_client import BinanceClient
 
 pancakeswap_client = Client(cfg.my_bep20_address, cfg.private_key, cfg.bsc_scan_api_key)

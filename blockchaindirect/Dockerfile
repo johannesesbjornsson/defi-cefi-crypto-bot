@@ -17,4 +17,4 @@ RUN mkdir /libraries
 
 COPY libraries/*.py /libraries/
 
-CMD [ "python", "-u", "polygon-arbitrage.py"]
+CMD [ "python", "-u", "polygon-arbitrage.py polygon"]

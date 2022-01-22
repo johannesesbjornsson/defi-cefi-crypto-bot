@@ -4,40 +4,18 @@ import sys
 sys.path.insert(0,'../libraries')
 from eth_fork_client import Client
 from eth_fork_token import Token
-from eth_fork_transaction import Transaction
+from eth_fork_transaction import Transaction, RouterTransaction
 from eth_fork_triggers import Triggers
 from eth_fork_token_pair import TokenPair
 import cfg as cfg
 
 
 pending_transactions = [
-"0xfd79b8b3186d0c52d59a87e77f292d460a13d121c34078cd5cc8d29cb8cb912c",
+#"0x5fd2b41e32392662a61af5cd0518311760fc71937784b4159ebaef1ce4a19881",
+"0x39a2380a9d7a796699b12eeb3ed030f53854a6be855dc9dc982336c8ad2888fa",
 ]
 
-#async def fetch_single_transaction(transaction_hash):
-#
-#    #print(f"Printing {n}")
-#    #await asyncio.sleep(1)
-#    #f = n +"1"
-#    try:
-#        transaction_hash = client.web3.toHex(transaction_hash)
-#    except TypeError as e:
-#        transaction_hash = transaction_hash
-#
-#    print(transaction_hash)
-#    transaction_info = await client.web3_asybc.eth.get_transaction(transaction_hash)
-#    txn = Transaction(client, transaction_info)
-#    return transaction_info
-#
-#async def fetch_transactions(n):
-#    saved_txns = []
-#    done, pending = await asyncio.wait(
-#        [fetch_single_transaction(arg) for arg in n]
-#    )
-#    for d in done:
-#        saved_txns.append(d.result())
-#    return saved_txns
-#
+
 #async def test():
 #    return 1
 #
@@ -62,28 +40,44 @@ def test_req():
     
 
 if __name__ == "__main__":
-    client = Client("polygon",cfg.my_polygon_address, cfg.private_key, cfg.polygon_api_key)
+    #client = Client("polygon",cfg.my_polygon_address, cfg.private_key)
+    client = Client("ftm",cfg.my_polygon_address, cfg.private_key)
     triggers = Triggers(client)
     test = []
     #test_req()
     while True:
+
+        token_1 = Token(client, "WFTM")
+        token_2 = Token(client, "ETH")
+        #token_1 = Token(client, "WMATIC")
+        #token_2 = Token(client, "USDC")
         
-
-
-        #token_1 = Token(client, "USDC")
-        #token_2 = Token(client, "USDT")
+        token_pair = TokenPair(client, token_1, token_2)
+        #amount_in = token_pair.token_1.to_wei(10)
+        amount_in = token_pair.token_2.to_wei(10)
         start = time.perf_counter()
-        #token_pair_1 = TokenPair(client, token_1, token_2)
+        print("Getting out", token_pair.get_amount_token_1_out(amount_in))
+        print("Getting out", token_pair.get_amount_token_1_out(amount_in,offline_calculation=True))
+        #my_router_return_transaction = token_pair.swap_token_2_for_token_1(amount_in, amount_out_from_token_1)
+        #token_pair_2 = TokenPair(client, token_1, token_2)
+        #transaction_info = client.web3.eth.get_transaction("0xdb72da926b63793996df7cf48b7a58d9656afd3666defcf92a6068dab78d8c5a")
+        #txn = Transaction(client,transaction_info)
+        #router_txn = RouterTransaction(txn)
+        #token_pair_1.quick_router_transction_analysis(router_txn)
+        #token_pair_2.quick_router_transction_analysis(router_txn)
+        #break
 
+        #start = time.perf_counter()
+        #pending_router_transactions = asyncio.run(triggers.get_router_contract_interaction(pending_transactions))
+        #for txn in pending_router_transactions:
+        #    print (txn[0].input_data)
+        #    print (txn[2])
         
-        pending_router_transactions = asyncio.run(triggers.get_router_contract_interaction(pending_transactions))
         
-        for txn in pending_router_transactions:
-            triggers.handle_swap_transaction(txn)
         end = time.perf_counter()
         test.append(end - start)
         print("-----------------------")
         print("Time elapsed average: ", sum(test) / len(test))
         print("-----------------------")
-        #break
+        break
         time.sleep(2)

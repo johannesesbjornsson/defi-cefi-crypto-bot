@@ -1,5 +1,5 @@
 import contract_libarary
-import token_config
+
 from web3.logs import STRICT, IGNORE, DISCARD, WARN
 from web3.exceptions import ContractLogicError, TransactionNotFound, TimeExhausted
 import re
@@ -62,6 +62,7 @@ class Transaction(object):
 
     def create_transaction(self, transaction, gas_price=None):
         if gas_price is None:
+            #gas_price = self.client.default_gas_price
             gas_price = self.client.web3.eth.gas_price
             if gas_price > self.client.max_gas_price:
                 raise ValueError(f"Gas prices are currently to expensive: {gas_price}")

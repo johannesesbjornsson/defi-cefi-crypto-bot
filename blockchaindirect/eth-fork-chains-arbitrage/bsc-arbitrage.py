@@ -8,7 +8,7 @@ from eth_fork_token import Token
 from eth_fork_transaction import Transaction
 from eth_fork_token_pair import TokenPair
 from eth_fork_triggers import Triggers
-import token_config
+
 import time
 
 def main():
