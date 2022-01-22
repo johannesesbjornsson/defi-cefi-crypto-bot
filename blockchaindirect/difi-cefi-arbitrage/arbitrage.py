@@ -1,7 +1,7 @@
 import sys
 sys.path.insert(0,'../libraries')
 from pancakeswap_client import Client
-import token_config
+
 from binance_client import BinanceClient
 
 class Arbitrage(object):

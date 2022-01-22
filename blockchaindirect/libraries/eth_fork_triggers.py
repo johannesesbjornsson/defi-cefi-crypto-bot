@@ -1,6 +1,6 @@
 import contract_libarary
 import time
-import token_config
+
 import asyncio
 from asyncio.exceptions import TimeoutError
 from socket import gaierror
@@ -53,18 +53,19 @@ class Triggers(object):
         
         if token_pair:
             liquidity_impact, txn_value = token_pair.quick_router_transction_analysis(router_txn)
+            print(liquidity_impact, txn_value)
             if liquidity_impact > self.minimum_liquidity_impact and txn_value > self.minimum_scanned_transaction:
                 amount_in = self.token_1.to_wei(self.scan_token_value)
                 amount_out = token_pair.get_amount_token_2_out(amount_in, offline_calculation=True)
                 my_gas_price = router_txn.transaction.gas_price + self.client.gas_price_frontrunning_increase
 
                 
-                if self.performing_transaction == False and amount_in is not None and  amount_out is not None:
-                    self.performing_transaction = True
-                    my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=my_gas_price)
-                    function_end = time.perf_counter()
-                    print("Function time elapsed: ", function_end - function_start,"\n-------")
-                #my_router_transaction = "dummy val"
+                #if self.performing_transaction == False and amount_in is not None and  amount_out is not None:
+                #    self.performing_transaction = True
+                #    my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=my_gas_price)
+                #    function_end = time.perf_counter()
+                #    print("Function time elapsed: ", function_end - function_start,"\n-------")
+                my_router_transaction = "dummy val"
                 #function_end = time.perf_counter()
                 #print("Function time elapsed: ", function_end - function_start,"\n-------")
 
@@ -112,6 +113,9 @@ class Triggers(object):
             self.failed_requests += 1
             txn = None
         except TimeoutError as e:
+            self.failed_requests += 1
+            txn = None
+        except ValueError as e:
             self.failed_requests += 1
             txn = None
 
