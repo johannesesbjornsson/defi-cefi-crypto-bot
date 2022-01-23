@@ -114,6 +114,7 @@ class RouterTransaction(Transaction):
           self.function_called =  txn_input[0]
 
         if "path" in txn_input[1]:
+            #path = [self.client.web3.toChecksumAddress(address) for address in txn_input[1]["path"]]
             self.path = txn_input[1]["path"]
         else:
             self.path = None

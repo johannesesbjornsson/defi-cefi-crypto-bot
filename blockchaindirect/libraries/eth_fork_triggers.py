@@ -50,7 +50,7 @@ class Triggers(object):
                 token_pair = None
         except ValueError as e:
             token_pair = None
-        
+
         if token_pair:
             liquidity_impact, txn_value = token_pair.quick_router_transction_analysis(router_txn)
 
