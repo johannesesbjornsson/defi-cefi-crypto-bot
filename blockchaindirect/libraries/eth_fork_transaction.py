@@ -8,6 +8,7 @@ import time
 class Transaction(object):
     def __init__(self, client, transaction_info=None):
         self.client = client
+        self.transaction_receipt = None
         if transaction_info:
             self.hash = self.client.web3.toHex(transaction_info["hash"])
             self.block_number = transaction_info["blockNumber"]
@@ -140,6 +141,8 @@ class RouterTransaction(Transaction):
     def get_transaction_amount_out(self):
         if not self.transaction.successful:
             raise LookupError(f"Transaction '{self.transaction.hash}' was not successful")
+        if not self.transaction.transaction_receipt:
+            raise LookupError(f"Transaction receipt not fetched for {self.transaction.hash}")
 
         log_location_index = self.client.swap_log_location_index
 

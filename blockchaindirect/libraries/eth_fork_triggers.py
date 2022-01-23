@@ -173,6 +173,7 @@ class Triggers(object):
             time.sleep(5)
             transaction_complete, transaction_successful = transaction.get_transaction_receipt(wait=False)
             if transaction_complete == True and transaction_successful == False:
+                print("Scanned transaction failed, increasing nonce")
                 transaction.nonce += 1
     
         return transaction_complete, transaction_successful
