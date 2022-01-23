@@ -56,6 +56,12 @@ if __name__ == "__main__":
         #amount_in = token_pair.token_1.to_wei(10)
         #amount_in = token_pair.token_2.to_wei(10)
         #
+        
+        try:
+            import math
+            math.sqrt(-10)
+        except ValueError as e:
+            print(str(e))
 
         #my_router_return_transaction = token_pair.swap_token_2_for_token_1(amount_in, amount_out_from_token_1)
         #token_pair_2 = TokenPair(client, token_1, token_2)
@@ -67,6 +73,7 @@ if __name__ == "__main__":
         token_pair.quick_router_transction_analysis(router_txn)
         #token_pair_2.quick_router_transction_analysis(router_txn)
         #break
+        
 
         #asyncio.run(self.watch_competing_transaction(router_txn.transaction))
         #start = time.perf_counter()

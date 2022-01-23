@@ -67,9 +67,9 @@ class Token(object):
             try:
                 transaction.sign_and_send_transaction()
             except ValueError as e:
-                print(e)
+                print("str stard:",str(e),":str end")
                 print(type(e))
-                if e.message == "nonce too low":
+                if str(e) == "{'code': -32000, 'message': 'nonce too low'}":
                     print("Having to resend transaction")
                     transaction.nonce += 1
                     transaction.sign_and_send_transaction()
