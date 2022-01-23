@@ -62,11 +62,13 @@ if __name__ == "__main__":
         transaction_info = client.web3.eth.get_transaction("0x5fd2b41e32392662a61af5cd0518311760fc71937784b4159ebaef1ce4a19881")
         txn = Transaction(client,transaction_info)
         router_txn = RouterTransaction(txn)
+        router_txn.transaction.get_transaction_receipt()
+        router_txn.get_transaction_amount_out()
         token_pair.quick_router_transction_analysis(router_txn)
         #token_pair_2.quick_router_transction_analysis(router_txn)
         #break
 
-        asyncio.run(self.watch_competing_transaction(router_txn.transaction))
+        #asyncio.run(self.watch_competing_transaction(router_txn.transaction))
         #start = time.perf_counter()
         #pending_router_transactions = asyncio.run(triggers.get_router_contract_interaction(pending_transactions))
         #for txn in pending_router_transactions:

@@ -43,7 +43,7 @@ class Client(object):
         self.scan_token_value = provider.scan_token_value
         self.minimum_scanned_transaction = provider.minimum_scanned_transaction
         self.minimum_liquidity_impact = provider.minimum_liquidity_impact
-        self.swap_log_location_index = provider.minimum_liquidity_impact
+        self.swap_log_location_index = provider.swap_log_location_index
         self.tokens_to_check = provider.tokens_to_check
         self.known_tokens = provider.known_tokens
         self.router_contract_address = provider.router_contract_address
