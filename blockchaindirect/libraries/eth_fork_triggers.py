@@ -41,11 +41,11 @@ class Triggers(object):
         try:
             input_token, out_token = router_txn.path[-2:]
             if input_token == self.token_to_scan_for:
-                #start = time.perf_counter()
+                start = time.perf_counter()
                 token_2 = Token(self.client, out_token, "local")
-                token_pair = TokenPair(self.client, self.token_1, token_2)
-                #end = time.perf_counter()
-                #print("Token init time elapsed: ", end - start)
+                token_pair = TokenPair(self.client, self.token_1, token_2,"local")
+                end = time.perf_counter()
+                print("Token init time elapsed: ", end - start)
                 
             else:
                 token_pair = None
@@ -252,6 +252,9 @@ class Triggers(object):
                 print("Successsful requests", self.successful_requests)
                 print("Failed requests", self.failed_requests)
                 print("--------")
+        
+        self.client.write_pair_info_to_file()  
+        self.client.write_token_info_to_file()  
         
 
         return intercepted_transaction
