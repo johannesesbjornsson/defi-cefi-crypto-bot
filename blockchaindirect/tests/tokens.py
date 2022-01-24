@@ -110,7 +110,7 @@ class TokenTest(unittest.TestCase):
 
     # Tests random locally stored token infro matches blockchain stored info
     def test_file_init(self):
-        pair_list = random.sample(self.polygon_client.pair_info.keys() ,10)
+        pair_list = random.sample(self.polygon_client.pair_info.keys() , 20)
         for pair in pair_list:
             token_address_1, token_address_2 = pair.split("_")
             
