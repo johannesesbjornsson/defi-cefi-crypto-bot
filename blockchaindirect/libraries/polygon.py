@@ -44,7 +44,7 @@ class Polygon:
             "MANA": "0xa1c57f48f0deb89f569dfbe6e2b7f46d33606fd4",
             "SAND": "0xBbba073C31bF03b8ACf7c28EF0738DeCF3695683",
             # Random shitcoins
-            "COLLAR" : "0xd5fa77a860fea9cff31da91bbf9e0faea9538290"
+            "COLLAR" : "0xd5fa77a860fea9cff31da91bbf9e0faea9538290",
             "DBD" : "0x72b9f88e822cf08b031c2206612b025a82fb303c",
             "LEV" : "0xdf4f82b25c9d4ffbc7abfc0dd07e43c64fa18cc4",
             "AQR" : "0xae204ee82e60829a5850fe291c10bf657af1cf02",
@@ -72,6 +72,7 @@ class Polygon:
             "UNI" : "0xb33eaad8d922b1083446dc23f610c2567fb5180f",
             "YAAN" : "0xfe0a69a2fdb58e5beeecd07f78806c9dd0a54501",
             "SFF" : "0xdf9b4b57865b403e08c85568442f95c26b7896b0",
+            "PRYZ" : "0x4414ac21b60c504dfea0a27679b90a278c2ca962"
 
         }
         self.base_tokens = {

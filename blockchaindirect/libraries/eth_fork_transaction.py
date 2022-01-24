@@ -8,6 +8,7 @@ import time
 class Transaction(object):
     def __init__(self, client, transaction_info=None):
         self.client = client
+        self.receipt = None
         if transaction_info:
             self.hash = self.client.web3.toHex(transaction_info["hash"])
             self.block_number = transaction_info["blockNumber"]
@@ -60,14 +61,17 @@ class Transaction(object):
 
         return transaction_complete, transaction_successful
 
-    def create_transaction(self, transaction, gas_price=None):
+    def create_transaction(self, transaction, gas_price=None, nonce=None):
         if gas_price is None:
             #gas_price = self.client.default_gas_price
             gas_price = self.client.web3.eth.gas_price
             if gas_price > self.client.max_gas_price:
                 raise ValueError(f"Gas prices are currently to expensive: {gas_price}")
-
-        self.nonce = self.client.web3.eth.get_transaction_count(self.client.my_address)
+        
+        if nonce is None:
+            nonce =  self.client.get_transaction_count()
+    
+        self.nonce = nonce
         self.gas_limit = self.client.default_gas_limit
         self.gas_price = gas_price
         self.from_address = self.client.my_address
@@ -113,6 +117,7 @@ class RouterTransaction(Transaction):
           self.function_called =  txn_input[0]
 
         if "path" in txn_input[1]:
+            #path = [self.client.web3.toChecksumAddress(address) for address in txn_input[1]["path"]]
             self.path = txn_input[1]["path"]
         else:
             self.path = None
@@ -140,6 +145,8 @@ class RouterTransaction(Transaction):
     def get_transaction_amount_out(self):
         if not self.transaction.successful:
             raise LookupError(f"Transaction '{self.transaction.hash}' was not successful")
+        if not self.transaction.receipt:
+            raise LookupError(f"Transaction receipt not fetched for {self.transaction.hash}")
 
         log_location_index = self.client.swap_log_location_index
 

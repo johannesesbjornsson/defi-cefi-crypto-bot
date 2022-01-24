@@ -99,13 +99,13 @@ class TokenPair(object):
     def quick_router_transction_analysis(self,router_txn):
         impact = 0
         transaction_value = 0
-
-        if router_txn.amount_in is not None and len(router_txn.path) == 2:
-            #impact = self.token_1.from_wei(router_txn.amount_in)/self.token_1_liquidity
+        
+        #if router_txn.amount_in is not None and len(router_txn.path) == 2:
+        if router_txn.amount_in is not None and router_txn.path[0] == self.token_1.address and router_txn.path[1] == self.token_2.address:
             impact = self.get_liquidity_impact_of_token_1_for_token_2(self.token_1.from_wei(router_txn.amount_in))
             transaction_value = self.token_1.from_wei(router_txn.amount_in)
-        elif router_txn.amount_out is not None:
-            #impact = self.token_2.from_wei(router_txn.amount_out)/self.token_2_liquidity
+        #elif router_txn.amount_out is not None and self.client.web3.toChecksumAddress(router_txn.path[-1]) == self.token_2.address:
+        elif router_txn.amount_out is not None and router_txn.path[-1] == self.token_2.address and router_txn.path[-2] == self.token_1.address:
             impact = self.get_liquidity_impact_of_token_2_for_token_1(self.token_2.from_wei(router_txn.amount_out))
             transaction_value = (self.token_1_liquidity/self.token_2_liquidity) * self.token_2.from_wei(router_txn.amount_out)
 
@@ -165,27 +165,27 @@ class TokenPair(object):
             )
         return txn
 
-    def swap_token_1_for_token_2(self, amount_in, amount_out, gas_price=None):
+    def swap_token_1_for_token_2(self, amount_in, amount_out, gas_price=None, nonce=None):
         from_token = self.token_1.address
         to_token = self.token_2.address
         from_token_amount = amount_in
         to_token_amount = int(amount_out * self.client.slippage)
         txn  = self.build_transaction(from_token, to_token, from_token_amount, to_token_amount)
         transaction = Transaction(self.client, None)
-        transaction.create_transaction(txn,gas_price)
+        transaction.create_transaction(txn,gas_price,nonce)
         transaction.sign_and_send_transaction()
         router_transaction = RouterTransaction(transaction)
 
         return router_transaction
 
-    def swap_token_2_for_token_1(self, amount_in, amount_out, gas_price=None):
+    def swap_token_2_for_token_1(self, amount_in, amount_out, gas_price=None, nonce=None):
         from_token = self.token_2.address
         to_token = self.token_1.address
         from_token_amount = amount_in
         to_token_amount = int(amount_out * self.client.slippage)
         txn  = self.build_transaction(from_token, to_token, from_token_amount, to_token_amount)
         transaction = Transaction(self.client, None)
-        transaction.create_transaction(txn,gas_price)
+        transaction.create_transaction(txn,gas_price,nonce)
         transaction.sign_and_send_transaction()
 
         router_transaction = RouterTransaction(transaction)

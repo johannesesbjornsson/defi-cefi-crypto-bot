@@ -28,6 +28,7 @@ class Triggers(object):
         #eth_newPendingTransactionFilter
         self.tx_filter = self.client.web3_ws.eth.filter('pending')
         self.performing_transaction = False
+        self.current_nonce = self.client.get_transaction_count()
 
     def handle_swap_transaction(self, router_txn):
         token_pair = None
@@ -50,7 +51,7 @@ class Triggers(object):
                 token_pair = None
         except ValueError as e:
             token_pair = None
-        
+
         if token_pair:
             liquidity_impact, txn_value = token_pair.quick_router_transction_analysis(router_txn)
 
@@ -60,12 +61,12 @@ class Triggers(object):
                 my_gas_price = router_txn.transaction.gas_price + self.client.gas_price_frontrunning_increase
 
                 
-                #if self.performing_transaction == False and amount_in is not None and  amount_out is not None:
-                #    self.performing_transaction = True
-                #    my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=my_gas_price)
-                #    function_end = time.perf_counter()
-                #    print("Function time elapsed: ", function_end - function_start,"\n-------")
-                my_router_transaction = "dummy val"
+                if self.performing_transaction == False and amount_in is not None and  amount_out is not None:
+                    self.performing_transaction = True
+                    my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=my_gas_price, nonce=self.current_nonce)
+                    function_end = time.perf_counter()
+                    print("Function time elapsed: ", function_end - function_start,"\n-------")
+                #my_router_transaction = "dummy val"
                 #function_end = time.perf_counter()
                 #print("Function time elapsed: ", function_end - function_start,"\n-------")
 
@@ -173,6 +174,7 @@ class Triggers(object):
             time.sleep(5)
             transaction_complete, transaction_successful = transaction.get_transaction_receipt(wait=False)
             if transaction_complete == True and transaction_successful == False:
+                print("Scanned transaction failed, increasing nonce")
                 transaction.nonce += 1
     
         return transaction_complete, transaction_successful
@@ -189,6 +191,8 @@ class Triggers(object):
             print("Gas prices to high atm...")
             time.sleep(60)
             return False
+
+        self.current_nonce = self.client.get_transaction_count()
 
         pending_transactions = self.tx_filter.get_new_entries()
 

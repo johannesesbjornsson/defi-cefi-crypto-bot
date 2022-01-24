@@ -43,7 +43,7 @@ class Client(object):
         self.scan_token_value = provider.scan_token_value
         self.minimum_scanned_transaction = provider.minimum_scanned_transaction
         self.minimum_liquidity_impact = provider.minimum_liquidity_impact
-        self.swap_log_location_index = provider.minimum_liquidity_impact
+        self.swap_log_location_index = provider.swap_log_location_index
         self.tokens_to_check = provider.tokens_to_check
         self.known_tokens = provider.known_tokens
         self.router_contract_address = provider.router_contract_address
@@ -67,6 +67,10 @@ class Client(object):
             json_reponse = json.loads(response.content)
       
         return json_reponse["result"]
+
+    def get_transaction_count(self):
+        transaction_count = self.web3.eth.get_transaction_count(self.my_address)
+        return transaction_count
 
     async def eth_call_raw_async(self, contract, contract_address, fn_name, fn_arguments_format, args):
         params = contract.encodeABI(fn_name=fn_name, args=args)
