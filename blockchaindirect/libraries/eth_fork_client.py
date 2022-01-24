@@ -56,7 +56,8 @@ class Client(object):
         self.private_key = private_key
 
         self.settings_dir = os.path.dirname(os.path.realpath(__file__)) + '/settings/'+self.blockchain
-        self.load_token_json_file()
+        self.load_token_json_from_file()
+        self.load_pair_json_from_file()
         
 
     def get_abi(self,address):
@@ -87,7 +88,7 @@ class Client(object):
         decoded = decode_abi(fn_arguments_format, output)
         return decoded
 
-    def load_token_json_file(self):
+    def load_token_json_from_file(self):
         with open(self.settings_dir+'/tokens.json', 'r') as f: 
         	data = json.load(f)
         self.token_info = data
@@ -108,6 +109,29 @@ class Client(object):
             json.dump(self.token_info, f)
         return True
 
+
+    def load_pair_json_from_file(self):
+        with open(self.settings_dir+'/pairs.json', 'r') as f: 
+        	data = json.load(f)
+        self.pair_info = data
+
+    def get_pair_info(self, pair):
+        pair_info = None
+        pair_key = "_".join(sorted(pair))
+        if pair_key in self.pair_info:
+            pair_info = self.pair_info[pair_key]
+        return pair_info
+
+    def add_pair_info(self, pair, info):
+        pair_key = "_".join(sorted(pair))
+        if pair_key not in self.pair_info:
+            self.pair_info[pair_key] = info
+        return True
+
+    def write_pair_info_to_file(self):
+        with open(self.settings_dir+'/pairs.json', 'w') as f:
+            json.dump(self.pair_info, f)
+        return True
 
 #        #params = liquidity_pool_contract.encodeABI(fn_name="getReserves",args=[])
 #        #data = {"jsonrpc": "2.0", "method": "eth_call", "params": [{"to": self.liquidity_pool_address, "data": params}, "latest"], "id": 1}

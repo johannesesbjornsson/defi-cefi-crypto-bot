@@ -25,21 +25,22 @@ class TokenPair(object):
         self.abi=contract_libarary.standard_contracts["liquidity_pool"]
         
         
-
-
         if init_type == "standard":
-            liquidity_pool_address = self.client.factory_contract.functions.getPair(self.token_1.address, self.token_2.address).call()
-            self.liquidity_pool_address = self.client.web3.toChecksumAddress(liquidity_pool_address)
-            try:
-                self.liquidity_pool_contract = self.client.web3.eth.contract(address=self.liquidity_pool_address, abi=self.abi)
-                self.raw_reserves_token_1 = self.liquidity_pool_contract.functions.token0().call()
-                self.token_1_liquidity, self.token_2_liquidity = self.get_pair_liquidity()
-            except ValueError as e:
-                self.liquidity_pool_contract = None
-                self.token_1_liquidity = None
-                self.token_2_liquidity = None  
+            self.standard_init()
         elif init_type == "local":
-            print("yaas")
+            pair_info = self.client.get_pair_info([self.token_1.address, self.token_2.address])
+            if pair_info:
+                self.raw_reserves_token_1 = pair_info["token0"]
+                self.liquidity_pool_address = pair_info["liquidity_pool_address"]
+                self.liquidity_pool_contract = self.client.web3.eth.contract(address=self.liquidity_pool_address, abi=self.abi)
+                self.token_1_liquidity, self.token_2_liquidity = self.get_pair_liquidity()
+            else:
+                self.standard_init()
+                pair = [self.token_1.address, self.token_2.address]
+                pair_info = { "token0" : self.raw_reserves_token_1, "liquidity_pool_address" : self.liquidity_pool_address }
+                self.client.add_pair_info(pair, pair_info)
+
+
         elif init_type == "async":
             loop = asyncio.get_event_loop()
             results = loop.run_until_complete(self.asynchronous_object_init())
@@ -52,7 +53,19 @@ class TokenPair(object):
 
     def __str__(self):
         return f"{self.token_1.symbol}: {self.token_1.address},\n{self.token_2.symbol}: {self.token_2.address},\nLiquidity_address: {self.liquidity_pool_address}"
-    
+
+    def standard_init(self):
+        liquidity_pool_address = self.client.factory_contract.functions.getPair(self.token_1.address, self.token_2.address).call()
+        self.liquidity_pool_address = self.client.web3.toChecksumAddress(liquidity_pool_address)
+        try:
+            self.liquidity_pool_contract = self.client.web3.eth.contract(address=self.liquidity_pool_address, abi=self.abi)
+            self.raw_reserves_token_1 = self.liquidity_pool_contract.functions.token0().call()
+            self.token_1_liquidity, self.token_2_liquidity = self.get_pair_liquidity()
+        except ValueError as e:
+            self.liquidity_pool_contract = None
+            self.token_1_liquidity = None
+            self.token_2_liquidity = None
+
     def approve_tokens(self):
         if self.token_1.allowance_on_router == 0:
             self.token_1.approve_token()
