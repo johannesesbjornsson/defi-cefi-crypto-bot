@@ -28,6 +28,7 @@ class Triggers(object):
         #eth_newPendingTransactionFilter
         self.tx_filter = self.client.web3_ws.eth.filter('pending')
         self.performing_transaction = False
+        self.current_nonce = self.client.get_transaction_count()
 
     def handle_swap_transaction(self, router_txn):
         token_pair = None
@@ -53,7 +54,7 @@ class Triggers(object):
 
         if token_pair:
             liquidity_impact, txn_value = token_pair.quick_router_transction_analysis(router_txn)
-
+            print(liquidity_impact, txn_value)
             if liquidity_impact > self.minimum_liquidity_impact and txn_value > self.minimum_scanned_transaction:
                 amount_in = self.token_1.to_wei(self.scan_token_value)
                 amount_out = token_pair.get_amount_token_2_out(amount_in, offline_calculation=True)
@@ -62,7 +63,7 @@ class Triggers(object):
                 
                 if self.performing_transaction == False and amount_in is not None and  amount_out is not None:
                     self.performing_transaction = True
-                    my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=my_gas_price)
+                    my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=my_gas_price, nonce=self.current_nonce)
                     function_end = time.perf_counter()
                     print("Function time elapsed: ", function_end - function_start,"\n-------")
                 #my_router_transaction = "dummy val"
@@ -190,6 +191,8 @@ class Triggers(object):
             print("Gas prices to high atm...")
             time.sleep(60)
             return False
+
+        self.current_nonce = self.client.get_transaction_count()
 
         pending_transactions = self.tx_filter.get_new_entries()
 

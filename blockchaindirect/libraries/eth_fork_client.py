@@ -68,6 +68,10 @@ class Client(object):
       
         return json_reponse["result"]
 
+    def get_transaction_count(self):
+        transaction_count = self.web3.eth.get_transaction_count(self.my_address)
+        return transaction_count
+
     async def eth_call_raw_async(self, contract, contract_address, fn_name, fn_arguments_format, args):
         params = contract.encodeABI(fn_name=fn_name, args=args)
         output = await self.web3_asybc.eth.call({"to": contract_address, "data": params})
