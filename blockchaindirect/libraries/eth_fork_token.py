@@ -9,7 +9,7 @@ nest_asyncio.apply()
 
 class Token(object):
 
-    def __init__(self, client, token):
+    def __init__(self, client, token, init_type="standard"):
         self.known_tokens = client.known_tokens
         self.client = client
 
@@ -24,7 +24,20 @@ class Token(object):
         self.token_contract = self.client.web3.eth.contract(
             address=self.address, 
             abi=contract_libarary.standard_contracts["token"])
-        self.decimals = self.token_contract.functions.decimals().call()
+        
+        if init_type == "standard":
+            self.decimals = self.token_contract.functions.decimals().call()
+        elif init_type == "local":
+            token_info = self.client.get_token_info(self.address)
+            if token_info:
+                self.decimals = token_info["decimals"]
+            else:
+                self.decimals = self.token_contract.functions.decimals().call()
+                token_info = { "decimals" : self.decimals }
+                self.client.add_token_info(self.address, token_info)
+        else:
+            raise ValueError("'init_type' needs to be 'standard' or 'local'")
+
         self.token_symbol = None
         self.allowance = None
     

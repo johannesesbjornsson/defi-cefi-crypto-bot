@@ -3,7 +3,7 @@ import json
 import contract_libarary
 #from web3 import Web3
 import time
-
+import os
 from web3.logs import STRICT, IGNORE, DISCARD, WARN
 #from web3.eth import AsyncEth
 
@@ -24,7 +24,7 @@ class Client(object):
             provider = Polygon()
         elif blockchain == "bsc":
             provider = Bsc()
-        elif blockchain == "ftm":
+        elif blockchain == "fantom":
             provider = Fantom()
         else:
             raise ValueError(blockchain + " is not a supported blockchain")
@@ -54,6 +54,9 @@ class Client(object):
         self.blockchain = blockchain
         self.my_address = self.web3.toChecksumAddress(my_address)
         self.private_key = private_key
+
+        self.settings_dir = os.path.dirname(os.path.realpath(__file__)) + '/settings/'+self.blockchain
+        self.load_token_json_file()
         
 
     def get_abi(self,address):
@@ -83,6 +86,26 @@ class Client(object):
         output = self.web3.eth.call({"to": contract_address, "data": params})
         decoded = decode_abi(fn_arguments_format, output)
         return decoded
+
+    def load_token_json_file(self):
+        with open(self.settings_dir+'/tokens.json', 'r') as f: 
+        	data = json.load(f)
+        self.token_info = data
+
+    def get_token_info(self, token):
+        token_info = None
+        if token in self.token_info:
+            token_info = self.token_info[token]
+        return token_info
+
+    def add_token_info(self, token, info):
+        if token not in self.token_info:
+            self.token_info[token] = info
+            with open(self.settings_dir+'/tokens.json', "w") as f:
+                json.dump(self.token_info, f)
+        return True          
+
+
 
 #        #params = liquidity_pool_contract.encodeABI(fn_name="getReserves",args=[])
 #        #data = {"jsonrpc": "2.0", "method": "eth_call", "params": [{"to": self.liquidity_pool_address, "data": params}, "latest"], "id": 1}

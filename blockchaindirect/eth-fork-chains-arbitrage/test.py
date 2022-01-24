@@ -49,30 +49,17 @@ if __name__ == "__main__":
         start = time.perf_counter()
         #token_1 = Token(client, "WFTM")
         #token_2 = Token(client, "ETH")
+        
         token_1 = Token(client, "WMATIC")
-        token_2 = Token(client, "USDC")
-        
-        token_pair = TokenPair(client, token_1, token_2, False)
-        #amount_in = token_pair.token_1.to_wei(10)
-        #amount_in = token_pair.token_2.to_wei(10)
-        #
-        
-        try:
-            import math
-            math.sqrt(-10)
-        except ValueError as e:
-            print(str(e))
+        end = time.perf_counter()
+        print(end - start)
 
-        #my_router_return_transaction = token_pair.swap_token_2_for_token_1(amount_in, amount_out_from_token_1)
-        #token_pair_2 = TokenPair(client, token_1, token_2)
-        transaction_info = client.web3.eth.get_transaction("0x5fd2b41e32392662a61af5cd0518311760fc71937784b4159ebaef1ce4a19881")
-        txn = Transaction(client,transaction_info)
-        router_txn = RouterTransaction(txn)
-        router_txn.transaction.get_transaction_receipt()
-        router_txn.get_transaction_amount_out()
-        token_pair.quick_router_transction_analysis(router_txn)
-        #token_pair_2.quick_router_transction_analysis(router_txn)
-        #break
+        start = time.perf_counter()
+        token_2 = Token(client, "USDC", "local")
+        end = time.perf_counter()
+        print(end - start)
+             
+        #token_pair = TokenPair(client, token_1, token_2, False)
         
 
         #asyncio.run(self.watch_competing_transaction(router_txn.transaction))
@@ -83,10 +70,10 @@ if __name__ == "__main__":
         #    print (txn[2])
         
         
-        end = time.perf_counter()
-        test.append(end - start)
-        print("-----------------------")
-        print("Time elapsed average: ", sum(test) / len(test))
+        #end = time.perf_counter()
+        #test.append(end - start)
+        #print("-----------------------")
+        #print("Time elapsed average: ", sum(test) / len(test))
         print("-----------------------")
         break
         time.sleep(2)
