@@ -13,9 +13,9 @@ import asyncio
 import nest_asyncio
 nest_asyncio.apply()
 
-from polygon import Polygon
-from bsc import Bsc
-from fantom import Fantom
+from settings.polygon.client import Polygon
+from settings.bsc.client import Bsc
+from settings.fantom.client import Fantom
 
 class Client(object):
 
