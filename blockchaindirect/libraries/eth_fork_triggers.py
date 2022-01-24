@@ -42,7 +42,7 @@ class Triggers(object):
             input_token, out_token = router_txn.path[-2:]
             if input_token == self.token_to_scan_for:
                 #start = time.perf_counter()
-                token_2 = Token(self.client, out_token)
+                token_2 = Token(self.client, out_token, "local")
                 token_pair = TokenPair(self.client, self.token_1, token_2)
                 #end = time.perf_counter()
                 #print("Token init time elapsed: ", end - start)

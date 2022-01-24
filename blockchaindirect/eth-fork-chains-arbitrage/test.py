@@ -58,8 +58,11 @@ if __name__ == "__main__":
         token_2 = Token(client, "USDC", "local")
         end = time.perf_counter()
         print(end - start)
-             
-        #token_pair = TokenPair(client, token_1, token_2, False)
+
+        start = time.perf_counter()
+        token_pair = TokenPair(client, token_1, token_2)
+        end = time.perf_counter()
+        print(end - start)           
         
 
         #asyncio.run(self.watch_competing_transaction(router_txn.transaction))

@@ -101,10 +101,12 @@ class Client(object):
     def add_token_info(self, token, info):
         if token not in self.token_info:
             self.token_info[token] = info
-            with open(self.settings_dir+'/tokens.json', "w") as f:
-                json.dump(self.token_info, f)
-        return True          
+        return True
 
+    def write_token_info_to_file(self):
+        with open(self.settings_dir+'/tokens.json', "w") as f:
+            json.dump(self.token_info, f)
+        return True
 
 
 #        #params = liquidity_pool_contract.encodeABI(fn_name="getReserves",args=[])
