@@ -50,7 +50,7 @@ if __name__ == "__main__":
         #token_1 = Token(client, "WFTM")
         #token_2 = Token(client, "ETH")
         
-        token_1 = Token(client, "WMATIC")
+        token_1 = Token(client, "WMATIC", "local")
         end = time.perf_counter()
         print(end - start)
 
