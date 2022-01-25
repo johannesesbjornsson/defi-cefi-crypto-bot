@@ -61,12 +61,12 @@ class Triggers(object):
                 my_gas_price = router_txn.transaction.gas_price + self.client.gas_price_frontrunning_increase
 
                 
-                if self.performing_transaction == False and amount_in is not None and  amount_out is not None:
-                    self.performing_transaction = True
-                    my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=my_gas_price, nonce=self.current_nonce)
-                    function_end = time.perf_counter()
-                    print("Function time elapsed: ", function_end - function_start,"\n-------")
-                #my_router_transaction = "dummy val"
+                #if self.performing_transaction == False and amount_in is not None and  amount_out is not None:
+                #    self.performing_transaction = True
+                #    my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=my_gas_price, nonce=self.current_nonce)
+                #    function_end = time.perf_counter()
+                #    print("Function time elapsed: ", function_end - function_start,"\n-------")
+                my_router_transaction = "dummy val"
                 #function_end = time.perf_counter()
                 #print("Function time elapsed: ", function_end - function_start,"\n-------")
 

@@ -117,6 +117,7 @@ class TokenPair(object):
     def quick_router_transction_analysis(self,router_txn):
         impact = 0
         transaction_value = 0
+        slippage = 0
         
         #if router_txn.amount_in is not None and len(router_txn.path) == 2:
         if router_txn.amount_in is not None and router_txn.path[0] == self.token_1.address and router_txn.path[1] == self.token_2.address:
@@ -126,6 +127,18 @@ class TokenPair(object):
         elif router_txn.amount_out is not None and router_txn.path[-1] == self.token_2.address and router_txn.path[-2] == self.token_1.address:
             impact = self.get_liquidity_impact_of_token_2_for_token_1(self.token_2.from_wei(router_txn.amount_out))
             transaction_value = (self.token_1_liquidity/self.token_2_liquidity) * self.token_2.from_wei(router_txn.amount_out)
+        
+        if router_txn.amount_in and router_txn.amount_out and len(router_txn.path) == 2:
+            amount_out_with_slippage = self.get_amount_token_2_out(router_txn.amount_in,offline_calculation=True)
+            slippage = (amount_out_with_slippage/router_txn.amount_out) - 1
+            if slippage < 1:
+                print(router_txn)
+                print(router_txn.function_called)
+                print(router_txn.transaction.from_address)
+                print("Not likley to pass")
+        elif (router_txn.amount_in and not router_txn.amount_out) or (not router_txn.amount_in and router_txn.amount_out):
+            slippage = None
+
 
         return impact, transaction_value
 
