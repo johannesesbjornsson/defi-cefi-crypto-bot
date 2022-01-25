@@ -18,36 +18,54 @@ nest_asyncio.apply()
 #import httpx
 
 class TokenPair(object):
-    def __init__(self, client, token_1, token_2, asynchronous_init=False):
+    def __init__(self, client, token_1, token_2, init_type="standard"):
         self.client = client
         self.token_1 = token_1
         self.token_2 = token_2
         self.abi=contract_libarary.standard_contracts["liquidity_pool"]
         
         
+        if init_type == "standard":
+            self.standard_init()
+        elif init_type == "local":
+            pair_info = self.client.get_pair_info([self.token_1.address, self.token_2.address])
+            if pair_info:
+                self.raw_reserves_token_1 = pair_info["token0"]
+                self.liquidity_pool_address = pair_info["liquidity_pool_address"]
+                self.liquidity_pool_contract = self.client.web3.eth.contract(address=self.liquidity_pool_address, abi=self.abi)
+                self.token_1_liquidity, self.token_2_liquidity = self.get_pair_liquidity()
+            else:
+                self.standard_init()
+                pair = [self.token_1.address, self.token_2.address]
+                pair_info = { "token0" : self.raw_reserves_token_1, "liquidity_pool_address" : self.liquidity_pool_address }
+                self.client.add_pair_info(pair, pair_info)
 
-        if asynchronous_init:
+
+        elif init_type == "async":
             loop = asyncio.get_event_loop()
             results = loop.run_until_complete(self.asynchronous_object_init())
             self.liquidity_pool_address = results[0]
             self.liquidity_pool_contract = results[1]
             self.token_1_liquidity = results[2]
-            self.token_2_liquidity = results[3]
+            self.token_2_liquidity = results[3] 
         else:
-            liquidity_pool_address = self.client.factory_contract.functions.getPair(self.token_1.address, self.token_2.address).call()
-            self.liquidity_pool_address = self.client.web3.toChecksumAddress(liquidity_pool_address)
-            try:
-                self.liquidity_pool_contract = self.client.web3.eth.contract(address=self.liquidity_pool_address, abi=self.abi)
-                self.token_1_liquidity, self.token_2_liquidity = self.get_pair_liquidity()
-            except ValueError as e:
-                self.liquidity_pool_contract = None
-                self.token_1_liquidity = None
-                self.token_2_liquidity = None     
-        
+            raise ValueError("'init_type' needs to be 'standard', 'async' or 'local'")
 
     def __str__(self):
         return f"{self.token_1.symbol}: {self.token_1.address},\n{self.token_2.symbol}: {self.token_2.address},\nLiquidity_address: {self.liquidity_pool_address}"
-    
+
+    def standard_init(self):
+        liquidity_pool_address = self.client.factory_contract.functions.getPair(self.token_1.address, self.token_2.address).call()
+        self.liquidity_pool_address = self.client.web3.toChecksumAddress(liquidity_pool_address)
+        try:
+            self.liquidity_pool_contract = self.client.web3.eth.contract(address=self.liquidity_pool_address, abi=self.abi)
+            self.raw_reserves_token_1 = self.liquidity_pool_contract.functions.token0().call()
+            self.token_1_liquidity, self.token_2_liquidity = self.get_pair_liquidity()
+        except ValueError as e:
+            self.liquidity_pool_contract = None
+            self.token_1_liquidity = None
+            self.token_2_liquidity = None
+
     def approve_tokens(self):
         if self.token_1.allowance_on_router == 0:
             self.token_1.approve_token()
@@ -113,12 +131,11 @@ class TokenPair(object):
 
     def get_pair_liquidity(self):
         reserves = self.liquidity_pool_contract.functions.getReserves().call()[0:2]
-        reserves_token_1 = self.liquidity_pool_contract.functions.token0().call()
 
-        if reserves_token_1 == self.token_1.address:
+        if self.raw_reserves_token_1 == self.token_1.address:
             token_1_liquidity = reserves[0]
             token_2_liquidity = reserves[1]
-        elif reserves_token_1 == self.token_2.address:
+        elif self.raw_reserves_token_1 == self.token_2.address:
             token_1_liquidity = reserves[1]
             token_2_liquidity = reserves[0]
 

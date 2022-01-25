@@ -1,6 +1,7 @@
-import sys, os
+import sys, os, json
 import unittest
 import copy
+import random
 sys.path.append('../libraries')
 from eth_fork_client import Client
 from eth_fork_token import Token
@@ -105,6 +106,39 @@ class TokenTest(unittest.TestCase):
         router_txn = RouterTransaction(txn)
         liquidity_impact, txn_value = self.token_pair_static.quick_router_transction_analysis(router_txn)
         self.assertTrue(round(liquidity_impact, 5) == 0.00022 and round(txn_value, 5)  == 4.44855)
+    
+
+    # Tests random locally stored token infro matches blockchain stored info
+    def test_file_init(self):
+        pair_list = random.sample(self.polygon_client.pair_info.keys() , 20)
+        for pair in pair_list:
+            token_address_1, token_address_2 = pair.split("_")
+            
+            token_1 = Token(self.polygon_client, token_address_1)
+            token_2 = Token(self.polygon_client, token_address_2)
+            token_pair = TokenPair(self.polygon_client, token_1, token_2)
+
+            local_token_1 = Token(self.polygon_client, token_address_1, "local")
+            local_token_2 = Token(self.polygon_client, token_address_2, "local")
+            local_token_pair = TokenPair(self.polygon_client, token_1, token_2, "local")
+            token_1_amount_in = self.token_1.to_wei(100)
+
+            amount_out = token_pair.get_amount_token_2_out(token_1_amount_in, offline_calculation=True)
+            local_amount_out = local_token_pair.get_amount_token_2_out(token_1_amount_in, offline_calculation=True)
+
+            try:
+                difference = amount_out/local_amount_out
+                self.assertTrue(difference > 0.9999 and difference < 1.0001)
+            except ZeroDivisionError as e:
+                pass
+
+            self.assertTrue(token_1.decimals == local_token_1.decimals)
+            self.assertTrue(token_2.decimals == local_token_2.decimals)
+            self.assertTrue(token_pair.liquidity_pool_address == local_token_pair.liquidity_pool_address)
+            self.assertTrue(token_pair.raw_reserves_token_1 == local_token_pair.raw_reserves_token_1)
+            
+
+            
 
 if __name__ == '__main__':
     unittest.main()

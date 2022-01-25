@@ -9,7 +9,7 @@ nest_asyncio.apply()
 
 class Token(object):
 
-    def __init__(self, client, token):
+    def __init__(self, client, token, init_type="standard"):
         self.known_tokens = client.known_tokens
         self.client = client
 
@@ -24,7 +24,20 @@ class Token(object):
         self.token_contract = self.client.web3.eth.contract(
             address=self.address, 
             abi=contract_libarary.standard_contracts["token"])
-        self.decimals = self.token_contract.functions.decimals().call()
+        
+        if init_type == "standard":
+            self.decimals = self.token_contract.functions.decimals().call()
+        elif init_type == "local":
+            token_info = self.client.get_token_info(self.address)
+            if token_info:
+                self.decimals = token_info["decimals"]
+            else:
+                self.decimals = self.token_contract.functions.decimals().call()
+                token_info = { "decimals" : self.decimals }
+                self.client.add_token_info(self.address, token_info)
+        else:
+            raise ValueError("'init_type' needs to be 'standard' or 'local'")
+
         self.token_symbol = None
         self.allowance = None
     
@@ -59,6 +72,7 @@ class Token(object):
         self.token_contract = token_contract
 
     def approve_token(self):
+        transaction = None
         if self.allowance_on_router == 0:
             value = self.client.web3.toWei(2**64-1,'ether')
             txn = self.token_contract.functions.approve(self.client.router_contract_address,value)
@@ -67,12 +81,12 @@ class Token(object):
             try:
                 transaction.sign_and_send_transaction()
             except ValueError as e:
-                print("str stard:",str(e),":str end")
-                print(type(e))
                 if str(e) == "{'code': -32000, 'message': 'nonce too low'}":
                     print("Having to resend transaction")
                     transaction.nonce += 1
                     transaction.sign_and_send_transaction()
+                else:
+                    raise ValueError(str(e))
 
             transaction_complete, transaction_successful = transaction.get_transaction_receipt(wait=True)
             if not transaction_successful:
@@ -80,7 +94,7 @@ class Token(object):
 
             self.allowance =  self.token_contract.functions.allowance(self.client.my_address,self.client.router_contract_address).call()
 
-        return True
+        return transaction
 
     def to_wei(self, n):
         wei = n * ( 10 ** self.decimals)

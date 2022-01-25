@@ -17,4 +17,4 @@ RUN mkdir /libraries
 
 COPY libraries/*.py /libraries/
 
-CMD [ "python", "-u", "polygon-arbitrage.py polygon"]
+CMD [ "python", "-u", "front_run.py polygon"]
