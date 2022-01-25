@@ -187,7 +187,7 @@ class Triggers(object):
     
         #time.sleep(0.2)
         if self.client.web3.eth.gas_price > self.client.max_gas_price:
-            print("Gas prices to high atm...")
+            print("Gas prices too high atm...")
             time.sleep(60)
             return False
 
