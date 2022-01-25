@@ -1,104 +1,64 @@
 import requests
 import json
 import contract_libarary
-from web3 import Web3
+#from web3 import Web3
 import time
-import token_config
+import os
 from web3.logs import STRICT, IGNORE, DISCARD, WARN
-from web3.exceptions import ContractLogicError, TransactionNotFound
+#from web3.eth import AsyncEth
 
+from eth_abi import decode_abi
+from eth_utils import to_bytes
+import asyncio
+import nest_asyncio
+nest_asyncio.apply()
+
+from settings.polygon.client import Polygon
+from settings.bsc.client import Bsc
+from settings.fantom.client import Fantom
 
 class Client(object):
 
-    def __init__(self, blockchain, my_address, private_key, api_key):
+    def __init__(self, blockchain, my_address, private_key, api_key=None):
         if blockchain == "polygon":
-            self.api_key = api_key
-            provider_url = "https://speedy-nodes-nyc.moralis.io/0279106ed82b874b3e1b195d/polygon/mainnet"
-            #provider_url = "https://polygon-rpc.com"
-            #provider_url = "https://matic.slingshot.finance"
-            provider_ws = "wss://speedy-nodes-nyc.moralis.io/0279106ed82b874b3e1b195d/polygon/mainnet/ws"
-            self.web3_ws = Web3(Web3.WebsocketProvider(provider_ws))
-            self.web3 = Web3(Web3.HTTPProvider(provider_url))
-            router_contract_name = "quickswap_router"
-            factory_contract_name = "quickswap_factory"  
-            self.get_polygon_tokens()
-            self.max_gas_price = self.web3.toWei('750','gwei')
-            self.default_gas_limit = 300000 #TODO have this be not fixed
-            self.slippage = 0.995
+            provider = Polygon()
         elif blockchain == "bsc":
-            self.api_key = api_key
-            #provider_url = "https://bsc-dataseed.binance.org/"
-            provider_url = "https://speedy-nodes-nyc.moralis.io/0279106ed82b874b3e1b195d/bsc/mainnet"
-            provider_ws = "wss://speedy-nodes-nyc.moralis.io/0279106ed82b874b3e1b195d/bsc/mainnet/ws"
-            self.web3_ws = Web3(Web3.WebsocketProvider(provider_ws))
-            self.web3 = Web3(Web3.HTTPProvider(provider_url))    
-            router_contract_name = "pancake_router"
-            factory_contract_name = "pancake_factory"  
-            self.get_bep20_tokens()
-            self.slippage = 0.99 
-            self.default_gas_limit = 300000
-            self.max_gas_price = self.web3.toWei('5','gwei')
-        elif blockchain == "velas":
-            self.api_key = api_key
-            provider_url = "https://evmexplorer.velas.com/rpc"
-            provider_ws = "wss://api.velas.com/"
-            self.web3_ws = Web3(Web3.WebsocketProvider(provider_ws))
-            self.web3 = Web3(Web3.HTTPProvider(provider_url)) 
-            router_contract_name = "wagyu_router"
-            factory_contract_name = "wagyu_factory"  
-            self.get_velas_tokens()
-            self.slippage = 0.995
-            self.default_gas_limit = 300000
-            self.max_gas_price = self.web3.toWei('5','gwei')
+            provider = Bsc()
+        elif blockchain == "fantom":
+            provider = Fantom()
         else:
-            raise ValueError(blockchain + "is not a supported blockchain")
+            raise ValueError(blockchain + " is not a supported blockchain")
 
+        self.web3_ws = provider.web3_ws
+        self.web3 = provider.web3
+        self.web3_asybc = provider.web3_asybc
+        self.router_swap_fee = provider.router_swap_fee  
+        self.max_gas_price = provider.max_gas_price
+        self.min_gas_price_of_scanned_txn = provider.min_gas_price_of_scanned_txn
+        self.gas_price_frontrunning_increase = provider.gas_price_frontrunning_increase
+        self.default_gas_price = provider.default_gas_price
+        self.default_gas_limit = provider.default_gas_limit
+        self.slippage = provider.slippage
+        self.token_to_scan_for = provider.token_to_scan_for
+        self.scan_token_value = provider.scan_token_value
+        self.minimum_scanned_transaction = provider.minimum_scanned_transaction
+        self.minimum_liquidity_impact = provider.minimum_liquidity_impact
+        self.swap_log_location_index = provider.swap_log_location_index
+        self.tokens_to_check = provider.tokens_to_check
+        self.known_tokens = provider.known_tokens
+        self.router_contract_address = provider.router_contract_address
+        self.router_contract = provider.router_contract
+        self.factory_contract = provider.factory_contract
+        self.factory_contract_address = provider.factory_contract_address
+        self.api_key = api_key
         self.blockchain = blockchain
         self.my_address = self.web3.toChecksumAddress(my_address)
         self.private_key = private_key
-        contract_details = contract_libarary.get_contract_details(router_contract_name)
-        abi = json.loads(contract_details["abi"])
-        contract_address = self.web3.toChecksumAddress(contract_details["address"])
-        self.router_contract_address = contract_address 
-        self.router_contract = self.web3.eth.contract(address=contract_address, abi=abi)
-        contract_details = contract_libarary.get_contract_details(factory_contract_name)
-        abi = json.loads(contract_details["abi"])
-        contract_address = self.web3.toChecksumAddress(contract_details["address"])
-        self.factory_contract = self.web3.eth.contract(address=contract_address, abi=abi)
 
-    def get_bep20_tokens(self,exclude_tokens=["BUSD", "USDT","USDC","SAFEMOON"]):
-        url = "https://api.pancakeswap.info/api/v2/pairs"
-        response = requests.get(url)
-        json_reponse = json.loads(response.content)["data"]
-        known_tokens = {}
-        for pair in json_reponse:
-            token_1 = pair.split("_")[0]
-            token_2 = pair.split("_")[1]
-            token_1_symbol = json_reponse[pair]["base_symbol"]
-            token_2_symbol = json_reponse[pair]["quote_symbol"]
-            if token_1_symbol in exclude_tokens or token_2_symbol in exclude_tokens:
-                #skip stable coins
-                continue
-            elif token_1_symbol not in known_tokens:
-                known_tokens[token_1_symbol] = token_1
-            elif token_2_symbol not in known_tokens:
-                known_tokens[token_2_symbol] = token_2
-
-        self.tokens_to_check = known_tokens
-
-        all_tokens = known_tokens.copy()
-        all_tokens.update(token_config.bep20_all_tokens)
-        self.known_tokens = all_tokens
-
-    def get_polygon_tokens(self):
-        self.tokens_to_check = token_config.polygon_tokens
-        self.known_tokens = token_config.polygon_all_tokens
-
-
-    def get_velas_tokens(self):
-        self.tokens_to_check = token_config.velas_tokens
-        self.known_tokens = token_config.all_velas_tokens
-
+        self.settings_dir = os.path.dirname(os.path.realpath(__file__)) + '/settings/'+self.blockchain
+        self.load_token_json_from_file()
+        self.load_pair_json_from_file()
+        
 
     def get_abi(self,address):
         if self.blockchain == "bsc":
@@ -112,64 +72,70 @@ class Client(object):
       
         return json_reponse["result"]
 
+    def get_transaction_count(self):
+        transaction_count = self.web3.eth.get_transaction_count(self.my_address)
+        return transaction_count
 
-#    def sign_and_send_transaction(self, transaction, gas_price=None):
-#        if gas_price is None:
-#            gas_price = self.web3.eth.gas_price
-#            if gas_price > self.max_gas_price:
-#                raise ValueError(f"Gas prices are currently to expensive: {gas_price}")
-#
-#        nonce = self.web3.eth.get_transaction_count(self.my_address)
-#        built_txn = transaction.buildTransaction({
-#                'from': self.my_address,
-#                'value': 0,
-#                'gas': self.default_gas_limit, 
-#                'gasPrice': gas_price,
-#                'nonce': nonce,
-#            })
-#
-#        signed_txn = self.web3.eth.account.sign_transaction(built_txn, private_key=self.private_key)
-#        txn_hash = self.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
-#        #transaction_receipt = self.web3.eth.wait_for_transaction_receipt(txn_hash)
-#        transaction_receipt, transaction_successful, transaction_complete = self.get_transaction_receipt(txn_hash=txn_hash, wait=True)
-#        
-#        return transaction_receipt
-#
-#    def get_transaction_receipt(self,txn_hash, wait=True):
-#        transaction_receipt = None
-#        transaction_successful = None
-#        transaction_complete = False
-#
-#        if wait:
-#            transaction_receipt = self.web3.eth.wait_for_transaction_receipt(txn_hash)
-#            transaction_complete = True
-#            transaction_successful = transaction_receipt["status"]
-#        else:
-#            try:
-#                transaction_receipt = self.web3.eth.get_transaction_receipt(txn_hash)
-#                transaction_complete = True
-#                transaction_successful = transaction_receipt["status"]
-#            except TransactionNotFound as e:
-#                transaction_complete = False
-#        
-#        if transaction_successful == 0:
-#            transaction_successful = False
-#        elif transaction_successful == 1:
-#            transaction_successful = True
-#
-#        return transaction_receipt, transaction_successful, transaction_complete
-#
-                
-    def get_recent_transactions(self):
+    async def eth_call_raw_async(self, contract, contract_address, fn_name, fn_arguments_format, args):
+        params = contract.encodeABI(fn_name=fn_name, args=args)
+        output = await self.web3_asybc.eth.call({"to": contract_address, "data": params})
+        decoded = decode_abi(fn_arguments_format, output)
+        return decoded
 
-        url = "https://deep-index.moralis.io/api/v2/{}?chain=polygon&limit=25".format(self.contract_address)
-        response = requests.get(url, headers={"X-API-Key":"0ZMgWQz5RlFhsFYBHOXJqvDCDdYmkZ1KzzY2304zUmsfmBpszfa0Bo3cBnxy1atV"})
-        json_reponse = json.loads(response.content)
+    def eth_call_raw(self, contract, contract_address , fn_name, fn_arguments_format, args):
+        params = contract.encodeABI(fn_name=fn_name, args=args)
+        output = self.web3.eth.call({"to": contract_address, "data": params})
+        decoded = decode_abi(fn_arguments_format, output)
+        return decoded
 
-        for transaction in json_reponse["result"]:
-            print(transaction["block_timestamp"])
-            #print(transaction.keys())
-            txn_input = self.router_contract.decode_function_input(transaction["input"])
-            print(txn_input[1])
-            #self.toChecksumAddress(txn_input[1]["path"][1])
-            self.toChecksumAddress("USDT")
+    def load_token_json_from_file(self):
+        with open(self.settings_dir+'/tokens.json', 'r') as f: 
+        	data = json.load(f)
+        self.token_info = data
+
+    def get_token_info(self, token):
+        token_info = None
+        if token in self.token_info:
+            token_info = self.token_info[token]
+        return token_info
+
+    def add_token_info(self, token, info):
+        if token not in self.token_info:
+            self.token_info[token] = info
+        return True
+
+    def write_token_info_to_file(self):
+        with open(self.settings_dir+'/tokens.json', "w") as f:
+            json.dump(self.token_info, f)
+        return True
+
+
+    def load_pair_json_from_file(self):
+        with open(self.settings_dir+'/pairs.json', 'r') as f: 
+        	data = json.load(f)
+        self.pair_info = data
+
+    def get_pair_info(self, pair):
+        pair_info = None
+        pair_key = "_".join(sorted(pair))
+        if pair_key in self.pair_info:
+            pair_info = self.pair_info[pair_key]
+        return pair_info
+
+    def add_pair_info(self, pair, info):
+        pair_key = "_".join(sorted(pair))
+        if pair_key not in self.pair_info:
+            self.pair_info[pair_key] = info
+        return True
+
+    def write_pair_info_to_file(self):
+        with open(self.settings_dir+'/pairs.json', 'w') as f:
+            json.dump(self.pair_info, f)
+        return True
+
+#        #params = liquidity_pool_contract.encodeABI(fn_name="getReserves",args=[])
+#        #data = {"jsonrpc": "2.0", "method": "eth_call", "params": [{"to": self.liquidity_pool_address, "data": params}, "latest"], "id": 1}
+#        #response = await client.post(url="https://polygon-rpc.com",headers={"Content-Type":"application/json"},json=data)
+#        #hex_str = response.json()["result"]
+#        #decoded = decode_abi(['uint112','uint112','uint32'], to_bytes(hexstr=hex_str))
+#        #self.reserves_raw = decoded

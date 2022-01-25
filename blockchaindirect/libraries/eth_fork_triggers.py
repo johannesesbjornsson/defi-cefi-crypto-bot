@@ -41,11 +41,11 @@ class Triggers(object):
         try:
             input_token, out_token = router_txn.path[-2:]
             if input_token == self.token_to_scan_for:
-                start = time.perf_counter()
+                #start = time.perf_counter()
                 token_2 = Token(self.client, out_token, "local")
                 token_pair = TokenPair(self.client, self.token_1, token_2,"local")
-                end = time.perf_counter()
-                print("Token init time elapsed: ", end - start)
+                #end = time.perf_counter()
+                #print("Token init time elapsed: ", end - start)
                 
             else:
                 token_pair = None
@@ -146,39 +146,37 @@ class Triggers(object):
         
         return pending_router_transactions
 
-
-    async def watch_competing_transaction(self, transaction):
-        transaction_complete, transaction_successful = transaction.get_transaction_receipt(wait=False)
+    def watch_transactions(self,txns):
         time_started = time.time()
-        while transaction_successful == False and 360 > time.time() - time_started:
-            pending_transactions = self.tx_filter.get_new_entries()
-            if len(pending_transactions) == 0:
-                time.sleep(1)
-                continue
+        txns_left = txns
+        while len(txns_left) > 0:
+            txns_not_yet_complete = []
+            for txn in txns_left:
+                if txn:
+                    transaction_info = self.client.web3.eth.get_transaction(txn.hash)
+                    txn = Transaction(self.client, transaction_info)
+                    if txn.block_number:
+                        transaction_complete, transaction_successful = txn.get_transaction_receipt(wait=False)
+                        if transaction_complete and transaction_successful:
+                            pass
+                        elif transaction_complete and not transaction_successful:
+                            txn_count = self.client.web3.eth.get_transaction_count(txn.from_address)
+                            if txn_count <= txn.nonce:
+                                txns_not_yet_complete.append(txn)
+                    else:
+                        pass
+                
+            if 360 > time.time() - time_started:
+                txns_left = txns_not_yet_complete
+                if txns_left:
+                    print("watching.....",time.time() - time_started)
+                    time.sleep(5)
+            else:
+                txns_left = []
             
-            done, pending = await asyncio.wait(
-                [self.fetch_single_transaction(arg,compare_transaction=transaction) for arg in pending_transactions]
-            )
+        
+        return txns_left
 
-            for result in done:
-                txn = result.result()
-                if not txn:
-                    continue
-                print("Overwriting transaction found")
-                print(txn)
-                print(txn.gas_price)
-                transaction = txn
-            
-            
-            print("wathcing....", time.time() - time_started)
-            time.sleep(5)
-            transaction_complete, transaction_successful = transaction.get_transaction_receipt(wait=False)
-            # TODO FIX this
-            if transaction_complete == True and transaction_successful == False:
-                print("Scanned transaction failed, increasing nonce")
-                transaction.nonce += 1
-    
-        return transaction_complete, transaction_successful
 
     def intercept_transactions(self):
         #eth_newPendingTransactionFilter
@@ -236,8 +234,9 @@ class Triggers(object):
                 transaction_complete, transaction_successful = my_router_transaction.transaction.get_transaction_receipt(wait=True)
                 print("Initial swap status", transaction_successful)
                 if transaction_successful:
-                    token_pair.token_2.approve_token()
-                    asyncio.run(self.watch_competing_transaction(router_txn.transaction))
+                    approve_token_txn = token_pair.token_2.approve_token()
+                    #asyncio.run(self.watch_competing_transaction(router_txn.transaction))
+                    self.watch_transactions([approve_token_txn, router_txn.transaction ])
                     amount_out_from_token_2 = my_router_transaction.get_transaction_amount_out()
                     amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
                     my_router_return_transaction = token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)

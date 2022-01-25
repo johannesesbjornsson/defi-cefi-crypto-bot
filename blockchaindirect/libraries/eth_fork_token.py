@@ -72,6 +72,7 @@ class Token(object):
         self.token_contract = token_contract
 
     def approve_token(self):
+        transaction = None
         if self.allowance_on_router == 0:
             value = self.client.web3.toWei(2**64-1,'ether')
             txn = self.token_contract.functions.approve(self.client.router_contract_address,value)
@@ -80,12 +81,12 @@ class Token(object):
             try:
                 transaction.sign_and_send_transaction()
             except ValueError as e:
-                print("str stard:",str(e),":str end")
-                print(type(e))
                 if str(e) == "{'code': -32000, 'message': 'nonce too low'}":
                     print("Having to resend transaction")
                     transaction.nonce += 1
                     transaction.sign_and_send_transaction()
+                else:
+                    raise ValueError(str(e))
 
             transaction_complete, transaction_successful = transaction.get_transaction_receipt(wait=True)
             if not transaction_successful:
@@ -93,7 +94,7 @@ class Token(object):
 
             self.allowance =  self.token_contract.functions.allowance(self.client.my_address,self.client.router_contract_address).call()
 
-        return True
+        return transaction
 
     def to_wei(self, n):
         wei = n * ( 10 ** self.decimals)
