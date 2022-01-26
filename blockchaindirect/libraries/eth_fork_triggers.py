@@ -158,7 +158,7 @@ class Triggers(object):
                     if txn.block_number:
                         transaction_complete, transaction_successful = txn.get_transaction_receipt(wait=False)
                         if transaction_complete and transaction_successful:
-                            print("here1")
+                            print("here1", transaction_info)
                             pass
                         elif transaction_complete and not transaction_successful:
                             txn_count = self.client.web3.eth.get_transaction_count(txn.from_address)

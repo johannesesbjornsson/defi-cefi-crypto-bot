@@ -78,16 +78,26 @@ class Transaction(object):
         self.built_transaction = transaction
 
     def sign_and_send_transaction(self):
-        built_txn = self.built_transaction.buildTransaction({
-                'from': self.from_address,
-                'value': 0,
-                'gas': self.gas_limit, 
-                'gasPrice': self.gas_price,
-                'nonce': self.nonce,
-            })
-
-        signed_txn = self.client.web3.eth.account.sign_transaction(built_txn, private_key=self.client.private_key)
-        txn_hash = self.client.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
+        build_txn_hash = {
+            'from': self.from_address,
+            'value': 0,
+            'gas': self.gas_limit, 
+            'gasPrice': self.gas_price,
+            'nonce': self.nonce,
+        }
+        try:
+            built_txn = self.built_transaction.buildTransaction(build_txn_hash)
+            signed_txn = self.client.web3.eth.account.sign_transaction(built_txn, private_key=self.client.private_key)
+            txn_hash = self.client.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
+        except ValueError as e:
+            if str(e) == "{'code': -32000, 'message': 'nonce too low'}":
+                print("Having to resend transaction")
+                build_txn_hash["nonce"] = self.nonce + 1
+                built_txn = self.built_transaction.buildTransaction(build_txn_hash)
+                signed_txn = self.client.web3.eth.account.sign_transaction(built_txn, private_key=self.client.private_key)
+                txn_hash = self.client.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
+            else:
+                raise ValueError(str(e))
 
         for i in range(10):
             time.sleep(0.2)

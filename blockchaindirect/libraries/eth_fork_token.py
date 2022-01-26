@@ -78,15 +78,16 @@ class Token(object):
             txn = self.token_contract.functions.approve(self.client.router_contract_address,value)
             transaction = Transaction(self.client, None)
             transaction.create_transaction(txn)
-            try:
-                transaction.sign_and_send_transaction()
-            except ValueError as e:
-                if str(e) == "{'code': -32000, 'message': 'nonce too low'}":
-                    print("Having to resend transaction")
-                    transaction.nonce += 1
-                    transaction.sign_and_send_transaction()
-                else:
-                    raise ValueError(str(e))
+            transaction.sign_and_send_transaction()
+            #try:
+            #    transaction.sign_and_send_transaction()
+            #except ValueError as e:
+            #    if str(e) == "{'code': -32000, 'message': 'nonce too low'}":
+            #        print("Having to resend transaction")
+            #        transaction.nonce += 1
+            #        transaction.sign_and_send_transaction()
+            #    else:
+            #        raise ValueError(str(e))
 
             transaction_complete, transaction_successful = transaction.get_transaction_receipt(wait=True)
             if not transaction_successful:
