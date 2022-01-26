@@ -61,12 +61,12 @@ class Triggers(object):
                 my_gas_price = router_txn.transaction.gas_price + self.client.gas_price_frontrunning_increase
 
                 
-                #if self.performing_transaction == False and amount_in is not None and  amount_out is not None:
-                #    self.performing_transaction = True
-                #    my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=my_gas_price, nonce=self.current_nonce)
-                #    function_end = time.perf_counter()
-                #    print("Function time elapsed: ", function_end - function_start,"\n-------")
-                my_router_transaction = "dummy val"
+                if self.performing_transaction == False and amount_in is not None and  amount_out is not None:
+                    self.performing_transaction = True
+                    my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=my_gas_price, nonce=self.current_nonce)
+                    function_end = time.perf_counter()
+                    print("Function time elapsed: ", function_end - function_start,"\n-------")
+                #my_router_transaction = "dummy val"
                 #function_end = time.perf_counter()
                 #print("Function time elapsed: ", function_end - function_start,"\n-------")
 
@@ -158,13 +158,17 @@ class Triggers(object):
                     if txn.block_number:
                         transaction_complete, transaction_successful = txn.get_transaction_receipt(wait=False)
                         if transaction_complete and transaction_successful:
+                            print("here1")
                             pass
                         elif transaction_complete and not transaction_successful:
                             txn_count = self.client.web3.eth.get_transaction_count(txn.from_address)
+                            print("here2")
                             if txn_count <= txn.nonce:
+                                print("here3")
                                 txns_not_yet_complete.append(txn)
                     else:
-                        pass
+                        print("here4")
+                        txns_not_yet_complete.append(txn)
                 
             if 360 > time.time() - time_started:
                 txns_left = txns_not_yet_complete
@@ -179,13 +183,9 @@ class Triggers(object):
 
 
     def intercept_transactions(self):
-        #eth_newPendingTransactionFilter
-        #tx_filter = self.client.web3_ws.eth.filter('pending')
         intercepted_transaction = False
         self.performing_transaction = False
 
-    
-        #time.sleep(0.2)
         if self.client.web3.eth.gas_price > self.client.max_gas_price:
             print("Gas prices too high atm...")
             time.sleep(60)
@@ -195,66 +195,43 @@ class Triggers(object):
 
         pending_transactions = self.tx_filter.get_new_entries()
 
-        #start = time.perf_counter()
         pending_router_transactions = asyncio.run(self.get_router_contract_interaction(pending_transactions))
-        #end = time.perf_counter()
-        #print("Scan Time elapsed: ", str(end - start), "\nFailed Req: "+ str(self.failed_requests),"\nSuccessful req:" + str(self.successful_requests), "\nToken length:", str(len(pending_transactions)))
 
         for hande_tuple in pending_router_transactions:
             router_txn = hande_tuple[0]
             my_router_transaction = hande_tuple[1]
             token_pair = hande_tuple[2]
             liquidity_impact = hande_tuple[3]
-            
-    
-            
-            #txn =  asyncio.run(self.fetch_single_transaction(router_txn.transaction.hash))
-            #if not txn:
-            #    continue
+   
+            print("Winning!!")
+            print("Txn hash", router_txn.transaction.hash)
+            print("Gas price", router_txn.transaction.gas_price)
+            print("Sender address", router_txn.transaction.from_address)
+            print("Liquidity impact", '{0:.20f}'.format(liquidity_impact))
+            intercepted_transaction = True
 
-
-            if 1 == 2:
-            #print(txn.transaction.block_number)
-            #if txn.transaction.block_number:
-                print("Too slow....")
-                #print("Transaction successful: ",router_txn.transaction.successful)
-                #print("Txn hash", router_txn.transaction.hash)
-                #print("Gas price", router_txn.transaction.gas_price)
-                #print("Sender address", router_txn.transaction.from_address)
-            else:
-            #if not transaction_complete:    
-                print("Winning!!")
-                print("Txn hash", router_txn.transaction.hash)
-                print("Gas price", router_txn.transaction.gas_price)
-                print("Sender address", router_txn.transaction.from_address)
-                print("Liquidity impact", '{0:.20f}'.format(liquidity_impact))
-                intercepted_transaction = True
-
-                ##my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=gas_price)
-                transaction_complete, transaction_successful = my_router_transaction.transaction.get_transaction_receipt(wait=True)
-                print("Initial swap status", transaction_successful)
+            ##my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=gas_price)
+            transaction_complete, transaction_successful = my_router_transaction.transaction.get_transaction_receipt(wait=True)
+            print("Initial swap status", transaction_successful)
+            if transaction_successful:
+                approve_token_txn = token_pair.token_2.approve_token()
+                #asyncio.run(self.watch_competing_transaction(router_txn.transaction))
+                self.watch_transactions([approve_token_txn, router_txn.transaction ])
+                amount_out_from_token_2 = my_router_transaction.get_transaction_amount_out()
+                amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
+                my_router_return_transaction = token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
+                transaction_complete, transaction_successful = my_router_return_transaction.transaction.get_transaction_receipt(wait=True)
                 if transaction_successful:
-                    approve_token_txn = token_pair.token_2.approve_token()
-                    #asyncio.run(self.watch_competing_transaction(router_txn.transaction))
-                    self.watch_transactions([approve_token_txn, router_txn.transaction ])
-                    amount_out_from_token_2 = my_router_transaction.get_transaction_amount_out()
-                    amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
-                    my_router_return_transaction = token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
-                    transaction_complete, transaction_successful = my_router_return_transaction.transaction.get_transaction_receipt(wait=True)
-                    if transaction_successful:
-                        print("It all went swimmingly")
-                    else:
-                        raise StopIteration(f"{my_router_return_transaction.transaction.hash} was not successful")
-
-
+                    print("It all went swimmingly")
+                else:
+                    raise StopIteration(f"{my_router_return_transaction.transaction.hash} was not successful")
                 
-                print("--------")
-                print("Successsful requests", self.successful_requests)
-                print("Failed requests", self.failed_requests)
-                print("--------")
+            print("--------")
+            print("Successsful requests", self.successful_requests)
+            print("Failed requests", self.failed_requests)
+            print("--------")
         
         self.client.write_pair_info_to_file()  
         self.client.write_token_info_to_file()  
-        
 
         return intercepted_transaction
