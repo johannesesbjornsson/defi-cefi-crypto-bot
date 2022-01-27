@@ -61,16 +61,11 @@ class Client(object):
         
 
     def get_abi(self,address):
-        if self.blockchain == "bsc":
-            url = "https://api.bscscan.com/api?module=contract&action=getabi&address={}&apikey={}".format(address, self.api_key)
-            response = requests.get(url)
-            json_reponse = json.loads(response.content)
-        elif self.blockchain == "polygon":
-            url = "https://api.polygonscan.com/api?module=contract&action=getabi&address={}&apikey={}".format(address, self.api_key)
-            response = requests.get(url)
-            json_reponse = json.loads(response.content)
-      
-        return json_reponse["result"]
+        url = "{}/api?module=contract&action=getsourcecode&address={}&apikey={}".format(self.api_url,address, self.api_key)
+        response = requests.get(url)
+        json_reponse = json.loads(response.content)
+
+        return response.status_code, json_reponse
 
     def get_transaction_count(self):
         transaction_count = self.web3.eth.get_transaction_count(self.my_address)
@@ -133,11 +128,11 @@ class Client(object):
             json.dump(self.pair_info, f)
         return True
 
-    def get_contract_information(self, contract):
-        url = "{}/api?module=contract&action=getabi&address={}&apikey={}".format(self.api_url,address, self.api_key)
+    def get_contract_source_code(self, address):
+        url = "{}/api?module=contract&action=getsourcecode&address={}&apikey={}".format(self.api_url,address, self.api_key)
         response = requests.get(url)
         json_reponse = json.loads(response.content)
-        print(response)
+        return response.status_code, json_reponse
 
 
 #        #params = liquidity_pool_contract.encodeABI(fn_name="getReserves",args=[])

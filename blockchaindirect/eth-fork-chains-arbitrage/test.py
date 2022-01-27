@@ -38,53 +38,19 @@ def test_req():
     decoded = decode_abi(['address'], to_bytes(hexstr=hex_str))
     print(decoded)
     
-
 if __name__ == "__main__":
     #client = Client("polygon",cfg.my_polygon_address, cfg.private_key)
-    client = Client("polygon",cfg.my_address, cfg.private_key)
+    client = Client("polygon",cfg.my_address, cfg.private_key,cfg.api_key)
     triggers = Triggers(client)
     test = []
     #test_req()
     while True:
-        start = time.perf_counter()
-        #token_1 = Token(client, "WFTM")
-        #token_2 = Token(client, "ETH")
-        
-        token_1 = Token(client, "WMATIC", "local")
-        #token_1 = Token(client, "WMATIC")
-        end = time.perf_counter()
-        print(end - start)
-        start = time.perf_counter()
-        token_2 = Token(client, "USDC", "local")
-        #token_2 = Token(client, "USDC")
-        end = time.perf_counter()
-        print(end - start)
-        start = time.perf_counter()
-        token_pair = TokenPair(client, token_1, token_2, "local")
-        #token_pair = TokenPair(client, token_1, token_2)
-        end = time.perf_counter()
-        print(end - start)
-        #client.write_pair_info_to_file()
 
-        #transaction_info = client.web3.eth.get_transaction("0xf423318d5aaf8d124c5f940821eeb1bb0a6f54a76ce75cc13372ed8e49f93746")
-        #transaction_info = client.web3.eth.get_transaction("0x303a397a8c92e87236cc68756eb442e8aef97e38ff5dfba3a49774388c2b4396")
-        #transaction_info = client.web3.eth.get_transaction("0x1629526bcb8325b2d5251f117dc0f2346a4796eef669b80220361e5f6fb1d8cc")
-        #txn = Transaction(client, transaction_info)
-        #triggers.watch_transactions([None, txn])    
-        
+        #token_1 = Token(client, "0x22ffbe8b309abe8bbc28bf08c8ed3d6734c80dcc")
+        for token in test_t:
+            token_1 = Token(client, token, "local")
+        client.write_token_info_to_file()
 
-        #asyncio.run(self.watch_competing_transaction(router_txn.transaction))
-        #start = time.perf_counter()
-        #pending_router_transactions = asyncio.run(triggers.get_router_contract_interaction(pending_transactions))
-        #for txn in pending_router_transactions:
-        #    print (txn[0].input_data)
-        #    print (txn[2])
-        
-        
-        #end = time.perf_counter()
-        #test.append(end - start)
-        #print("-----------------------")
-        #print("Time elapsed average: ", sum(test) / len(test))
         print("-----------------------")
         break
         time.sleep(2)

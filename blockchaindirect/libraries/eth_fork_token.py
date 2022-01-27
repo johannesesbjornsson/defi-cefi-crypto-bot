@@ -36,7 +36,7 @@ class Token(object):
             else:
                 self.verified = self.is_token_verified()
                 self.decimals = self.token_contract.functions.decimals().call()
-                token_info = { "decimals" : self.decimals }
+                token_info = { "decimals" : self.decimals, "verified" : self.verified }
                 self.client.add_token_info(self.address, token_info)
         else:
             raise ValueError("'init_type' needs to be 'standard' or 'local'")
@@ -60,8 +60,13 @@ class Token(object):
         return self.allowance
 
     def is_token_verified(self):
-        response = self.client.get_contract_information(self.address)
-        print(response)
+        verified = False
+        response_code, response_json = self.client.get_abi(self.address)
+        if response_code == 200:
+            if "ABI" in response_json["result"][0]:
+                if response_json["result"][0]["ABI"] != "Contract source code not verified":
+                    verified = True
+        return verified
 
     def set_proxy_details(self):
         is_proxy = False
@@ -86,15 +91,6 @@ class Token(object):
             transaction = Transaction(self.client, None)
             transaction.create_transaction(txn)
             transaction.sign_and_send_transaction()
-            #try:
-            #    transaction.sign_and_send_transaction()
-            #except ValueError as e:
-            #    if str(e) == "{'code': -32000, 'message': 'nonce too low'}":
-            #        print("Having to resend transaction")
-            #        transaction.nonce += 1
-            #        transaction.sign_and_send_transaction()
-            #    else:
-            #        raise ValueError(str(e))
 
             transaction_complete, transaction_successful = transaction.get_transaction_receipt(wait=True)
             if not transaction_successful:
