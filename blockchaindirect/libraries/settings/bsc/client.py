@@ -16,7 +16,6 @@ class Bsc:
         self.default_gas_limit = 400000
         self.default_gas_price = self.web3.toWei('5','gwei')
         self.max_gas_price = self.web3.toWei('6','gwei')
-        self.min_gas_price_of_scanned_txn = self.web3.toWei('4.9','gwei')
         self.gas_price_frontrunning_increase = self.web3.toWei('0.5','gwei')
         self.minimum_scanned_transaction = 0.2
         self.minimum_liquidity_impact = 0.02

@@ -10,8 +10,8 @@ from web3.logs import STRICT, IGNORE, DISCARD, WARN
 from eth_abi import decode_abi
 from eth_utils import to_bytes
 import asyncio
-import nest_asyncio
-nest_asyncio.apply()
+#import nest_asyncio
+#nest_asyncio.apply()
 
 from settings.polygon.client import Polygon
 from settings.bsc.client import Bsc
@@ -34,7 +34,6 @@ class Client(object):
         self.web3_asybc = provider.web3_asybc
         self.router_swap_fee = provider.router_swap_fee  
         self.max_gas_price = provider.max_gas_price
-        self.min_gas_price_of_scanned_txn = provider.min_gas_price_of_scanned_txn
         self.gas_price_frontrunning_increase = provider.gas_price_frontrunning_increase
         self.default_gas_price = provider.default_gas_price
         self.default_gas_limit = provider.default_gas_limit

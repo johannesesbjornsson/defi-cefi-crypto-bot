@@ -10,8 +10,8 @@ from eth_fork_transaction import Transaction, RouterTransaction
 from eth_abi import decode_abi
 from eth_utils import to_bytes
 
-import nest_asyncio
-nest_asyncio.apply()
+#import nest_asyncio
+#nest_asyncio.apply()
 #__import__('IPython').embed()
 
 #import json

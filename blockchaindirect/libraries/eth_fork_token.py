@@ -4,8 +4,8 @@ import asyncio
 from eth_fork_transaction import Transaction
 
 import asyncio
-import nest_asyncio
-nest_asyncio.apply()
+#import nest_asyncio
+#nest_asyncio.apply()
 
 class Token(object):
 

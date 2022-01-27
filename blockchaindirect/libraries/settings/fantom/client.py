@@ -14,7 +14,6 @@ class Fantom:
         self.default_gas_limit = 400000
         self.default_gas_price = self.web3.toWei('1000','gwei')
         self.max_gas_price = self.web3.toWei('2000','gwei')
-        self.min_gas_price_of_scanned_txn = self.web3.toWei('1000','gwei')
         self.gas_price_frontrunning_increase = self.web3.toWei('500','gwei')
         self.token_to_scan_for =  self.web3.toChecksumAddress("0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83")
         self.minimum_scanned_transaction = 5
