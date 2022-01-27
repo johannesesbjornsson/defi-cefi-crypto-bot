@@ -6,6 +6,7 @@ class Polygon:
     def __init__(self):
         provider_url = "https://polygon-rpc.com"
         provider_ws = "wss://speedy-nodes-nyc.moralis.io/0279106ed82b874b3e1b195d/polygon/mainnet/ws"
+        self.api_url = "https://api.polygonscan.com"
         self.web3_ws = Web3(Web3.WebsocketProvider(provider_ws))
         self.web3 = Web3(Web3.HTTPProvider(provider_url))
         self.web3_asybc = Web3(Web3.AsyncHTTPProvider(provider_url),modules={'eth': (AsyncEth,)}, middlewares=[])

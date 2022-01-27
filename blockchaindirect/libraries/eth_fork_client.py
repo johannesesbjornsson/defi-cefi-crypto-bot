@@ -53,6 +53,7 @@ class Client(object):
         self.blockchain = blockchain
         self.my_address = self.web3.toChecksumAddress(my_address)
         self.private_key = private_key
+        self.api_url = provider.api_url
 
         self.settings_dir = os.path.dirname(os.path.realpath(__file__)) + '/settings/'+self.blockchain
         self.load_token_json_from_file()
@@ -131,6 +132,13 @@ class Client(object):
         with open(self.settings_dir+'/pairs.json', 'w') as f:
             json.dump(self.pair_info, f)
         return True
+
+    def get_contract_information(self, contract):
+        url = "{}/api?module=contract&action=getabi&address={}&apikey={}".format(self.api_url,address, self.api_key)
+        response = requests.get(url)
+        json_reponse = json.loads(response.content)
+        print(response)
+
 
 #        #params = liquidity_pool_contract.encodeABI(fn_name="getReserves",args=[])
 #        #data = {"jsonrpc": "2.0", "method": "eth_call", "params": [{"to": self.liquidity_pool_address, "data": params}, "latest"], "id": 1}

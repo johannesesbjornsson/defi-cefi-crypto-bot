@@ -27,11 +27,14 @@ class Token(object):
         
         if init_type == "standard":
             self.decimals = self.token_contract.functions.decimals().call()
+            self.verified = self.is_token_verified()
         elif init_type == "local":
             token_info = self.client.get_token_info(self.address)
             if token_info:
                 self.decimals = token_info["decimals"]
+                self.verified = token_info["verified"]
             else:
+                self.verified = self.is_token_verified()
                 self.decimals = self.token_contract.functions.decimals().call()
                 token_info = { "decimals" : self.decimals }
                 self.client.add_token_info(self.address, token_info)
@@ -55,6 +58,10 @@ class Token(object):
         if not self.allowance:
             self.allowance = self.token_contract.functions.allowance(self.client.my_address,self.client.router_contract_address).call()
         return self.allowance
+
+    def is_token_verified(self):
+        response = self.client.get_contract_information(self.address)
+        print(response)
 
     def set_proxy_details(self):
         is_proxy = False
