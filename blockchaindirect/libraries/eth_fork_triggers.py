@@ -56,9 +56,15 @@ class Triggers(object):
             token_pair = None
 
         if token_pair:
-            liquidity_impact, txn_value = token_pair.quick_router_transction_analysis(router_txn)
+            liquidity_impact, txn_value, slippage, attacking_txn_max_amount_in = token_pair.quick_router_transction_analysis(router_txn)
+            print("impact", '{0:.20f}'.format(liquidity_impact))
+            print("Value",txn_value)
+            print("slippage",slippage)
+            print("Max value",attacking_txn_max_amount_in)
+            print(router_txn)
+            print("------")
 
-            if liquidity_impact > self.minimum_liquidity_impact and txn_value > self.minimum_scanned_transaction:
+            if liquidity_impact > self.minimum_liquidity_impact and txn_value > self.minimum_scanned_transaction and attacking_txn_max_amount_in > self.scan_token_value:
                 amount_in = self.token_1.to_wei(self.scan_token_value)
                 amount_out = token_pair.get_amount_token_2_out(amount_in, offline_calculation=True)
                 my_gas_price = router_txn.transaction.gas_price + self.client.gas_price_frontrunning_increase
@@ -81,10 +87,10 @@ class Triggers(object):
         if not compare_transaction and txn.to == self.client.router_contract_address and txn.block_number is None and txn.gas_price >= self.curren_gas_price:
         #if not compare_transaction and txn.to == self.client.router_contract_address and txn.block_number is not None and txn.gas_price >= self.curren_gas_price:
             router_txn = RouterTransaction(txn)
-            if router_txn.function_called == "swapExactETHForTokens" or router_txn.function_called == "swapETHForExactTokens":
-                matching_txn = router_txn
-            #if router_txn.function_called.startswith('swap'):
+            #if router_txn.function_called == "swapExactETHForTokens" or router_txn.function_called == "swapETHForExactTokens":
             #    matching_txn = router_txn
+            if router_txn.function_called.startswith('swap'):
+                matching_txn = router_txn
             
         elif compare_transaction and compare_transaction == txn:
             matching_txn = txn
