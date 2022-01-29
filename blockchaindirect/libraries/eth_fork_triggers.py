@@ -156,7 +156,7 @@ class Triggers(object):
         
         return pending_router_transactions
 
-    def watch_transactions(self,txns):
+    def watch_transactions(self,txns,look_for_next_txn=True):
         time_started = time.time()
         txns_left = txns
         while len(txns_left) > 0:
@@ -175,7 +175,7 @@ class Triggers(object):
                         transaction_complete, transaction_successful = txn.get_transaction_receipt(wait=False)
                         if transaction_complete and transaction_successful:
                             pass
-                        elif transaction_complete and not transaction_successful:
+                        elif transaction_complete and not transaction_successful and look_for_next_txn:
                             print("here1")
                             account = Account(self.client,txn.from_address)
                             latest_txn = account.get_next_router_txn(txn.nonce)
@@ -192,7 +192,6 @@ class Triggers(object):
             if 360 > time.time() - time_started:
                 txns_left = txns_not_yet_complete
                 if txns_left:
-                    print("watching.....",time.time() - time_started)
                     time.sleep(5)
             else:
                 txns_left = []
@@ -230,7 +229,7 @@ class Triggers(object):
             print("Liquidity impact", '{0:.20f}'.format(liquidity_impact))
             intercepted_transaction = True
 
-            self.watch_transactions([my_router_transaction.transaction ])
+            self.watch_transactions([my_router_transaction.transaction ], False)
             transaction_complete, transaction_successful = my_router_transaction.transaction.get_transaction_receipt(wait=True)
             print("Initial swap status", transaction_successful)
             if transaction_successful:
@@ -243,6 +242,7 @@ class Triggers(object):
                 transaction_complete, transaction_successful = my_router_return_transaction.transaction.get_transaction_receipt(wait=True)
                 if transaction_successful:
                     print("It all went swimmingly")
+                    self.tx_filter.get_new_entries()
                 else:
                     raise StopIteration(f"{my_router_return_transaction.transaction.hash} was not successful")
                 
