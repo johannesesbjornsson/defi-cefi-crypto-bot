@@ -57,14 +57,15 @@ class Triggers(object):
 
         if token_pair:
             liquidity_impact, txn_value, slippage, attacking_txn_max_amount_in = token_pair.quick_router_transction_analysis(router_txn)
-            print("impact", '{0:.20f}'.format(liquidity_impact))
-            print("Value",txn_value)
-            print("slippage",slippage)
-            print("Max value",attacking_txn_max_amount_in)
-            print(router_txn)
-            print("------")
+            #print("impact", '{0:.20f}'.format(liquidity_impact))
+            #print("Value",txn_value)
+            #print("slippage",slippage)
+            #print("Max value",attacking_txn_max_amount_in)
+            #print(router_txn)
+            #print("------")
 
-            if liquidity_impact > self.minimum_liquidity_impact and txn_value > self.minimum_scanned_transaction and attacking_txn_max_amount_in > self.scan_token_value:
+            #if liquidity_impact > self.minimum_liquidity_impact and txn_value > self.minimum_scanned_transaction and attacking_txn_max_amount_in > self.scan_token_value:
+            if liquidity_impact > self.minimum_liquidity_impact and attacking_txn_max_amount_in > self.scan_token_value:
                 amount_in = self.token_1.to_wei(self.scan_token_value)
                 amount_out = token_pair.get_amount_token_2_out(amount_in, offline_calculation=True)
                 my_gas_price = router_txn.transaction.gas_price + self.client.gas_price_frontrunning_increase
@@ -162,20 +163,28 @@ class Triggers(object):
             txns_not_yet_complete = []
             for txn in txns_left:
                 if txn:
-                    transaction_info = self.client.web3.eth.get_transaction(txn.hash)
-                    txn = Transaction(self.client, transaction_info)
+                    try:
+                        transaction_info = self.client.web3.eth.get_transaction(txn.hash)
+                        txn = Transaction(self.client, transaction_info)
+                    except TransactionNotFound as e:
+                        account = Account(self.client,txn.from_address)
+                        latest_txn = account.get_next_router_txn(txn.nonce -1 )
+                        txn = latest_txn.transaction
+
                     if txn.block_number:
                         transaction_complete, transaction_successful = txn.get_transaction_receipt(wait=False)
                         if transaction_complete and transaction_successful:
-                            print("here1", transaction_info)
                             pass
                         elif transaction_complete and not transaction_successful:
-                            print("here2")
+                            print("here1")
                             account = Account(self.client,txn.from_address)
                             latest_txn = account.get_next_router_txn(txn.nonce)
                             if latest_txn:
-                                print("here3")
+                                print("here2")
                                 txns_not_yet_complete.append(latest_txn.transaction)
+                            else:
+                                print("here3")
+                                txns_not_yet_complete.append(txn)
 
                     else:
                         print("here4")
@@ -222,7 +231,7 @@ class Triggers(object):
             print("Liquidity impact", '{0:.20f}'.format(liquidity_impact))
             intercepted_transaction = True
 
-            ##my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=gas_price)
+            self.watch_transactions([my_router_transaction.transaction ])
             transaction_complete, transaction_successful = my_router_transaction.transaction.get_transaction_receipt(wait=True)
             print("Initial swap status", transaction_successful)
             if transaction_successful:

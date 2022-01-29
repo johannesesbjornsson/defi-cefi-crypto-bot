@@ -151,6 +151,10 @@ class TokenPair(object):
         elif (router_txn.amount_in and not router_txn.amount_out) or (not router_txn.amount_in and router_txn.amount_out):
             attacking_txn_max_amount_in = transaction_value
             slippage = 1
+        elif impact > 0.01 and transaction_value > 10:
+            slippage = 0.02
+            attacking_txn_max_amount_in = transaction_value/10
+
 
 
         return impact, transaction_value, slippage, attacking_txn_max_amount_in
