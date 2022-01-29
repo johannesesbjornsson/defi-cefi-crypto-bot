@@ -12,7 +12,7 @@ class Polygon:
         self.web3_asybc = Web3(Web3.AsyncHTTPProvider(provider_url),modules={'eth': (AsyncEth,)}, middlewares=[])
         self.router_swap_fee = 0.003  
         self.max_gas_price = self.web3.toWei('150','gwei')
-        self.gas_price_frontrunning_increase = self.web3.toWei('1','gwei')
+        self.gas_price_frontrunning_increase = self.web3.toWei('2','gwei')
         self.default_gas_price = self.web3.toWei('35','gwei')
         self.default_gas_limit = 400000 #TODO have this be not fixed
         self.slippage = 0.997

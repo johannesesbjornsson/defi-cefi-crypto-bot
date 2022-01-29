@@ -26,10 +26,13 @@ class Triggers(object):
         self.token_1 = Token(self.client,self.token_to_scan_for)
         self.client.web3.middleware_onion.inject(geth_poa_middleware, layer=0)
         #eth_newPendingTransactionFilter
-        self.tx_filter = self.client.web3_ws.eth.filter('pending')
         self.performing_transaction = False
         self.current_nonce = self.client.get_transaction_count()
         self.curren_gas_price = 30
+        self.set_tx_filter()
+
+    def set_tx_filter(self):
+        self.tx_filter = self.client.web3_ws.eth.filter('pending')
 
     def handle_swap_transaction(self, router_txn):
         token_pair = None
@@ -240,7 +243,6 @@ class Triggers(object):
                 transaction_complete, transaction_successful = my_router_return_transaction.transaction.get_transaction_receipt(wait=True)
                 if transaction_successful:
                     print("It all went swimmingly")
-                    self.tx_filter.get_new_entries()
                 else:
                     raise StopIteration(f"{my_router_return_transaction.transaction.hash} was not successful")
                 
