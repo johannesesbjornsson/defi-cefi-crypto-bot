@@ -32,3 +32,6 @@ class BinanceClient(object):
         amount_out = amount_out_per_token * from_token_amount
 
         return amount_out
+
+
+# Inpo https://github.com/BlockchainTokenSniper/BSCTokenSniper/blob/beta/BSCTokenSniper%20v1.2/BSCTokenSniper.py

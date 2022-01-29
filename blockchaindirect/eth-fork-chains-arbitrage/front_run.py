@@ -13,7 +13,7 @@ from eth_fork_triggers import Triggers
 import time
 
 def main(blockchain):
-    client = Client(blockchain,cfg.my_address, cfg.private_key)
+    client = Client(blockchain, cfg.my_address, cfg.private_key, cfg.api_key)
 
     lists = list(itertools.combinations(client.tokens_to_check, 2))
     lists = [

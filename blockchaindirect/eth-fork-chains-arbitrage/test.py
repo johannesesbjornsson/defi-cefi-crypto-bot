@@ -7,6 +7,7 @@ from eth_fork_token import Token
 from eth_fork_transaction import Transaction, RouterTransaction
 from eth_fork_triggers import Triggers
 from eth_fork_token_pair import TokenPair
+from eth_fork_account import Account
 import cfg as cfg
 
 
@@ -15,73 +16,48 @@ pending_transactions = [
 #"0x39a2380a9d7a796699b12eeb3ed030f53854a6be855dc9dc982336c8ad2888fa",
 ]
 
+def run_some_tests(polygon_client):
+    token_1 = Token(polygon_client, "USDC")
+    token_2 = Token(polygon_client, "WMATIC")
+    token_pair = TokenPair(polygon_client, token_1, token_2)
+    token_pair.token_1_liquidity = 20000
+    token_pair.token_2_liquidity = 10000
+    txn_hash_1 = "0x4b28cc27f73fab2906a96b3380b0d53224b4f364c8e3bfd0d87008bf6ccb9d8c"
+    transaction_info = polygon_client.web3.eth.get_transaction(txn_hash_1)
+    txn = Transaction(polygon_client,transaction_info)
+    router_txn = RouterTransaction(txn)
+    amount_in = token_pair.token_1.to_wei(1000)
 
-#async def test():
-#    return 1
-#
-#async def test1():
-#    return 1
-#
-#async def test2():
-#    all_groups = asyncio.wait((await test(), await test1()))
 
-def test_req():
-    import requests
-    import json
-    from eth_abi import decode_abi
-    from eth_utils import to_bytes
-
-    #params = liquidity_pool_contract.encodeABI(fn_name="token1",args=[])
-    data = {"jsonrpc": "2.0", "method": "eth_call", "params": [{"to": "0x2cF7252e74036d1Da831d11089D326296e64a728", "data": "0xd21220a7"}, "latest"], "id": 1}
-    response = requests.post("https://polygon-rpc.com", headers={"Content-Type":"application/json"},json=data)
-    hex_str = response.json()["result"]
-    decoded = decode_abi(['address'], to_bytes(hexstr=hex_str))
-    print(decoded)
+    router_txn.amount_in = amount_in
+    router_txn.amount_out = token_pair.token_2.to_wei(456.76)
     
+    liquidity_impact, txn_value = token_pair.quick_router_transction_analysis(router_txn)
+    print(liquidity_impact,txn_value)
+
+    amount_out = token_pair.get_amount_token_2_out(amount_in,offline_calculation=True)
+    print(token_pair.token_2.from_wei(amount_out))
 
 if __name__ == "__main__":
     #client = Client("polygon",cfg.my_polygon_address, cfg.private_key)
-    client = Client("polygon",cfg.my_address, cfg.private_key)
+    client = Client("polygon",cfg.my_address, cfg.private_key,cfg.api_key)
     triggers = Triggers(client)
     test = []
     #test_req()
     while True:
-        start = time.perf_counter()
-        #token_1 = Token(client, "WFTM")
-        #token_2 = Token(client, "ETH")
-        
-        #token_1 = Token(client, "WMATIC", "local")
-        #end = time.perf_counter()
-        #print(end - start)
-        #start = time.perf_counter()
-        #token_2 = Token(client, "USDC", "local")
-        #end = time.perf_counter()
-        #print(end - start)
-        #start = time.perf_counter()
-        #token_pair = TokenPair(client, token_1, token_2, "local")
-        #end = time.perf_counter()
-        #print(end - start)
-        #client.write_pair_info_to_file()
 
-        transaction_info = client.web3.eth.get_transaction("0xf423318d5aaf8d124c5f940821eeb1bb0a6f54a76ce75cc13372ed8e49f93746")
-        #transaction_info = client.web3.eth.get_transaction("0x303a397a8c92e87236cc68756eb442e8aef97e38ff5dfba3a49774388c2b4396")
-        #transaction_info = client.web3.eth.get_transaction("0x1629526bcb8325b2d5251f117dc0f2346a4796eef669b80220361e5f6fb1d8cc")
-        txn = Transaction(client, transaction_info)
-        triggers.watch_transactions([None, txn])    
-        
+        #token_1 = Token(client, "0x22ffbe8b309abe8bbc28bf08c8ed3d6734c80dcc")
 
-        #asyncio.run(self.watch_competing_transaction(router_txn.transaction))
-        #start = time.perf_counter()
-        #pending_router_transactions = asyncio.run(triggers.get_router_contract_interaction(pending_transactions))
-        #for txn in pending_router_transactions:
-        #    print (txn[0].input_data)
-        #    print (txn[2])
+        #txn_list = client.get_account_transaction("0x837107fa17efd21a10c5fc43fadfbe79bd29cc94")
+        #account = Account(client,"0x837107fa17efd21a10c5fc43fadfbe79bd29cc94")
+        #txn = account.get_next_router_txn(264)
+        #print(txn)
+        #transaction_info = client.web3.eth.get_transaction("0x0422e424de70ba273ae1deec4bccb2cde83495b2ed4f1dd8d010480ad0699721")
+        #txn = Transaction(client, transaction_info)
+        #triggers.watch_transactions([None, txn])
+        run_some_tests(client)
+
         
-        
-        #end = time.perf_counter()
-        #test.append(end - start)
-        #print("-----------------------")
-        #print("Time elapsed average: ", sum(test) / len(test))
         print("-----------------------")
         break
         time.sleep(2)

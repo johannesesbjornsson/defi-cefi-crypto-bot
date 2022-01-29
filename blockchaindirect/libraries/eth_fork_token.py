@@ -4,8 +4,8 @@ import asyncio
 from eth_fork_transaction import Transaction
 
 import asyncio
-import nest_asyncio
-nest_asyncio.apply()
+#import nest_asyncio
+#nest_asyncio.apply()
 
 class Token(object):
 
@@ -27,13 +27,16 @@ class Token(object):
         
         if init_type == "standard":
             self.decimals = self.token_contract.functions.decimals().call()
+            self.verified = self.is_token_verified()
         elif init_type == "local":
             token_info = self.client.get_token_info(self.address)
             if token_info:
                 self.decimals = token_info["decimals"]
+                self.verified = token_info["verified"]
             else:
+                self.verified = self.is_token_verified()
                 self.decimals = self.token_contract.functions.decimals().call()
-                token_info = { "decimals" : self.decimals }
+                token_info = { "decimals" : self.decimals, "verified" : self.verified }
                 self.client.add_token_info(self.address, token_info)
         else:
             raise ValueError("'init_type' needs to be 'standard' or 'local'")
@@ -55,6 +58,15 @@ class Token(object):
         if not self.allowance:
             self.allowance = self.token_contract.functions.allowance(self.client.my_address,self.client.router_contract_address).call()
         return self.allowance
+
+    def is_token_verified(self):
+        verified = False
+        response_code, response_json = self.client.get_abi(self.address)
+        if response_code == 200:
+            if "ABI" in response_json["result"][0]:
+                if response_json["result"][0]["ABI"] != "Contract source code not verified":
+                    verified = True
+        return verified
 
     def set_proxy_details(self):
         is_proxy = False
@@ -78,15 +90,7 @@ class Token(object):
             txn = self.token_contract.functions.approve(self.client.router_contract_address,value)
             transaction = Transaction(self.client, None)
             transaction.create_transaction(txn)
-            try:
-                transaction.sign_and_send_transaction()
-            except ValueError as e:
-                if str(e) == "{'code': -32000, 'message': 'nonce too low'}":
-                    print("Having to resend transaction")
-                    transaction.nonce += 1
-                    transaction.sign_and_send_transaction()
-                else:
-                    raise ValueError(str(e))
+            transaction.sign_and_send_transaction()
 
             transaction_complete, transaction_successful = transaction.get_transaction_receipt(wait=True)
             if not transaction_successful:

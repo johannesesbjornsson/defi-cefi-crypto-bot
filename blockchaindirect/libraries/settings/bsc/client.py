@@ -8,6 +8,7 @@ class Bsc:
         #provider_url = "https://bsc-dataseed1.defibit.io/"
         #provider_url = "https://speedy-nodes-nyc.moralis.io0279106ed82b874b3e1b195d/bsc/mainnet"
         provider_ws = "wss://speedy-nodes-nyc.moralis.io/0279106ed82b874b3e1b195d/bsc/mainnet/ws"
+        self.api_url = "https://api.bscscan.com"
         self.web3_ws = Web3(Web3.WebsocketProvider(provider_ws))
         self.web3 = Web3(Web3.HTTPProvider(provider_url))    
         self.web3_asybc = Web3(Web3.AsyncHTTPProvider(provider_url),modules={'eth': (AsyncEth,)}, middlewares=[])
@@ -16,7 +17,6 @@ class Bsc:
         self.default_gas_limit = 400000
         self.default_gas_price = self.web3.toWei('5','gwei')
         self.max_gas_price = self.web3.toWei('6','gwei')
-        self.min_gas_price_of_scanned_txn = self.web3.toWei('4.9','gwei')
         self.gas_price_frontrunning_increase = self.web3.toWei('0.5','gwei')
         self.minimum_scanned_transaction = 0.2
         self.minimum_liquidity_impact = 0.02

@@ -15,6 +15,6 @@ COPY eth-fork-chains-arbitrage/*.py .
 
 RUN mkdir /libraries
 
-COPY libraries/*.py /libraries/
+COPY libraries/ /libraries/
 
-CMD [ "python", "-u", "front_run.py polygon"]
+CMD [ "python", "-u", "front_run.py", "polygon"]

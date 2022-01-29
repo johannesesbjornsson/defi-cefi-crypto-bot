@@ -32,13 +32,13 @@ class TokenTest(unittest.TestCase):
         amount_out_contract = self.token_pair.get_amount_token_2_out(token_1_amount_in)
         amount_out_offline = self.token_pair.get_amount_token_2_out(token_1_amount_in, offline_calculation=True)
         difference = amount_out_contract/amount_out_offline
-        self.assertTrue(difference > 0.9999 and difference < 1.0001)
+        self.assertTrue(difference > 0.9998 and difference < 1.0002)
 
         token_2_amount_in = self.token_2.to_wei(1000)
         amount_out_contract = self.token_pair.get_amount_token_1_out(token_2_amount_in)
         amount_out_offline = self.token_pair.get_amount_token_1_out(token_2_amount_in, offline_calculation=True)
         difference = amount_out_contract/amount_out_offline 
-        self.assertTrue(difference > 0.9999 and difference < 1.0001)        
+        self.assertTrue(difference > 0.9998 and difference < 1.0002)        
 
     # Testing my liquidity analysis functions
     def test_liquidity_impact(self):
@@ -52,6 +52,12 @@ class TokenTest(unittest.TestCase):
         liquidity_impact_2 = self.token_pair_static.get_liquidity_impact_of_token_2_for_token_1(1000)
         self.assertTrue(liquidity_impact_1 == 0.05)
         self.assertTrue(liquidity_impact_2 == 0.1)
+
+        # Test getting amount in by liquidity impact 
+        amount_in_token_1 = self.token_pair_static.get_amount_in_from_liquidity_impact_of_token_1_for_token_2(0.05)
+        amount_in_token_2 = self.token_pair_static.get_amount_in_from_liquidity_impact_of_token_2_for_token_1(0.05)
+        self.assertTrue(amount_in_token_1 == 1000)
+        self.assertTrue(amount_in_token_2 == 500)
     
     # Test handling of transaction it should not handle
     def test_txn_analysis_1(self):
@@ -59,7 +65,7 @@ class TokenTest(unittest.TestCase):
         transaction_info = self.polygon_client.web3.eth.get_transaction(txn_hash_1)
         txn = Transaction(self.polygon_client,transaction_info)
         router_txn = RouterTransaction(txn)
-        liquidity_impact, txn_value = self.token_pair_static.quick_router_transction_analysis(router_txn)
+        liquidity_impact, txn_value, slippage, attacking_txn_max_amount_in = self.token_pair_static.quick_router_transction_analysis(router_txn)
         self.assertTrue(liquidity_impact == 0 and txn_value == 0)
 
     # Test test hadnling of tokens in middle of hop (cant use in or out amount)
@@ -68,7 +74,7 @@ class TokenTest(unittest.TestCase):
         transaction_info = self.polygon_client.web3.eth.get_transaction(txn_hash_1)
         txn = Transaction(self.polygon_client,transaction_info)
         router_txn = RouterTransaction(txn)
-        liquidity_impact, txn_value = self.token_pair_static.quick_router_transction_analysis(router_txn)
+        liquidity_impact, txn_value, slippage, attacking_txn_max_amount_in = self.token_pair_static.quick_router_transction_analysis(router_txn)
         self.assertTrue(liquidity_impact == 0 and txn_value == 0)
 
     # Test amount in without hops
@@ -77,8 +83,10 @@ class TokenTest(unittest.TestCase):
         transaction_info = self.polygon_client.web3.eth.get_transaction(txn_hash_1)
         txn = Transaction(self.polygon_client,transaction_info)
         router_txn = RouterTransaction(txn)
-        liquidity_impact, txn_value = self.token_pair_static.quick_router_transction_analysis(router_txn)
+        liquidity_impact, txn_value, slippage, attacking_txn_max_amount_in = self.token_pair_static.quick_router_transction_analysis(router_txn)
         self.assertTrue(liquidity_impact == 0.0001 and txn_value == 2)
+        self.assertTrue(slippage == 0 and attacking_txn_max_amount_in == 0)
+
 
     # Test amount out with multi hop
     def test_txn_analysis_4(self):
@@ -86,8 +94,9 @@ class TokenTest(unittest.TestCase):
         transaction_info = self.polygon_client.web3.eth.get_transaction(txn_hash_1)
         txn = Transaction(self.polygon_client,transaction_info)
         router_txn = RouterTransaction(txn)
-        liquidity_impact, txn_value = self.token_pair_static.quick_router_transction_analysis(router_txn)
+        liquidity_impact, txn_value, slippage, attacking_txn_max_amount_in = self.token_pair_static.quick_router_transction_analysis(router_txn)
         self.assertTrue(round(liquidity_impact, 5) == 0.00313 and round(txn_value, 5)  == 62.53272)
+        self.assertTrue(slippage == 0 and attacking_txn_max_amount_in == 0)
 
     # Testing exact amount in with multi path swap
     def test_txn_analysis_5(self):
@@ -95,8 +104,9 @@ class TokenTest(unittest.TestCase):
         transaction_info = self.polygon_client.web3.eth.get_transaction(txn_hash_1)
         txn = Transaction(self.polygon_client,transaction_info)
         router_txn = RouterTransaction(txn)
-        liquidity_impact, txn_value = self.token_pair_static.quick_router_transction_analysis(router_txn)
+        liquidity_impact, txn_value, slippage, attacking_txn_max_amount_in = self.token_pair_static.quick_router_transction_analysis(router_txn)
         self.assertTrue(round(liquidity_impact, 5) == 0.2 and round(txn_value, 5)  == 4000)
+        self.assertTrue(slippage == 0 and attacking_txn_max_amount_in == 0)
 
     # Testing max amount in with multi path swap
     def test_txn_analysis_6(self):
@@ -104,8 +114,9 @@ class TokenTest(unittest.TestCase):
         transaction_info = self.polygon_client.web3.eth.get_transaction(txn_hash_1)
         txn = Transaction(self.polygon_client,transaction_info)
         router_txn = RouterTransaction(txn)
-        liquidity_impact, txn_value = self.token_pair_static.quick_router_transction_analysis(router_txn)
+        liquidity_impact, txn_value, slippage, attacking_txn_max_amount_in = self.token_pair_static.quick_router_transction_analysis(router_txn)
         self.assertTrue(round(liquidity_impact, 5) == 0.00022 and round(txn_value, 5)  == 4.44855)
+        self.assertTrue(slippage == 0 and attacking_txn_max_amount_in == 0)
     
 
     # Tests random locally stored token infro matches blockchain stored info
@@ -128,7 +139,7 @@ class TokenTest(unittest.TestCase):
 
             try:
                 difference = amount_out/local_amount_out
-                self.assertTrue(difference > 0.9999 and difference < 1.0001)
+                self.assertTrue(difference > 0.9998 and difference < 1.0002)
             except ZeroDivisionError as e:
                 pass
 

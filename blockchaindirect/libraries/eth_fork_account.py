@@ -1,0 +1,39 @@
+from eth_fork_transaction import Transaction, RouterTransaction
+
+class Account(object):
+
+    def __init__(self, client, address):
+        if address == "0x0000000000000000000000000000000000000000":
+            raise ValueError("Address cannot be '0x0000000000000000000000000000000000000000'")
+        self.client = client
+        self.address = self.client.web3.toChecksumAddress(address)
+
+        self.txn_list, self.router_txn_list =  self.get_latest_txns()
+
+    def __str__(self):
+        return self.address
+
+    def get_latest_txns(self):
+        txn_list = []
+        router_txn_list = []
+        response_code, response_json  = self.client.get_account_transaction(self.address)
+        if response_code == 200:
+            for txn_raw in response_json["result"]:
+                txn_raw["to"] = self.client.web3.toChecksumAddress(txn_raw["to"])
+                txn = Transaction(self.client,txn_raw)
+                txn_list.append(txn_list)
+                if txn.to == self.client.router_contract_address:
+                    router_txn = RouterTransaction(txn)
+                    router_txn_list.append(router_txn)
+
+        return txn_list, router_txn_list
+
+    def get_next_router_txn(self, nonce):
+        r_txn = None
+        for router_txn in reversed(self.router_txn_list):
+            if router_txn.transaction.nonce > nonce:
+                r_txn = router_txn
+                break
+        return r_txn
+
+        

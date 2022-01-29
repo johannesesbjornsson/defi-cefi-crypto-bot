@@ -10,8 +10,8 @@ from eth_fork_transaction import Transaction, RouterTransaction
 from eth_abi import decode_abi
 from eth_utils import to_bytes
 
-import nest_asyncio
-nest_asyncio.apply()
+#import nest_asyncio
+#nest_asyncio.apply()
 #__import__('IPython').embed()
 
 #import json
@@ -73,6 +73,20 @@ class TokenPair(object):
             self.token_2.approve_token()
         return True
 
+    def get_amount_in_from_liquidity_impact_of_token_1_for_token_2(self,liquidity_impact):
+        try:
+             amount_in = liquidity_impact * self.token_1_liquidity
+        except ZeroDivisionError as e:
+            liquidity_impact = 0
+        return amount_in
+
+    def get_amount_in_from_liquidity_impact_of_token_2_for_token_1(self,liquidity_impact):
+        try:
+             amount_in = liquidity_impact * self.token_2_liquidity
+        except ZeroDivisionError as e:
+            liquidity_impact = 0
+        return amount_in
+
     def get_liquidity_impact_of_token_1_for_token_2(self,amount_in):
         try:
             liquidity_impact = amount_in/self.token_1_liquidity
@@ -117,17 +131,33 @@ class TokenPair(object):
     def quick_router_transction_analysis(self,router_txn):
         impact = 0
         transaction_value = 0
+        slippage = 0
+        attacking_txn_max_amount_in = 0
         
-        #if router_txn.amount_in is not None and len(router_txn.path) == 2:
         if router_txn.amount_in is not None and router_txn.path[0] == self.token_1.address and router_txn.path[1] == self.token_2.address:
             impact = self.get_liquidity_impact_of_token_1_for_token_2(self.token_1.from_wei(router_txn.amount_in))
             transaction_value = self.token_1.from_wei(router_txn.amount_in)
-        #elif router_txn.amount_out is not None and self.client.web3.toChecksumAddress(router_txn.path[-1]) == self.token_2.address:
         elif router_txn.amount_out is not None and router_txn.path[-1] == self.token_2.address and router_txn.path[-2] == self.token_1.address:
             impact = self.get_liquidity_impact_of_token_2_for_token_1(self.token_2.from_wei(router_txn.amount_out))
             transaction_value = (self.token_1_liquidity/self.token_2_liquidity) * self.token_2.from_wei(router_txn.amount_out)
+        
+        if impact > 0 and transaction_value > 1 and router_txn.amount_in and router_txn.amount_out and len(router_txn.path) == 2:
+            amount_out_with_slippage = self.get_amount_token_2_out(router_txn.amount_in,offline_calculation=True)
+            txn_slippage = (amount_out_with_slippage/router_txn.amount_out) - 1
+            if txn_slippage > 0:
+                attacking_txn_max_amount_in = self.get_amount_in_from_liquidity_impact_of_token_1_for_token_2(txn_slippage)
+                slippage = txn_slippage
 
-        return impact, transaction_value
+        elif (router_txn.amount_in and not router_txn.amount_out) or (not router_txn.amount_in and router_txn.amount_out):
+            attacking_txn_max_amount_in = transaction_value
+            slippage = 1
+        elif impact > 0.01 and transaction_value > 10:
+            slippage = 0.02
+            attacking_txn_max_amount_in = transaction_value/10
+
+
+
+        return impact, transaction_value, slippage, attacking_txn_max_amount_in
 
     def get_pair_liquidity(self):
         reserves = self.liquidity_pool_contract.functions.getReserves().call()[0:2]
