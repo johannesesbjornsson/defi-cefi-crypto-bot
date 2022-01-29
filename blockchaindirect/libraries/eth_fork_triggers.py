@@ -187,7 +187,6 @@ class Triggers(object):
                                 txns_not_yet_complete.append(txn)
 
                     else:
-                        print("here4")
                         txns_not_yet_complete.append(txn)
                 
             if 360 > time.time() - time_started:
