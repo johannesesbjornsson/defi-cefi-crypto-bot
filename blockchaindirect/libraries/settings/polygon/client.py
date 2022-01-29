@@ -16,7 +16,7 @@ class Polygon:
         self.default_gas_price = self.web3.toWei('35','gwei')
         self.default_gas_limit = 400000 #TODO have this be not fixed
         self.slippage = 0.995
-        self.scan_token_value = 0.1
+        self.scan_token_value = 0.4
         self.minimum_scanned_transaction = 5
         self.minimum_liquidity_impact = 0.009
         self.swap_log_location_index = -2
