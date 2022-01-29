@@ -81,10 +81,10 @@ class Triggers(object):
         if not compare_transaction and txn.to == self.client.router_contract_address and txn.block_number is None and txn.gas_price >= self.curren_gas_price:
         #if not compare_transaction and txn.to == self.client.router_contract_address and txn.block_number is not None and txn.gas_price >= self.curren_gas_price:
             router_txn = RouterTransaction(txn)
-            #if router_txn.function_called == "swapExactETHForTokens" or router_txn.function_called == "swapETHForExactTokens":
-            #    matching_txn = router_txn
-            if router_txn.function_called.startswith('swap'):
+            if router_txn.function_called == "swapExactETHForTokens" or router_txn.function_called == "swapETHForExactTokens":
                 matching_txn = router_txn
+            #if router_txn.function_called.startswith('swap'):
+            #    matching_txn = router_txn
             
         elif compare_transaction and compare_transaction == txn:
             matching_txn = txn
