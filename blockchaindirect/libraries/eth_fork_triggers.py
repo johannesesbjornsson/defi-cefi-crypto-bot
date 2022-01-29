@@ -11,7 +11,7 @@ from web3.middleware import geth_poa_middleware
 from eth_fork_token import Token
 from eth_fork_transaction import Transaction, RouterTransaction
 from eth_fork_token_pair import TokenPair
-
+from eth_fork_account import Account
 
 class Triggers(object):
 
@@ -164,11 +164,13 @@ class Triggers(object):
                             print("here1", transaction_info)
                             pass
                         elif transaction_complete and not transaction_successful:
-                            txn_count = self.client.web3.eth.get_transaction_count(txn.from_address)
                             print("here2")
-                            if txn_count <= txn.nonce:
+                            account = Account(self.client,txn.from_address)
+                            latest_txn = account.get_next_router_txn(txn.nonce)
+                            if latest_txn:
                                 print("here3")
-                                txns_not_yet_complete.append(txn)
+                                txns_not_yet_complete.append(latest_txn.transaction)
+
                     else:
                         print("here4")
                         txns_not_yet_complete.append(txn)

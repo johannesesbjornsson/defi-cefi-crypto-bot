@@ -10,12 +10,16 @@ class Transaction(object):
         self.client = client
         self.receipt = None
         if transaction_info:
-            self.hash = self.client.web3.toHex(transaction_info["hash"])
+            try:
+                self.hash = self.client.web3.toHex(transaction_info["hash"])
+            except TypeError as e:
+                self.hash = transaction_info["hash"]
+
             self.block_number = transaction_info["blockNumber"]
             self.gas_limit = transaction_info["gas"]
             self.gas_price = transaction_info["gasPrice"]
             self.input = transaction_info["input"]
-            self.nonce = transaction_info["nonce"]
+            self.nonce = int(transaction_info["nonce"])
             self.to = transaction_info["to"]
             self.from_address = transaction_info["from"]
         else:
