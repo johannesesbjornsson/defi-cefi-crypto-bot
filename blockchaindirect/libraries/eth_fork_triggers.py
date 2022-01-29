@@ -176,14 +176,11 @@ class Triggers(object):
                         if transaction_complete and transaction_successful:
                             pass
                         elif transaction_complete and not transaction_successful and look_for_next_txn:
-                            print("here1")
                             account = Account(self.client,txn.from_address)
                             latest_txn = account.get_next_router_txn(txn.nonce)
                             if latest_txn:
-                                print("here2")
                                 txns_not_yet_complete.append(latest_txn.transaction)
                             else:
-                                print("here3")
                                 txns_not_yet_complete.append(txn)
 
                     else:
