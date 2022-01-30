@@ -27,7 +27,7 @@ class Triggers(object):
         #eth_newPendingTransactionFilter
         self.performing_transaction = False
         self.current_nonce = self.client.get_transaction_count()
-        self.curren_gas_price = 30
+        self.current_gas_price = 30
         self.set_tx_filter()
 
     def set_tx_filter(self):
@@ -90,8 +90,8 @@ class Triggers(object):
 
     def filter_transaction(self, txn, compare_transaction=None):
         matching_txn = None
-        if not compare_transaction and txn.to == self.client.router_contract_address and txn.block_number is None and txn.gas_price >= self.curren_gas_price:
-        #if not compare_transaction and txn.to == self.client.router_contract_address and txn.block_number is not None and txn.gas_price >= self.curren_gas_price:
+        if not compare_transaction and txn.to == self.client.router_contract_address and txn.block_number is None and txn.gas_price >= self.current_gas_price:
+        #if not compare_transaction and txn.to == self.client.router_contract_address and txn.block_number is not None and txn.gas_price >= self.current_gas_price:
             router_txn = RouterTransaction(txn)
             #if router_txn.function_called == "swapExactETHForTokens" or router_txn.function_called == "swapETHForExactTokens":
             #    matching_txn = router_txn
@@ -210,8 +210,8 @@ class Triggers(object):
         intercepted_transaction = False
         self.performing_transaction = False
 
-        self.curren_gas_price = self.client.web3.eth.gas_price 
-        if self.curren_gas_price > self.client.max_gas_price:
+        self.current_gas_price = self.client.web3.eth.gas_price 
+        if self.current_gas_price > self.client.max_gas_price:
             print("Gas prices too high atm...")
             time.sleep(60)
             return False

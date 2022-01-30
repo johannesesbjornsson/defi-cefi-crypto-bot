@@ -74,6 +74,9 @@ class Transaction(object):
         
         if nonce is None:
             nonce =  self.client.get_transaction_count()
+
+        if gas_price < self.client.default_gas_price:
+            gas_price = self.client.default_gas_price
     
         self.nonce = nonce
         self.gas_limit = self.client.default_gas_limit

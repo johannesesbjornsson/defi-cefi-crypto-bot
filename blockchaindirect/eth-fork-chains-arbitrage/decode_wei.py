@@ -9,7 +9,7 @@ price =   5000000000
 amount = web3.fromWei(price,'gwei')
 #amount = web3.toWei(price,'ether')
 print(amount)
-print(web3.toWei('0.12','gwei'))
+print(web3.fromWei(1525647347,'gwei'))
 # Hexstrings https://web3py.readthedocs.io/en/stable/web3.main.html
 
 #1 -> 1000000000000000000
