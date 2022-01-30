@@ -203,6 +203,8 @@ class Triggers(object):
     def get_pending_txn(self):
         try:
             pending_transactions = self.tx_filter.get_new_entries()
+        except ValueError as e:
+            pending_transactions = self.tx_filter.get_new_entries()
         except ConnectionResetError as e:
             pending_transactions = []
         except ConnectionClosedError as e:
