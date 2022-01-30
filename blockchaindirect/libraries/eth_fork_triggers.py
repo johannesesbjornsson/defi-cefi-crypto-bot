@@ -199,6 +199,13 @@ class Triggers(object):
         
         return txns_left
 
+    def get_pending_txn(self):
+        try:
+            pending_transactions = self.tx_filter.get_new_entries()
+        except ConnectionResetError as e:
+            pending_transactions = []
+        return pending_transactions
+
 
     def intercept_transactions(self):
         intercepted_transaction = False
@@ -212,7 +219,7 @@ class Triggers(object):
 
         self.current_nonce = self.client.get_transaction_count()
 
-        pending_transactions = self.tx_filter.get_new_entries()
+        pending_transactions = self.get_pending_txn()
 
         pending_router_transactions = asyncio.run(self.get_router_contract_interaction(pending_transactions))
 

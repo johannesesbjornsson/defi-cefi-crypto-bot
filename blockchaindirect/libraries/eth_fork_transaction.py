@@ -97,19 +97,11 @@ class Transaction(object):
         }
         # See https://docs.polygon.technology/docs/develop/eip1559-transactions/how-to-send-eip1559-transactions/
         try:
-            build_start = time.perf_counter()
+
             built_txn = self.built_transaction.buildTransaction(build_txn_hash)
-            build_stop = time.perf_counter()
-            sign_start = time.perf_counter()
             signed_txn = self.client.web3.eth.account.sign_transaction(built_txn, private_key=self.client.private_key)
-            sign_stop = time.perf_counter()
-            send_start = time.perf_counter()
             txn_hash = self.client.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
-            send_stop = time.perf_counter()
-            print("Build",build_stop - build_start)
-            print("Sign",sign_stop - sign_start)
-            print("Send", send_stop - send_start)
-            print("--------")
+
         except ValueError as e:
             if str(e) == "{'code': -32000, 'message': 'nonce too low'}":
                 build_txn_hash["nonce"] = self.nonce + 1

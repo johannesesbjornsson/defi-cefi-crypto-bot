@@ -4,6 +4,7 @@ import itertools
 import sys
 import arbitrage
 import logic
+import traceback
 sys.path.insert(0,'../libraries')
 from eth_fork_client import Client
 from eth_fork_token import Token
