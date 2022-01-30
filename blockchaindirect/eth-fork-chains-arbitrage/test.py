@@ -56,13 +56,11 @@ if __name__ == "__main__":
         #token_pair.swap_token_1_for_token_2(amount_in,amount_out,current_nonce)
 
 
-        #transaction_info = client.web3.eth.get_transaction("0xb33d68afbbfb7979af47ed996d3e38b677d3f6b64d0f6877aed0d71df09033ca")
-        #txn = Transaction(client, transaction_info)
-        #r_txn = RouterTransaction(txn)
-        #token_pair.quick_router_transction_analysis(r_txn)
-        #transaction_info = client.web3.eth.get_transaction("0x5205f391d9e139e5d33505512adc29ca9136329f661e0897b2d15a9464d0685b")
-        #print(transaction_info)
-        #print("---")
+        transaction_info = client.web3.eth.get_transaction("0xe304b6628456990edd4650cb01e8611784a32dc59643af193af97fa28860d2c3")
+        txn = Transaction(client, transaction_info)
+        r_txn = RouterTransaction(txn)
+        triggers.watch_transactions([r_txn.transaction ])
+        print("---")
 
         #transaction_info = client.web3.eth.get_transaction("0x81b7be2d290c0a26b8b5ede5350e3d123d32c6959e9983b9f4cc36e07cc40ace")
         #print(transaction_info)
@@ -72,7 +70,7 @@ if __name__ == "__main__":
         #print(client.web3.fromWei(maxFeePerGas,'gwei'))
         #end = time.perf_counter()
         
-        print("Time elapsed", end-start)
+        #print("Time elapsed", end-start)
 
 #33768815600 gasPrice
 #33777116648 maxFeePerGas

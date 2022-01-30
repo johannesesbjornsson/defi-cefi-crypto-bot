@@ -185,7 +185,7 @@ class Triggers(object):
                         elif transaction_complete and not transaction_successful and look_for_next_txn:
                             account = Account(self.client,txn.from_address)
                             latest_txn = account.get_next_txn(txn)
-                            txns_not_yet_complete.append(txn)
+                            txns_not_yet_complete.append(latest_txn)
 
                     else:
                         txns_not_yet_complete.append(txn)
