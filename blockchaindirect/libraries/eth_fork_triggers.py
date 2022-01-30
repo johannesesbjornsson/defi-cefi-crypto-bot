@@ -5,6 +5,7 @@ import asyncio
 from asyncio.exceptions import TimeoutError
 from socket import gaierror
 from aiohttp.client_exceptions import ClientConnectorError, ClientResponseError
+from websockets.exceptions import ConnectionClosedError
 from web3.logs import STRICT, IGNORE, DISCARD, WARN
 from web3.exceptions import TransactionNotFound
 from web3.middleware import geth_poa_middleware
@@ -203,6 +204,9 @@ class Triggers(object):
         try:
             pending_transactions = self.tx_filter.get_new_entries()
         except ConnectionResetError as e:
+            pending_transactions = []
+        except ConnectionClosedError as e:
+            time.sleep(0.2)
             pending_transactions = []
         return pending_transactions
 
