@@ -224,7 +224,6 @@ class Triggers(object):
    
             print("Winning!!")
             print("Txn hash", router_txn.transaction.hash)
-            print("Gas price", router_txn.transaction.gas_price)
             print("Sender address", router_txn.transaction.from_address)
             print("Liquidity impact", '{0:.20f}'.format(liquidity_impact))
             intercepted_transaction = True
@@ -232,6 +231,7 @@ class Triggers(object):
             self.watch_transactions([my_router_transaction.transaction ], False)
             transaction_complete, transaction_successful = my_router_transaction.transaction.get_transaction_receipt(wait=True)
             print("Initial swap status", transaction_successful)
+            print("My txn", my_router_transaction)
             if transaction_successful:
                 approve_token_txn = token_pair.token_2.approve_token()
                 #asyncio.run(self.watch_competing_transaction(router_txn.transaction))
@@ -243,6 +243,9 @@ class Triggers(object):
                 transaction_complete, transaction_successful = my_router_return_transaction.transaction.get_transaction_receipt(wait=True)
                 if transaction_successful:
                     print("It all went swimmingly")
+                    print("My return txn", my_router_return_transaction)
+                    amount_out = my_router_return_transaction.get_transaction_amount_out()
+                    print("Amount out", token_pair.token_1.from_wei(amount_out))
                 else:
                     raise StopIteration(f"{my_router_return_transaction.transaction.hash} was not successful")
                 

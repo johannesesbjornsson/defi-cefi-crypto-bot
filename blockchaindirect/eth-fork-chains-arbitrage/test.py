@@ -52,7 +52,9 @@ if __name__ == "__main__":
         token_pair = TokenPair(client,token_1, token_2, "local")
         amount_in = token_pair.token_1.to_wei(1)
         amount_out = token_pair.get_amount_token_2_out(amount_in,offline_calculation=True)
-        
+        current_nonce = client.get_transaction_count()
+        #token_pair.swap_token_1_for_token_2(amount_in,amount_out,current_nonce)
+
 
         #transaction_info = client.web3.eth.get_transaction("0xb33d68afbbfb7979af47ed996d3e38b677d3f6b64d0f6877aed0d71df09033ca")
         #txn = Transaction(client, transaction_info)
