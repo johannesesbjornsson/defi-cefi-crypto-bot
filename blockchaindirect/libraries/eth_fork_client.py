@@ -55,6 +55,8 @@ class Client(object):
         self.private_key = private_key
         self.api_url = provider.api_url
 
+        self.chain_id = self.web3.eth.chain_id
+
         self.settings_dir = os.path.dirname(os.path.realpath(__file__)) + '/settings/'+self.blockchain
         self.load_token_json_from_file()
         self.load_pair_json_from_file()

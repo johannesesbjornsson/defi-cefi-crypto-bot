@@ -68,12 +68,9 @@ class Triggers(object):
 
             #if liquidity_impact > self.minimum_liquidity_impact and txn_value > self.minimum_scanned_transaction and attacking_txn_max_amount_in > self.scan_token_value:
             if liquidity_impact > self.minimum_liquidity_impact and attacking_txn_max_amount_in > self.scan_token_value:
-                analysis_start = time.perf_counter()
                 amount_in = self.token_1.to_wei(self.scan_token_value)
                 amount_out = token_pair.get_amount_token_2_out(amount_in, offline_calculation=True)
                 my_gas_price = router_txn.transaction.gas_price + self.client.gas_price_frontrunning_increase
-                analysis_end = time.perf_counter()
-
                 
                 if self.performing_transaction == False and amount_in is not None and  amount_out is not None:
                     self.performing_transaction = True
@@ -82,7 +79,6 @@ class Triggers(object):
                     send_txn_end = time.perf_counter()
                     function_end = time.perf_counter()
                     print("Sending txn time elapsed: ", send_txn_end - send_txn_start)
-                    print("Analysis  time elapsed: ", analysis_end - analysis_start )
                     print("Token init time elapsed: ", token_end - token_start )
                     print("Function time elapsed: ", function_end - function_start,"\n-------")
                 #my_router_transaction = "dummy val"
@@ -178,7 +174,11 @@ class Triggers(object):
                     except TransactionNotFound as e:
                         account = Account(self.client,txn.from_address)
                         latest_txn = account.get_next_router_txn(txn.nonce -1 )
-                        txn = latest_txn.transaction
+                        if latest_txn:
+                            txn = latest_txn.transaction
+                        else:
+                            txns_not_yet_complete.append(txn)
+                            continue
 
                     if txn.block_number:
                         transaction_complete, transaction_successful = txn.get_transaction_receipt(wait=False)

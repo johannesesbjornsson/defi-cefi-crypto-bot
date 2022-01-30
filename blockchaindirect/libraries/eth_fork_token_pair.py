@@ -147,7 +147,6 @@ class TokenPair(object):
             if txn_slippage > 0:
                 attacking_txn_max_amount_in = self.get_amount_in_from_liquidity_impact_of_token_1_for_token_2(txn_slippage)
                 slippage = txn_slippage
-
         elif (router_txn.amount_in and not router_txn.amount_out) or (not router_txn.amount_in and router_txn.amount_out):
             attacking_txn_max_amount_in = transaction_value
             slippage = 1

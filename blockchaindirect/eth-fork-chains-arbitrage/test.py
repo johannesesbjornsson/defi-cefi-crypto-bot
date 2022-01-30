@@ -46,18 +46,22 @@ if __name__ == "__main__":
     #test_req()
     while True:
         start = time.perf_counter()
-        token_1 = Token(client, "USDC", "local")
-        token_2 = Token(client, "WMATIC", "local")
+        #token_1 = Token(client, "USDC", "local")
+        #token_2 = Token(client, "WMATIC", "local")
+        #end = time.perf_counter()
+        
+        #token_pair = TokenPair(client,token_1, token_2, "local")
+        #transaction_info = client.web3.eth.get_transaction("0xb33d68afbbfb7979af47ed996d3e38b677d3f6b64d0f6877aed0d71df09033ca")
+        #txn = Transaction(client, transaction_info)
+        #r_txn = RouterTransaction(txn)
+        #token_pair.quick_router_transction_analysis(r_txn)
+        transaction_info = client.web3.eth.get_transaction("0x5205f391d9e139e5d33505512adc29ca9136329f661e0897b2d15a9464d0685b")
+        print(transaction_info)
+        print("---")
+        transaction_info = client.web3.eth.get_transaction("0x81b7be2d290c0a26b8b5ede5350e3d123d32c6959e9983b9f4cc36e07cc40ace")
+        print(transaction_info)
         end = time.perf_counter()
         
-        token_pair = TokenPair(client,token_1, token_2, "local")
-        
-        transaction_info = client.web3.eth.get_transaction("0xb33d68afbbfb7979af47ed996d3e38b677d3f6b64d0f6877aed0d71df09033ca")
-        txn = Transaction(client, transaction_info)
-        r_txn = RouterTransaction(txn)
-        
-        token_pair.quick_router_transction_analysis(r_txn)
-        #end = time.perf_counter()
         print("Time elapsed", end-start)
 
 
