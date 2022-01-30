@@ -28,12 +28,12 @@ class Account(object):
 
         return txn_list, router_txn_list
 
-    def get_next_router_txn(self, nonce):
-        r_txn = None
+    def get_next_txn(self, txn):
+        next_txn = txn
         for router_txn in reversed(self.router_txn_list):
-            if router_txn.transaction.nonce > nonce:
-                r_txn = router_txn
+            if router_txn.transaction.nonce >= txn.nonce:
+                next_txn = router_txn
                 break
-        return r_txn
+        return next_txn
 
         

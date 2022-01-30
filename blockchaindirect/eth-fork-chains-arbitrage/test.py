@@ -46,32 +46,36 @@ if __name__ == "__main__":
     #test_req()
     while True:
         start = time.perf_counter()
-        #token_1 = Token(client, "USDC", "local")
-        #token_2 = Token(client, "WMATIC", "local")
+        token_1 = Token(client, "WMATIC", "local")
+        token_2 = Token(client, "USDC", "local")
         #end = time.perf_counter()
+        token_pair = TokenPair(client,token_1, token_2, "local")
+        amount_in = token_pair.token_1.to_wei(1)
+        amount_out = token_pair.get_amount_token_2_out(amount_in,offline_calculation=True)
         
-        #token_pair = TokenPair(client,token_1, token_2, "local")
+
         #transaction_info = client.web3.eth.get_transaction("0xb33d68afbbfb7979af47ed996d3e38b677d3f6b64d0f6877aed0d71df09033ca")
         #txn = Transaction(client, transaction_info)
         #r_txn = RouterTransaction(txn)
         #token_pair.quick_router_transction_analysis(r_txn)
-        transaction_info = client.web3.eth.get_transaction("0x5205f391d9e139e5d33505512adc29ca9136329f661e0897b2d15a9464d0685b")
-        print(transaction_info)
-        print("---")
-        transaction_info = client.web3.eth.get_transaction("0x81b7be2d290c0a26b8b5ede5350e3d123d32c6959e9983b9f4cc36e07cc40ace")
-        print(transaction_info)
-        end = time.perf_counter()
+        #transaction_info = client.web3.eth.get_transaction("0x5205f391d9e139e5d33505512adc29ca9136329f661e0897b2d15a9464d0685b")
+        #print(transaction_info)
+        #print("---")
+
+        #transaction_info = client.web3.eth.get_transaction("0x81b7be2d290c0a26b8b5ede5350e3d123d32c6959e9983b9f4cc36e07cc40ace")
+        #print(transaction_info)
+        #maxPriorityFeePerGas = client.web3.eth.max_priority_fee
+        #print(client.web3.fromWei(maxPriorityFeePerGas,'gwei'))
+        #maxFeePerGas = client.web3.eth.max_priority_fee + (2 * client.web3.eth.get_block('latest')['baseFeePerGas'])
+        #print(client.web3.fromWei(maxFeePerGas,'gwei'))
+        #end = time.perf_counter()
         
         print("Time elapsed", end-start)
 
+#33768815600 gasPrice
+#33777116648 maxFeePerGas
+#33758912335 maxPriorityFeePerGas
 
-        #txn_list = client.get_account_transaction("0x837107fa17efd21a10c5fc43fadfbe79bd29cc94")
-        #account = Account(client,"0x837107fa17efd21a10c5fc43fadfbe79bd29cc94")
-        #txn = account.get_next_router_txn(264)
-        #print(txn)
-        #transaction_info = client.web3.eth.get_transaction("0x0422e424de70ba273ae1deec4bccb2cde83495b2ed4f1dd8d010480ad0699721")
-        #txn = Transaction(client, transaction_info)
-        #triggers.watch_transactions([None, txn])
 
         
         print("-----------------------")

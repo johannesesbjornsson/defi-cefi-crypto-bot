@@ -13,4 +13,5 @@ print(web3.fromWei(1525647347,'gwei'))
 # Hexstrings https://web3py.readthedocs.io/en/stable/web3.main.html
 
 #1 -> 1000000000000000000
-print(web3.toHex(text='(<Function token1()>, {})'))
+print(web3.toHex(0))
+print(web3.toHex(text='2'))

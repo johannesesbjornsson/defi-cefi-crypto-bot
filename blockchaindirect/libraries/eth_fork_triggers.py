@@ -172,13 +172,10 @@ class Triggers(object):
                         transaction_info = self.client.web3.eth.get_transaction(txn.hash)
                         txn = Transaction(self.client, transaction_info)
                     except TransactionNotFound as e:
-                        account = Account(self.client,txn.from_address)
-                        latest_txn = account.get_next_router_txn(txn.nonce -1 )
-                        if latest_txn:
-                            txn = latest_txn.transaction
-                        else:
-                            txns_not_yet_complete.append(txn)
+                        if txn.from_address == "0x0000000000000000000000000000000000000000":
                             continue
+                        account = Account(self.client,txn.from_address)
+                        txn = account.get_next_router_txn(txn)
 
                     if txn.block_number:
                         transaction_complete, transaction_successful = txn.get_transaction_receipt(wait=False)
@@ -186,11 +183,8 @@ class Triggers(object):
                             pass
                         elif transaction_complete and not transaction_successful and look_for_next_txn:
                             account = Account(self.client,txn.from_address)
-                            latest_txn = account.get_next_router_txn(txn.nonce)
-                            if latest_txn:
-                                txns_not_yet_complete.append(latest_txn.transaction)
-                            else:
-                                txns_not_yet_complete.append(txn)
+                            latest_txn = account.get_next_txn(txn)
+                            txns_not_yet_complete.append(txn)
 
                     else:
                         txns_not_yet_complete.append(txn)

@@ -89,7 +89,7 @@ class Transaction(object):
             'from': self.from_address,
             'value': 0,
             'gas': self.gas_limit, 
-            'gasPrice': self.gas_price, 
+            'gasPrice': self.gas_price,
             #'maxFeePerGas': self.gas_price,
             #'maxPriorityFeePerGas' : self.gas_price,
             'chainId': self.client.chain_id,
