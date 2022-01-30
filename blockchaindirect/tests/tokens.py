@@ -106,7 +106,7 @@ class TokenTest(unittest.TestCase):
         router_txn = RouterTransaction(txn)
         liquidity_impact, txn_value, slippage, attacking_txn_max_amount_in = self.token_pair_static.quick_router_transction_analysis(router_txn)
         self.assertTrue(round(liquidity_impact, 5) == 0.2 and round(txn_value, 5)  == 4000)
-        self.assertTrue(slippage == 0 and attacking_txn_max_amount_in == 0)
+        self.assertTrue(slippage == 0.02 and attacking_txn_max_amount_in == 400)
 
     # Testing max amount in with multi path swap
     def test_txn_analysis_6(self):
@@ -120,7 +120,7 @@ class TokenTest(unittest.TestCase):
     
 
     # Tests random locally stored token infro matches blockchain stored info
-    def test_file_init(self):
+    def test_z_file_init(self):
         pair_list = random.sample(self.polygon_client.pair_info.keys() , 20)
         for pair in pair_list:
             token_address_1, token_address_2 = pair.split("_")

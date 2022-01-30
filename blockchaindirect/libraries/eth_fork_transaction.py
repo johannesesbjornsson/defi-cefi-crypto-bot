@@ -87,6 +87,8 @@ class Transaction(object):
             'value': 0,
             'gas': self.gas_limit, 
             'gasPrice': self.gas_price,
+            #'maxFeePerGas': self.gas_price,
+            #'maxPriorityFeePerGas' : self.gas_price,
             'nonce': self.nonce,
         }
         try:
