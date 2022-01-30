@@ -20,11 +20,10 @@ class Token(object):
             self.address = self.client.web3.toChecksumAddress(self.known_tokens[token])
             self.name = token
 
-        
         self.token_contract = self.client.web3.eth.contract(
             address=self.address, 
             abi=contract_libarary.standard_contracts["token"])
-        
+
         if init_type == "standard":
             self.decimals = self.token_contract.functions.decimals().call()
             self.verified = self.is_token_verified()
@@ -34,10 +33,11 @@ class Token(object):
                 self.decimals = token_info["decimals"]
                 self.verified = token_info["verified"]
             else:
-                self.verified = self.is_token_verified()
+                verified = self.is_token_verified()
                 self.decimals = self.token_contract.functions.decimals().call()
-                token_info = { "decimals" : self.decimals, "verified" : self.verified }
+                token_info = { "decimals" : self.decimals, "verified" : verified }
                 self.client.add_token_info(self.address, token_info)
+                self.verified = False # Setting to false so it doesn't buy first time
         else:
             raise ValueError("'init_type' needs to be 'standard' or 'local'")
 

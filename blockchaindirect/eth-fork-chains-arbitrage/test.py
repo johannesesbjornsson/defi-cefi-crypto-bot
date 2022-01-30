@@ -12,7 +12,7 @@ import cfg as cfg
 
 
 pending_transactions = [
-"0x5fd2b41e32392662a61af5cd0518311760fc71937784b4159ebaef1ce4a19881",
+"0xb33d68afbbfb7979af47ed996d3e38b677d3f6b64d0f6877aed0d71df09033ca",
 #"0x39a2380a9d7a796699b12eeb3ed030f53854a6be855dc9dc982336c8ad2888fa",
 ]
 
@@ -45,8 +45,21 @@ if __name__ == "__main__":
     test = []
     #test_req()
     while True:
+        start = time.perf_counter()
+        token_1 = Token(client, "USDC", "local")
+        token_2 = Token(client, "WMATIC", "local")
+        end = time.perf_counter()
+        
+        token_pair = TokenPair(client,token_1, token_2, "local")
+        
+        transaction_info = client.web3.eth.get_transaction("0xb33d68afbbfb7979af47ed996d3e38b677d3f6b64d0f6877aed0d71df09033ca")
+        txn = Transaction(client, transaction_info)
+        r_txn = RouterTransaction(txn)
+        
+        token_pair.quick_router_transction_analysis(r_txn)
+        #end = time.perf_counter()
+        print("Time elapsed", end-start)
 
-        #token_1 = Token(client, "0x22ffbe8b309abe8bbc28bf08c8ed3d6734c80dcc")
 
         #txn_list = client.get_account_transaction("0x837107fa17efd21a10c5fc43fadfbe79bd29cc94")
         #account = Account(client,"0x837107fa17efd21a10c5fc43fadfbe79bd29cc94")
@@ -55,7 +68,6 @@ if __name__ == "__main__":
         #transaction_info = client.web3.eth.get_transaction("0x0422e424de70ba273ae1deec4bccb2cde83495b2ed4f1dd8d010480ad0699721")
         #txn = Transaction(client, transaction_info)
         #triggers.watch_transactions([None, txn])
-        run_some_tests(client)
 
         
         print("-----------------------")

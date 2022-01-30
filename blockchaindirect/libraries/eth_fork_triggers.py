@@ -20,7 +20,6 @@ class Triggers(object):
         self.failed_requests = 0
         self.client = client
         self.token_to_scan_for = self.client.token_to_scan_for
-        self.minimum_scanned_transaction = self.client.minimum_scanned_transaction
         self.minimum_liquidity_impact = self.client.minimum_liquidity_impact
         self.scan_token_value = self.client.scan_token_value
         self.token_1 = Token(self.client,self.token_to_scan_for)
@@ -45,13 +44,13 @@ class Triggers(object):
         try:
             input_token, out_token = router_txn.path[-2:]
             if input_token == self.token_to_scan_for:
-                #start = time.perf_counter()
+                token_start = time.perf_counter()
                 token_2 = Token(self.client, out_token, "local")
                 if token_2.verified == False:
                     raise ValueError(f"{token_2.address} is not verified")
                 token_pair = TokenPair(self.client, self.token_1, token_2,"local")
-                #end = time.perf_counter()
-                #print("Token init time elapsed: ", end - start)
+                token_end = time.perf_counter()
+                
                 
             else:
                 token_pair = None
@@ -69,15 +68,22 @@ class Triggers(object):
 
             #if liquidity_impact > self.minimum_liquidity_impact and txn_value > self.minimum_scanned_transaction and attacking_txn_max_amount_in > self.scan_token_value:
             if liquidity_impact > self.minimum_liquidity_impact and attacking_txn_max_amount_in > self.scan_token_value:
+                analysis_start = time.perf_counter()
                 amount_in = self.token_1.to_wei(self.scan_token_value)
                 amount_out = token_pair.get_amount_token_2_out(amount_in, offline_calculation=True)
                 my_gas_price = router_txn.transaction.gas_price + self.client.gas_price_frontrunning_increase
+                analysis_end = time.perf_counter()
 
                 
                 if self.performing_transaction == False and amount_in is not None and  amount_out is not None:
                     self.performing_transaction = True
+                    send_txn_start = time.perf_counter()
                     my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=my_gas_price, nonce=self.current_nonce)
+                    send_txn_end = time.perf_counter()
                     function_end = time.perf_counter()
+                    print("Sending txn time elapsed: ", send_txn_end - send_txn_start)
+                    print("Analysis  time elapsed: ", analysis_end - analysis_start )
+                    print("Token init time elapsed: ", token_end - token_start )
                     print("Function time elapsed: ", function_end - function_start,"\n-------")
                 #my_router_transaction = "dummy val"
                 #function_end = time.perf_counter()
