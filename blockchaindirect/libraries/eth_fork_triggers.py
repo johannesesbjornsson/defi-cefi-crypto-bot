@@ -32,7 +32,10 @@ class Triggers(object):
         self.set_tx_filter()
 
     def set_tx_filter(self):
-        self.tx_filter = self.client.web3_ws.eth.filter('pending')
+        try:
+            self.tx_filter = self.client.web3_ws.eth.filter('pending')
+        except ConnectionResetError as e:
+            print("up here")
 
     def handle_swap_transaction(self, router_txn):
         token_pair = None
@@ -208,6 +211,7 @@ class Triggers(object):
             self.set_tx_filter()
             pending_transactions = self.tx_filter.get_new_entries()
         except ConnectionResetError as e:
+            print("here1")
             pending_transactions = []
         except ConnectionClosedError as e:
             time.sleep(0.2)
