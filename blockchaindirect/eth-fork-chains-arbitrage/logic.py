@@ -8,4 +8,5 @@ def send_email_update(message,email_api_key):
     subject = "Crypto Update"
     content = Content("text/plain", message)
     mail = Mail(from_email, to_email, subject, content)
-    response = sg.client.mail.send.post(request_body=mail.get())      
+    response = sg.client.mail.send.post(request_body=mail.get())
+    print(response.status_code)      

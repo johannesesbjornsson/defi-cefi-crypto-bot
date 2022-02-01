@@ -73,7 +73,8 @@ class Triggers(object):
                 amount_out = token_pair.get_amount_token_2_out(amount_in, offline_calculation=True)
                 my_gas_price = router_txn.transaction.gas_price + self.client.gas_price_frontrunning_increase
                 
-                if self.performing_transaction == False and amount_in is not None and  amount_out is not None:
+                time_elapsed = time.perf_counter() - function_start
+                if self.performing_transaction == False and amount_in is not None and  amount_out is not None and time_elapsed < 1:
                     self.performing_transaction = True
                     send_txn_start = time.perf_counter()
                     my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=my_gas_price, nonce=self.current_nonce)
@@ -204,6 +205,7 @@ class Triggers(object):
         try:
             pending_transactions = self.tx_filter.get_new_entries()
         except ValueError as e:
+            self.set_tx_filter()
             pending_transactions = self.tx_filter.get_new_entries()
         except ConnectionResetError as e:
             pending_transactions = []

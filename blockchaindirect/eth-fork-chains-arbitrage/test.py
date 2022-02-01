@@ -2,6 +2,7 @@ import asyncio
 import time
 import sys
 import json
+import logic
 sys.path.insert(0,'../libraries')
 from eth_fork_client import Client
 from eth_fork_token import Token
@@ -35,7 +36,8 @@ if __name__ == "__main__":
     #test_req()
     while True:
         start = time.perf_counter()
-        re_init_tokens(client)
+        logic.send_email_update("I crashed :(",cfg.email_api_key)
+        
         #token_1 = Token(client, "WMATIC", "local")
         #token_2 = Token(client, "USDC", "local")
         #token_2 = Token(client, "0xCecAc06eeDe5E652D8215Ea369444919F43f5eD6")

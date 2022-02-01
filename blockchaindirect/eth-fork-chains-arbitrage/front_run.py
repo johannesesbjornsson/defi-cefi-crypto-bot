@@ -29,6 +29,9 @@ def main(blockchain):
         intercepted_transaction = triggers.intercept_transactions()
         if intercepted_transaction:
             triggers.set_tx_filter()
+            print("-------------------------------------------------")
+            print("--------------END TRANSACTION INFO---------------")
+            print("-------------------------------------------------")
         #print("Taking a wee break")
         #time.sleep(2)
         #break
