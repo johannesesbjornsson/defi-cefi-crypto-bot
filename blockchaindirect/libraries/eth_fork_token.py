@@ -75,7 +75,6 @@ class Token(object):
                 for code_statement in dodgy_code_statements:
                     if code_statement in response_json["result"][0]["SourceCode"]:
                         safe_code = False
-                        print(code_statement)
         else:
             raise LookupError("Not 200 reponse")
         return safe_code
