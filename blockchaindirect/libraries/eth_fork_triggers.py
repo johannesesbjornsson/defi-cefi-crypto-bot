@@ -180,7 +180,7 @@ class Triggers(object):
                         if txn.from_address == "0x0000000000000000000000000000000000000000":
                             continue
                         account = Account(self.client,txn.from_address)
-                        txn = account.get_next_router_txn(txn)
+                        txn = account.get_next_txn(txn)
 
                     if txn.block_number:
                         transaction_complete, transaction_successful = txn.get_transaction_receipt(wait=False)
