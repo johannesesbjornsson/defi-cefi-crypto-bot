@@ -39,8 +39,6 @@ class TokenPair(object):
                 pair = [self.token_1.address, self.token_2.address]
                 pair_info = { "token0" : self.raw_reserves_token_1, "liquidity_pool_address" : self.liquidity_pool_address }
                 self.client.add_pair_info(pair, pair_info)
-
-
         elif init_type == "async":
             loop = asyncio.get_event_loop()
             results = loop.run_until_complete(self.asynchronous_object_init())

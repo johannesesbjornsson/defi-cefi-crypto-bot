@@ -27,15 +27,18 @@ class Token(object):
         if init_type == "standard":
             self.decimals = self.token_contract.functions.decimals().call()
             self.verified = self.is_token_verified()
+            self.safe_code = self.has_safe_code()
         elif init_type == "local":
             token_info = self.client.get_token_info(self.address)
             if token_info:
                 self.decimals = token_info["decimals"]
                 self.verified = token_info["verified"]
+                self.safe_code = token_info["safe_code"]
             else:
                 verified = self.is_token_verified()
+                self.safe_code = self.has_safe_code()
                 self.decimals = self.token_contract.functions.decimals().call()
-                token_info = { "decimals" : self.decimals, "verified" : verified }
+                token_info = { "decimals" : self.decimals, "verified" : verified, "safe_code": self.safe_code}
                 self.client.add_token_info(self.address, token_info)
                 self.verified = False # Setting to false so it doesn't buy first time
         else:
@@ -59,6 +62,24 @@ class Token(object):
             self.allowance = self.token_contract.functions.allowance(self.client.my_address,self.client.router_contract_address).call()
         return self.allowance
 
+    def has_safe_code(self):
+        safe_code = True
+        dodgy_code_statements = [
+            "function transferFrom(address sender, address recipient, uint256 amount) public override returns (bool)",
+            #"function _approve(address owner, address spender, uint256 amount) internal",
+            #"mint"
+        ]
+        response_code, response_json = self.client.get_abi(self.address)
+        if response_code == 200:
+            if "SourceCode" in response_json["result"][0]:
+                for code_statement in dodgy_code_statements:
+                    if code_statement in response_json["result"][0]["SourceCode"]:
+                        safe_code = False
+                        print(code_statement)
+        else:
+            raise LookupError("Not 200 reponse")
+        return safe_code
+
     def is_token_verified(self):
         verified = False
         response_code, response_json = self.client.get_abi(self.address)
@@ -66,6 +87,8 @@ class Token(object):
             if "ABI" in response_json["result"][0]:
                 if response_json["result"][0]["ABI"] != "Contract source code not verified":
                     verified = True
+        else:
+            raise LookupError("Not 200 reponse")
         return verified
 
     def set_proxy_details(self):

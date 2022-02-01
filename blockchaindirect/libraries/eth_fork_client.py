@@ -143,6 +143,18 @@ class Client(object):
         return response.status_code, json_reponse
 
 
+    def get_token_transfers(self, address):
+        url = "{}/api?module=account&action=txlistinternal&address={}&page=1&offset=50&sort=desc&apikey={}".format(self.api_url,address, self.api_key)
+        response = requests.get(url)
+        json_reponse = json.loads(response.content)
+        return response.status_code, json_reponse
+
+    def get_address_logs(self, address):
+        url = "{}/api?module=logs&action=getLogs&address={}&page=1&offset=50&sort=desc&apikey={}".format(self.api_url,address, self.api_key)
+        response = requests.get(url)
+        json_reponse = json.loads(response.content)
+        return response.status_code, json_reponse
+
 #        #params = liquidity_pool_contract.encodeABI(fn_name="getReserves",args=[])
 #        #data = {"jsonrpc": "2.0", "method": "eth_call", "params": [{"to": self.liquidity_pool_address, "data": params}, "latest"], "id": 1}
 #        #response = await client.post(url="https://polygon-rpc.com",headers={"Content-Type":"application/json"},json=data)

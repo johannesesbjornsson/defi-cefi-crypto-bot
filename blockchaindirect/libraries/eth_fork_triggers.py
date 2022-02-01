@@ -47,7 +47,7 @@ class Triggers(object):
             if input_token == self.token_to_scan_for:
                 token_start = time.perf_counter()
                 token_2 = Token(self.client, out_token, "local")
-                if token_2.verified == False:
+                if token_2.verified == False or token_2.safe_code == False:
                     raise ValueError(f"{token_2.address} is not verified")
                 token_pair = TokenPair(self.client, self.token_1, token_2,"local")
                 token_end = time.perf_counter()
