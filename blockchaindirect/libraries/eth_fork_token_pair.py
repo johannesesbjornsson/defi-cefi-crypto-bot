@@ -39,8 +39,6 @@ class TokenPair(object):
                 pair = [self.token_1.address, self.token_2.address]
                 pair_info = { "token0" : self.raw_reserves_token_1, "liquidity_pool_address" : self.liquidity_pool_address }
                 self.client.add_pair_info(pair, pair_info)
-
-
         elif init_type == "async":
             loop = asyncio.get_event_loop()
             results = loop.run_until_complete(self.asynchronous_object_init())
@@ -147,11 +145,10 @@ class TokenPair(object):
             if txn_slippage > 0:
                 attacking_txn_max_amount_in = self.get_amount_in_from_liquidity_impact_of_token_1_for_token_2(txn_slippage)
                 slippage = txn_slippage
-
         elif (router_txn.amount_in and not router_txn.amount_out) or (not router_txn.amount_in and router_txn.amount_out):
             attacking_txn_max_amount_in = transaction_value
             slippage = 1
-        elif impact > 0.01 and transaction_value > 10:
+        elif impact > 0.01 and transaction_value > self.client.minimum_scanned_transaction:
             slippage = 0.02
             attacking_txn_max_amount_in = transaction_value/10
 

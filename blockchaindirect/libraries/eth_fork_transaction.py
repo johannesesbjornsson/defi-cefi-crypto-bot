@@ -74,6 +74,9 @@ class Transaction(object):
         
         if nonce is None:
             nonce =  self.client.get_transaction_count()
+
+        if gas_price < self.client.default_gas_price:
+            gas_price = self.client.default_gas_price
     
         self.nonce = nonce
         self.gas_limit = self.client.default_gas_limit
@@ -87,12 +90,18 @@ class Transaction(object):
             'value': 0,
             'gas': self.gas_limit, 
             'gasPrice': self.gas_price,
+            #'maxFeePerGas': self.gas_price,
+            #'maxPriorityFeePerGas' : self.gas_price,
+            'chainId': self.client.chain_id,
             'nonce': self.nonce,
         }
+        # See https://docs.polygon.technology/docs/develop/eip1559-transactions/how-to-send-eip1559-transactions/
         try:
+
             built_txn = self.built_transaction.buildTransaction(build_txn_hash)
             signed_txn = self.client.web3.eth.account.sign_transaction(built_txn, private_key=self.client.private_key)
             txn_hash = self.client.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
+
         except ValueError as e:
             if str(e) == "{'code': -32000, 'message': 'nonce too low'}":
                 build_txn_hash["nonce"] = self.nonce + 1

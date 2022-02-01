@@ -1,1 +1,2 @@
 web3==5.26.0
+sendgrid
