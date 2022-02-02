@@ -185,6 +185,7 @@ class Triggers(object):
                     if txn.block_number:
                         transaction_complete, transaction_successful = txn.get_transaction_receipt(wait=False)
                         if transaction_complete and transaction_successful:
+                            print("Txn included in block",txn.block_number)
                             pass
                         elif transaction_complete and not transaction_successful and look_for_next_txn:
                             account = Account(self.client,txn.from_address)
@@ -199,6 +200,7 @@ class Triggers(object):
                 if txns_left:
                     time.sleep(5)
             else:
+                print("Giving up....txn not finishing")
                 txns_left = []
             
         
@@ -241,17 +243,18 @@ class Triggers(object):
             token_pair = hande_tuple[2]
             liquidity_impact = hande_tuple[3]
    
-            print("Winning!!")
-            print("Txn hash", router_txn.transaction.hash)
-            print("Sender address", router_txn.transaction.from_address)
-            print("Liquidity impact", '{0:.20f}'.format(liquidity_impact))
+
             intercepted_transaction = True
 
             self.watch_transactions([my_router_transaction.transaction ], False)
             transaction_complete, transaction_successful = my_router_transaction.transaction.get_transaction_receipt(wait=True)
+            print("Txn hash", router_txn.transaction.hash)
             print("Initial swap status", transaction_successful)
             print("My txn", my_router_transaction)
             if transaction_successful:
+                print("Winning!!")
+                print("Liquidity impact", '{0:.20f}'.format(liquidity_impact))
+
                 approve_token_txn = token_pair.token_2.approve_token()
                 #asyncio.run(self.watch_competing_transaction(router_txn.transaction))
                 self.watch_transactions([approve_token_txn, router_txn.transaction ])
