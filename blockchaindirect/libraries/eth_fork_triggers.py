@@ -77,7 +77,7 @@ class Triggers(object):
                 my_gas_price = router_txn.transaction.gas_price + self.client.gas_price_frontrunning_increase
                 
                 time_elapsed = time.perf_counter() - function_start
-                if self.performing_transaction == False and amount_in is not None and  amount_out is not None and time_elapsed < 1:
+                if self.performing_transaction == False and amount_in is not None and  amount_out is not None and time_elapsed < 0.4:
                     self.performing_transaction = True
                     send_txn_start = time.perf_counter()
                     my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=my_gas_price, nonce=self.current_nonce)
@@ -268,10 +268,10 @@ class Triggers(object):
                 else:
                     raise StopIteration(f"{my_router_return_transaction.transaction.hash} was not successful")
                 
-            print("--------")
-            print("Successsful requests", self.successful_requests)
-            print("Failed requests", self.failed_requests)
-            print("--------")
+            #print("--------")
+            #print("Successsful requests", self.successful_requests)
+            #print("Failed requests", self.failed_requests)
+            #print("--------")
         
         self.client.write_pair_info_to_file()  
         self.client.write_token_info_to_file()  
