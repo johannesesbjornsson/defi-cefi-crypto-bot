@@ -185,7 +185,7 @@ class Triggers(object):
                     if txn.block_number:
                         transaction_complete, transaction_successful = txn.get_transaction_receipt(wait=False)
                         if transaction_complete and transaction_successful:
-                            print("Txn included in block",txn.block_number)
+                            time.sleep(1)
                             pass
                         elif transaction_complete and not transaction_successful and look_for_next_txn:
                             account = Account(self.client,txn.from_address)
