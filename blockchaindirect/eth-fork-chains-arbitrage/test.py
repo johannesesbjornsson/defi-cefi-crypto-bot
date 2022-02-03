@@ -28,21 +28,48 @@ def re_init_tokens(client):
     
     client.write_token_info_to_file() 
 
+def re_init_token_pairs(client):
+    with open('../libraries/settings/polygon/pairs_backup.json', 'r') as f: 
+    	data = json.load(f)
+    for pair in data:
+
+        pairs = pair.split("_")
+        start = time.perf_counter()
+        token_1 = Token(client, pairs[0], "local")
+        token_2 = Token(client, pairs[1], "local")
+        token_pair = TokenPair(client,token_1, token_2,"local")
+        end = time.perf_counter()
+        print(end-start)
+        if token_pair.has_token_fees:
+            print("------------------------")
+            print("------ HAS FEES --------")
+            print("------------------------")
+            print(token_pair)
+            print(token_pair.has_token_fees)
+            print("------")
+
+
+        #print(token_pair)
+
+def test(client):
+    token_1 = Token(client, "WMATIC", "local")
+    #token_2 = Token(client, "USDC")
+    token_2 = Token(client, "0x21f9b5b2626603e3f40bfc13d01afb8c431d382f")
+    token_pair = TokenPair(client,token_1, token_2)
+    print(token_pair)
+    code, resp = client.get_address_logs(token_pair.liquidity_pool_address, "swap")
+
+
 if __name__ == "__main__":
     #client = Client("polygon",cfg.my_polygon_address, cfg.private_key)
     client = Client("polygon",cfg.my_address, cfg.private_key,cfg.api_key)
-    triggers = Triggers(client)
-    test = []
+    #triggers = Triggers(client)
     #test_req()
+    print("------- START ----------")
     while True:
-        start = time.perf_counter()
-        logic.send_email_update("I crashed :(",cfg.email_api_key)
-        
-        #token_1 = Token(client, "WMATIC", "local")
-        #token_2 = Token(client, "USDC", "local")
-        #token_2 = Token(client, "0xCecAc06eeDe5E652D8215Ea369444919F43f5eD6")
-        #end = time.perf_counter()
-        #token_pair = TokenPair(client,token_1, token_2)
+        start = time.perf_counter() 
+        #test(client)       
+        re_init_token_pairs(client)
 
         #amount_in = token_pair.token_1.to_wei(1)
         #amount_out = token_pair.get_amount_token_2_out(amount_in,offline_calculation=True)

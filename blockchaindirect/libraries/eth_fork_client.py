@@ -149,8 +149,12 @@ class Client(object):
         json_reponse = json.loads(response.content)
         return response.status_code, json_reponse
 
-    def get_address_logs(self, address):
-        url = "{}/api?module=logs&action=getLogs&address={}&page=1&offset=50&sort=desc&apikey={}".format(self.api_url,address, self.api_key)
+    def get_address_logs(self, address, topic=None):
+        if topic == "swap":
+            topic = "&topic0=0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822&topic1=0x000000000000000000000000a5e0829caced8ffdd4de3c43696c57f7d7a678ff"
+        else:
+            topic = ""
+        url = "{}/api?module=logs&action=getLogs&address={}&page=1&offset=150&sort=desc&apikey={}{}".format(self.api_url,address, self.api_key, topic)
         response = requests.get(url)
         json_reponse = json.loads(response.content)
         return response.status_code, json_reponse
