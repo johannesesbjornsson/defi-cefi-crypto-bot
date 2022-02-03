@@ -35,12 +35,11 @@ class Token(object):
                 self.verified = token_info["verified"]
                 self.safe_code = token_info["safe_code"]
             else:
-                verified = self.is_token_verified()
+                self.verified = self.is_token_verified()
                 self.safe_code = self.has_safe_code()
                 self.decimals = self.token_contract.functions.decimals().call()
-                token_info = { "decimals" : self.decimals, "verified" : verified, "safe_code": self.safe_code}
+                token_info = { "decimals" : self.decimals, "verified" : self.verified, "safe_code": self.safe_code}
                 self.client.add_token_info(self.address, token_info)
-                self.verified = False # Setting to false so it doesn't buy first time
         else:
             raise ValueError("'init_type' needs to be 'standard' or 'local'")
 
