@@ -54,29 +54,27 @@ def test(client):
     #token_2 = Token(client, "USDC")
     token_2 = Token(client, "USDC")
     token_pair = TokenPair(client,token_1, token_2)
+    amount_in = token_pair.token_1.to_wei(1)
+    amount_out = token_pair.get_amount_token_2_out(amount_in,offline_calculation=True)
+    token_pair.swap_token_1_for_token_2(amount_in,amount_out,current_nonce)
 
 
 
 if __name__ == "__main__":
     #client = Client("polygon",cfg.my_polygon_address, cfg.private_key)
     client = Client("polygon",cfg.my_address, cfg.private_key,cfg.api_key)
-    #triggers = Triggers(client)
+    triggers = Triggers(client)
     #test_req()
     print("------- START ----------")
     while True:
         start = time.perf_counter() 
-        #test(client)       
-        re_init_token_pairs(client)
-
-        #amount_in = token_pair.token_1.to_wei(1)
-        #amount_out = token_pair.get_amount_token_2_out(amount_in,offline_calculation=True)
-        #token_pair.swap_token_1_for_token_2(amount_in,amount_out,current_nonce)
 
 
-        #transaction_info = client.web3.eth.get_transaction("0xe304b6628456990edd4650cb01e8611784a32dc59643af193af97fa28860d2c3")
-        #txn = Transaction(client, transaction_info)
-        #r_txn = RouterTransaction(txn)
-        #triggers.watch_transactions([r_txn.transaction ])
+
+        transaction_info = client.web3.eth.get_transaction("0xbfab07bde5c8877c6e273a561bc9b9f1930ba2c63d2646112d76d255fc2681b3")
+        txn = Transaction(client, transaction_info)
+        r_txn = RouterTransaction(txn)
+        triggers.watch_transactions([[r_txn.transaction, True] ])
         print("---")
 
         #transaction_info = client.web3.eth.get_transaction("0x81b7be2d290c0a26b8b5ede5350e3d123d32c6959e9983b9f4cc36e07cc40ace")

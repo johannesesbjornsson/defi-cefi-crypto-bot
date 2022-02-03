@@ -79,6 +79,7 @@ class Triggers(object):
                 my_gas_price = router_txn.transaction.gas_price + self.client.gas_price_frontrunning_increase
                 
                 time_elapsed = time.perf_counter() - function_start
+                print(time_elapsed)
                 if self.performing_transaction == False and amount_in is not None and  amount_out is not None and time_elapsed < 0.4:
                     self.performing_transaction = True
                     send_txn_start = time.perf_counter()
