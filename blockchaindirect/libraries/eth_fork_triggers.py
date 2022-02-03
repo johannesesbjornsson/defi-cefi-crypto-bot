@@ -57,7 +57,7 @@ class Triggers(object):
 
                 if token_pair.has_token_fees:
                     return my_router_transaction, liquidity_impact, None
-                
+                token_end = time.perf_counter()
             else:
                 token_pair = None
         except ValueError as e:
