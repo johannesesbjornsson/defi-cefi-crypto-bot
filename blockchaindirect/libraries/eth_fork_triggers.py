@@ -54,10 +54,9 @@ class Triggers(object):
                     return my_router_transaction, liquidity_impact, token_pair
 
                 token_pair = TokenPair(self.client, self.token_1, token_2,"local")
-                token_end = time.perf_counter()
-                print("Token init time elapsed: ", token_end - token_start )
+
                 if token_pair.has_token_fees:
-                    return my_router_transaction, liquidity_impact, token_pair
+                    return my_router_transaction, liquidity_impact, None
                 
             else:
                 token_pair = None
