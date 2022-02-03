@@ -49,15 +49,12 @@ def re_init_token_pairs(client):
             print("------")
 
 
-        #print(token_pair)
-
 def test(client):
     token_1 = Token(client, "WMATIC", "local")
     #token_2 = Token(client, "USDC")
-    token_2 = Token(client, "0x21f9b5b2626603e3f40bfc13d01afb8c431d382f")
+    token_2 = Token(client, "USDC")
     token_pair = TokenPair(client,token_1, token_2)
-    print(token_pair)
-    code, resp = client.get_address_logs(token_pair.liquidity_pool_address, "swap")
+
 
 
 if __name__ == "__main__":
