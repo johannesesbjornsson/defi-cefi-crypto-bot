@@ -221,17 +221,17 @@ class Triggers(object):
                     continue
                 account = Account(self.client,txn.from_address)
                 txn = account.get_next_txn(txn)
-            print(txn)
+            
             if txn.block_number:
                 transaction_complete, transaction_successful = txn.get_transaction_receipt(wait=False)
                 if transaction_complete and transaction_successful:
                     time.sleep(1)
                     txn = None
-                    print("setting txn to none")
                     pass
+                elif transaction_complete and not look_for_next_txn:
+                    txn = None
                 elif transaction_complete and not transaction_successful and look_for_next_txn:
                     account = Account(self.client,txn.from_address)
-                    print("Looking for next txn")
                     latest_txn = account.get_next_txn(txn)
                     txn = latest_txn
                 
