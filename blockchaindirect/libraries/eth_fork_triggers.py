@@ -169,45 +169,75 @@ class Triggers(object):
         
         return pending_router_transactions
 
-    def watch_transactions(self,txns,look_for_next_txn=True):
+#    def watch_transactions(self,txns,look_for_next_txn=True):
+#        time_started = time.time()
+#        txns_left = txns
+#        while len(txns_left) > 0:
+#            txns_not_yet_complete = []
+#            for txn in txns_left:
+#                if txn:
+#                    try:
+#                        transaction_info = self.client.web3.eth.get_transaction(txn.hash)
+#                        txn = Transaction(self.client, transaction_info)
+#                    except TransactionNotFound as e:
+#                        if txn.from_address == "0x0000000000000000000000000000000000000000":
+#                            continue
+#                        account = Account(self.client,txn.from_address)
+#                        txn = account.get_next_txn(txn)
+#
+#                    if txn.block_number:
+#                        transaction_complete, transaction_successful = txn.get_transaction_receipt(wait=False)
+#                        if transaction_complete and transaction_successful:
+#                            time.sleep(1)
+#                            pass
+#                        elif transaction_complete and not transaction_successful and look_for_next_txn:
+#                            account = Account(self.client,txn.from_address)
+#                            latest_txn = account.get_next_txn(txn)
+#                            txns_not_yet_complete.append(latest_txn)
+#
+#                    else:
+#                        txns_not_yet_complete.append(txn)
+#                
+#            if 360 > time.time() - time_started:
+#                txns_left = txns_not_yet_complete
+#                if txns_left:
+#                    time.sleep(5)
+#            else:
+#                print("Giving up....txn not finishing")
+#                txns_left = []
+#            
+#        
+#        return txns_left
+
+
+    def watch_transactions(self,txn,look_for_next_txn=True):
         time_started = time.time()
-        txns_left = txns
-        while len(txns_left) > 0:
-            txns_not_yet_complete = []
-            for txn in txns_left:
-                if txn:
-                    try:
-                        transaction_info = self.client.web3.eth.get_transaction(txn.hash)
-                        txn = Transaction(self.client, transaction_info)
-                    except TransactionNotFound as e:
-                        if txn.from_address == "0x0000000000000000000000000000000000000000":
-                            continue
-                        account = Account(self.client,txn.from_address)
-                        txn = account.get_next_txn(txn)
-
-                    if txn.block_number:
-                        transaction_complete, transaction_successful = txn.get_transaction_receipt(wait=False)
-                        if transaction_complete and transaction_successful:
-                            time.sleep(1)
-                            pass
-                        elif transaction_complete and not transaction_successful and look_for_next_txn:
-                            account = Account(self.client,txn.from_address)
-                            latest_txn = account.get_next_txn(txn)
-                            txns_not_yet_complete.append(latest_txn)
-
-                    else:
-                        txns_not_yet_complete.append(txn)
+        while txn is not None:
+            try:
+                transaction_info = self.client.web3.eth.get_transaction(txn.hash)
+                txn = Transaction(self.client, transaction_info)
+            except TransactionNotFound as e:
+                if txn.from_address == "0x0000000000000000000000000000000000000000":
+                    continue
+                account = Account(self.client,txn.from_address)
+                txn = account.get_next_txn(txn)
+            if txn.block_number:
+                transaction_complete, transaction_successful = txn.get_transaction_receipt(wait=False)
+                if transaction_complete and transaction_successful:
+                    time.sleep(1)
+                    txn = None
+                    pass
+                elif transaction_complete and not transaction_successful and look_for_next_txn:
+                    account = Account(self.client,txn.from_address)
+                    latest_txn = account.get_next_txn(txn)
+                    txn = latest_txn
                 
             if 360 > time.time() - time_started:
-                txns_left = txns_not_yet_complete
-                if txns_left:
+                if txn:
                     time.sleep(5)
             else:
                 print("Giving up....txn not finishing")
-                txns_left = []
-            
-        
-        return txns_left
+                txn = None
 
     def get_pending_txn(self):
         try:
@@ -249,7 +279,7 @@ class Triggers(object):
 
             intercepted_transaction = True
 
-            self.watch_transactions([my_router_transaction.transaction ], False)
+            self.watch_transactions(my_router_transaction.transaction, False)
             transaction_complete, transaction_successful = my_router_transaction.transaction.get_transaction_receipt(wait=True)
             print("Txn hash", router_txn.transaction.hash)
             print("Initial swap status", transaction_successful)
@@ -259,8 +289,9 @@ class Triggers(object):
                 print("Liquidity impact", '{0:.20f}'.format(liquidity_impact))
 
                 approve_token_txn = token_pair.token_2.approve_token()
-                #asyncio.run(self.watch_competing_transaction(router_txn.transaction))
-                self.watch_transactions([approve_token_txn, router_txn.transaction ])
+                if approve_token_txn:
+                    self.watch_transactions(approve_token_txn, False)
+                self.watch_transactions(router_txn.transaction)
                 amount_out_from_token_2 = my_router_transaction.get_transaction_amount_out()
                 amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
                 my_router_return_transaction = token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
