@@ -214,7 +214,7 @@ class Triggers(object):
         time_started = time.time()
         while txn is not None:
             try:
-                transaction_info = self.client.web3.eth.get_transaction(txn)
+                transaction_info = self.client.web3.eth.get_transaction(txn.hash)
                 txn = Transaction(self.client, transaction_info)
             except TransactionNotFound as e:
                 if txn.from_address == "0x0000000000000000000000000000000000000000":
@@ -295,7 +295,7 @@ class Triggers(object):
                 amount_out_from_token_2 = my_router_transaction.get_transaction_amount_out()
                 amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
                 my_router_return_transaction = token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
-                self.watch_transactions([my_router_return_transaction.transaction ], False)
+                self.watch_transactions(my_router_return_transaction.transaction, False)
                 transaction_complete, transaction_successful = my_router_return_transaction.transaction.get_transaction_receipt(wait=True)
                 if transaction_successful:
                     print("It all went swimmingly")
