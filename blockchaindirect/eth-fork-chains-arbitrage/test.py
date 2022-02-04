@@ -19,13 +19,17 @@ pending_transactions = [
 ]
 
 def re_init_tokens(client):
-    with open('../libraries/settings/polygon/token_backup.json', 'r') as f: 
+    with open('../libraries/settings/polygon/tokens_backup.json', 'r') as f: 
     	data = json.load(f)
     for token_hash in data:
-        print("-------")
         token = Token(client, token_hash, "local")
-        print(token.safe_code)
-    
+        if token.safe_code == False and token.verified == True:
+            print("------------------------")
+            print("------ HAS FEES --------")
+            print("------------------------")
+            print(token)
+            print(token.safe_code)
+            print("------------------------")
     client.write_token_info_to_file() 
 
 def re_init_token_pairs(client):
@@ -46,7 +50,7 @@ def re_init_token_pairs(client):
             print("------------------------")
             print(token_pair)
             print(token_pair.has_token_fees)
-            print("------")
+            print("------------------------")
 
 
 def test(client):
@@ -68,6 +72,7 @@ if __name__ == "__main__":
     print("------- START ----------")
     while True:
         start = time.perf_counter() 
+        re_init_tokens(client)
 
 
 
@@ -77,8 +82,8 @@ if __name__ == "__main__":
         #triggers.watch_transactions([[r_txn.transaction, True] ])
         #print("---")
 
-        token_1 = Token(client, "0x08e175a1eac9744a0f1ccaeb8f669af6a2bda3ce")
-        print(token_1.safe_code)
+        #token_1 = Token(client, "0x08e175a1eac9744a0f1ccaeb8f669af6a2bda3ce")
+        #print(token_1.safe_code)
 
         #transaction_info = client.web3.eth.get_transaction("0x81b7be2d290c0a26b8b5ede5350e3d123d32c6959e9983b9f4cc36e07cc40ace")
         #print(transaction_info)
