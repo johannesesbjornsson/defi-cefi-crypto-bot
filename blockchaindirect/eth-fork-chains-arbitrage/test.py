@@ -63,7 +63,7 @@ def test(client):
 if __name__ == "__main__":
     #client = Client("polygon",cfg.my_polygon_address, cfg.private_key)
     client = Client("polygon",cfg.my_address, cfg.private_key,cfg.api_key)
-    triggers = Triggers(client)
+    #triggers = Triggers(client)
     #test_req()
     print("------- START ----------")
     while True:
@@ -71,11 +71,14 @@ if __name__ == "__main__":
 
 
 
-        transaction_info = client.web3.eth.get_transaction("0xbfab07bde5c8877c6e273a561bc9b9f1930ba2c63d2646112d76d255fc2681b3")
-        txn = Transaction(client, transaction_info)
-        r_txn = RouterTransaction(txn)
-        triggers.watch_transactions([[r_txn.transaction, True] ])
-        print("---")
+        #transaction_info = client.web3.eth.get_transaction("0xbfab07bde5c8877c6e273a561bc9b9f1930ba2c63d2646112d76d255fc2681b3")
+        #txn = Transaction(client, transaction_info)
+        #r_txn = RouterTransaction(txn)
+        #triggers.watch_transactions([[r_txn.transaction, True] ])
+        #print("---")
+
+        token_1 = Token(client, "0x08e175a1eac9744a0f1ccaeb8f669af6a2bda3ce")
+        print(token_1.safe_code)
 
         #transaction_info = client.web3.eth.get_transaction("0x81b7be2d290c0a26b8b5ede5350e3d123d32c6959e9983b9f4cc36e07cc40ace")
         #print(transaction_info)

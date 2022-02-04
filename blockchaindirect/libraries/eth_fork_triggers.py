@@ -214,7 +214,7 @@ class Triggers(object):
         time_started = time.time()
         while txn is not None:
             try:
-                transaction_info = self.client.web3.eth.get_transaction(txn.hash)
+                transaction_info = self.client.web3.eth.get_transaction(txn)
                 txn = Transaction(self.client, transaction_info)
             except TransactionNotFound as e:
                 if txn.from_address == "0x0000000000000000000000000000000000000000":
