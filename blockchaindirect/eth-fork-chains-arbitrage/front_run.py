@@ -42,6 +42,7 @@ if __name__ == '__main__':
     init_type=sys.argv[2]
     print("Starting application")
     print("Blockchain: ",blockchain)
+    print("Init type: ",init_type)
 
     try:
         main(blockchain,init_type)
