@@ -16,7 +16,7 @@ from eth_fork_account import Account
 
 class Triggers(object):
 
-    def __init__(self, client):
+    def __init__(self, client,  init_type):
         self.successful_requests = 0
         self.failed_requests = 0
         self.client = client
@@ -30,6 +30,7 @@ class Triggers(object):
         self.current_nonce = self.client.get_transaction_count()
         self.current_gas_price = 30
         self.set_tx_filter()
+        self.init_type = init_type
 
     def set_tx_filter(self):
         try:
@@ -49,11 +50,11 @@ class Triggers(object):
             input_token, out_token = router_txn.path[-2:]
             if input_token == self.token_to_scan_for:
                 token_start = time.perf_counter()
-                token_2 = Token(self.client, out_token, "local")
+                token_2 = Token(self.client, out_token, self.init_type)
                 if token_2.verified == False or token_2.safe_code == False:
                     return my_router_transaction, liquidity_impact, token_pair
 
-                token_pair = TokenPair(self.client, self.token_1, token_2,"local")
+                token_pair = TokenPair(self.client, self.token_1, token_2, self.init_type)
 
                 if token_pair.has_token_fees:
                     return my_router_transaction, liquidity_impact, None
@@ -79,7 +80,6 @@ class Triggers(object):
                 my_gas_price = router_txn.transaction.gas_price + self.client.gas_price_frontrunning_increase
                 
                 time_elapsed = time.perf_counter() - function_start
-                print(time_elapsed)
                 if self.performing_transaction == False and amount_in is not None and  amount_out is not None and time_elapsed < 0.4:
                     self.performing_transaction = True
                     send_txn_start = time.perf_counter()
@@ -237,7 +237,7 @@ class Triggers(object):
                 
             if 360 > time.time() - time_started:
                 if token_swap_info:
-                    pair = token_swap_info[0]
+                    token_pair = token_swap_info[0]
                     amount_in = token_swap_info[1]
                     orginal_amount_in = token_swap_info[1]
                     amount_out = token_pair.get_amount_token_1_out(amount_in)

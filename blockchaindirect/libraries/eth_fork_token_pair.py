@@ -42,15 +42,23 @@ class TokenPair(object):
                 pair = [self.token_1.address, self.token_2.address]
                 pair_info = { "token0" : self.raw_reserves_token_1, "liquidity_pool_address" : self.liquidity_pool_address, "has_token_fees": self.has_token_fees }
                 self.client.add_pair_info(pair, pair_info)
-        #elif init_type == "async":
-        #    loop = asyncio.get_event_loop()
-        #    results = loop.run_until_complete(self.asynchronous_object_init())
-        #    self.liquidity_pool_address = results[0]
-        #    self.liquidity_pool_contract = results[1]
-        #    self.token_1_liquidity = results[2]
-        #    self.token_2_liquidity = results[3] 
+        elif init_type == "live":
+            pair_info = self.client.get_pair_info([self.token_1.address, self.token_2.address])
+            if pair_info:
+                self.raw_reserves_token_1 = pair_info["token0"]
+                self.has_token_fees = pair_info["has_token_fees"]
+                self.liquidity_pool_address = pair_info["liquidity_pool_address"]
+                self.liquidity_pool_contract = self.client.web3.eth.contract(address=self.liquidity_pool_address, abi=self.abi)
+                self.token_1_liquidity, self.token_2_liquidity = self.get_pair_liquidity()
+            else:
+                self.raw_reserves_token_1 = None
+                self.has_token_fees = True
+                self.liquidity_pool_address = None
+                self.liquidity_pool_contract = None
+                self.token_1_liquidity = 0
+                self.token_2_liquidity = 0
         else:
-            raise ValueError("'init_type' needs to be 'standard', 'async' or 'local'")
+            raise ValueError("'init_type' needs to be 'standard', 'live' or 'local'")
         
         
             

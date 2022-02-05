@@ -14,7 +14,7 @@ from eth_fork_triggers import Triggers
 
 import time
 
-def main(blockchain):
+def main(blockchain, init_type):
     client = Client(blockchain, cfg.my_address, cfg.private_key, cfg.api_key)
 
     lists = list(itertools.combinations(client.tokens_to_check, 2))
@@ -23,7 +23,7 @@ def main(blockchain):
         #["QUICK", "LINK"]
     ]
     
-    triggers = Triggers(client)
+    triggers = Triggers(client,init_type)
 
     while True:
         intercepted_transaction = triggers.intercept_transactions()
@@ -39,11 +39,12 @@ def main(blockchain):
 
 if __name__ == '__main__':
     blockchain=sys.argv[1]
+    init_type=sys.argv[2]
     print("Starting application")
     print("Blockchain: ",blockchain)
 
     try:
-        main(blockchain)
+        main(blockchain,init_type)
     except Exception as e:
         tb = traceback.format_exc()
         print(tb)

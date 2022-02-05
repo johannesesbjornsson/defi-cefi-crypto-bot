@@ -60,7 +60,7 @@ def test(client):
     token_pair = TokenPair(client,token_1, token_2)
     amount_in = token_pair.token_1.to_wei(1)
     amount_out = token_pair.get_amount_token_2_out(amount_in,offline_calculation=True)
-    token_pair.swap_token_1_for_token_2(amount_in,amount_out,current_nonce)
+    token_pair.swap_token_1_for_token_2(amount_in,amount_out,38576412146,1)
 
 
 
@@ -73,6 +73,7 @@ if __name__ == "__main__":
     while True:
         start = time.perf_counter() 
         #re_init_tokens(client)
+        test(client)
 
 
 

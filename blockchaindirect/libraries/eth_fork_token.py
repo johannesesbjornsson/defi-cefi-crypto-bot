@@ -9,7 +9,7 @@ import asyncio
 
 class Token(object):
 
-    def __init__(self, client, token, init_type="standard"):
+    def __init__(self, client, token, init_type="standard",):
         self.known_tokens = client.known_tokens
         self.client = client
 
@@ -40,8 +40,18 @@ class Token(object):
                 self.decimals = self.token_contract.functions.decimals().call()
                 token_info = { "decimals" : self.decimals, "verified" : self.verified, "safe_code": self.safe_code}
                 self.client.add_token_info(self.address, token_info)
+        elif init_type == "live":
+            token_info = self.client.get_token_info(self.address)
+            if token_info:
+                self.decimals = token_info["decimals"]
+                self.verified = token_info["verified"]
+                self.safe_code = token_info["safe_code"]
+            else:
+                self.decimals = None
+                self.verified = False
+                self.safe_code = False
         else:
-            raise ValueError("'init_type' needs to be 'standard' or 'local'")
+            raise ValueError("'init_type' needs to be 'standard', 'live' or 'local'")
 
         self.token_symbol = None
         self.allowance = None
