@@ -210,7 +210,7 @@ class Triggers(object):
 #        return txns_left
 
 
-    def watch_transactions(self,txn,look_for_next_txn=True):
+    def watch_transactions(self,txn,look_for_next_txn=True,token_swap_info=None):
         time_started = time.time()
         while txn is not None:
             try:
@@ -236,6 +236,16 @@ class Triggers(object):
                     txn = latest_txn
                 
             if 360 > time.time() - time_started:
+                if token_swap_info:
+                    pair = token_swap_info[0]
+                    amount_in = token_swap_info[1]
+                    orginal_amount_in = token_swap_info[1]
+                    amount_out = token_pair.get_amount_token_1_out(amount_in)
+                    print("Amount out", amount_out)
+                    print("Amount I put in", orginal_amount_in)
+                    print(orginal_amount_in/amount_out)
+                    
+
                 if txn:
                     time.sleep(5)
             else:
@@ -290,12 +300,13 @@ class Triggers(object):
             if transaction_successful:
                 print("Winning!!")
                 print("Liquidity impact", '{0:.20f}'.format(liquidity_impact))
+                amount_out_from_token_2 = my_router_transaction.get_transaction_amount_out()
 
                 approve_token_txn = token_pair.token_2.approve_token()
                 if approve_token_txn:
                     self.watch_transactions(approve_token_txn, False)
-                self.watch_transactions(router_txn.transaction)
-                amount_out_from_token_2 = my_router_transaction.get_transaction_amount_out()
+                self.watch_transactions(router_txn.transaction,True, [token_pair, amount_out_from_token_2, my_router_transaction.amount_in ])
+                
                 amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
                 my_router_return_transaction = token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
                 self.watch_transactions(my_router_return_transaction.transaction, False)
