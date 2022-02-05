@@ -49,6 +49,7 @@ if __name__ == '__main__':
     except Exception as e:
         tb = traceback.format_exc()
         print(tb)
-        print("Sending email crash update")
-        logic.send_email_update("I crashed :(",cfg.email_api_key)
+        if init_type == "live":
+            print("Sending email crash update")
+            logic.send_email_update("I crashed :(",cfg.email_api_key)
     
