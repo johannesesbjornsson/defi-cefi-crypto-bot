@@ -53,6 +53,17 @@ def re_init_token_pairs(client):
             print("------------------------")
 
 
+def test_txn_analysis(polygon_client):
+    token_1 = Token(client, "WMATIC", "local")
+    token_2 = Token(client, "0xc17b109e146934d36c33e55fade9cbda791b0366")
+    token_pair = TokenPair(client,token_1, token_2)
+    txn_hash_1 = "0x6f47f9bdf30c54e21ebe7b057570e97608116d4430e9c85ffdd811faa5253b98"
+    transaction_info = polygon_client.web3.eth.get_transaction(txn_hash_1)
+    txn = Transaction(polygon_client,transaction_info)
+    router_txn = RouterTransaction(txn)
+    liquidity_impact, txn_value, slippage, attacking_txn_max_amount_in = token_pair.quick_router_transction_analysis(router_txn)
+
+
 def test(client):
     token_1 = Token(client, "WMATIC", "local")
     #token_2 = Token(client, "USDC")
@@ -73,7 +84,8 @@ if __name__ == "__main__":
     while True:
         start = time.perf_counter() 
         #re_init_tokens(client)
-        test(client)
+        #test(client)
+        test_txn_analysis(client)
 
 
 

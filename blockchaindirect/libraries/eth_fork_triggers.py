@@ -169,47 +169,6 @@ class Triggers(object):
         
         return pending_router_transactions
 
-#    def watch_transactions(self,txns,look_for_next_txn=True):
-#        time_started = time.time()
-#        txns_left = txns
-#        while len(txns_left) > 0:
-#            txns_not_yet_complete = []
-#            for txn in txns_left:
-#                if txn:
-#                    try:
-#                        transaction_info = self.client.web3.eth.get_transaction(txn.hash)
-#                        txn = Transaction(self.client, transaction_info)
-#                    except TransactionNotFound as e:
-#                        if txn.from_address == "0x0000000000000000000000000000000000000000":
-#                            continue
-#                        account = Account(self.client,txn.from_address)
-#                        txn = account.get_next_txn(txn)
-#
-#                    if txn.block_number:
-#                        transaction_complete, transaction_successful = txn.get_transaction_receipt(wait=False)
-#                        if transaction_complete and transaction_successful:
-#                            time.sleep(1)
-#                            pass
-#                        elif transaction_complete and not transaction_successful and look_for_next_txn:
-#                            account = Account(self.client,txn.from_address)
-#                            latest_txn = account.get_next_txn(txn)
-#                            txns_not_yet_complete.append(latest_txn)
-#
-#                    else:
-#                        txns_not_yet_complete.append(txn)
-#                
-#            if 360 > time.time() - time_started:
-#                txns_left = txns_not_yet_complete
-#                if txns_left:
-#                    time.sleep(5)
-#            else:
-#                print("Giving up....txn not finishing")
-#                txns_left = []
-#            
-#        
-#        return txns_left
-
-
     def watch_transactions(self,txn,look_for_next_txn=True,token_swap_info=None):
         time_started = time.time()
         while txn is not None:

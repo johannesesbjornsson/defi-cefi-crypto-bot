@@ -165,33 +165,6 @@ class TokenPair(object):
             liquidity_impact = 0        
         return liquidity_impact
 
-#    async def asynchronous_object_init(self):
-#        token_1_liquidity = None
-#        token_2_liquidity = None
-#        done, pending = await asyncio.wait([
-#            self.client.eth_call_raw_async(self.client.factory_contract, self.client.factory_contract_address, "getPair", ['address'], [self.token_1.address, self.token_2.address])
-#        ])
-#        liquidity_pool_address = self.client.web3.toChecksumAddress(list(done)[0].result()[0])
-#        liquidity_pool_contract = self.client.web3.eth.contract(address=liquidity_pool_address, abi=self.abi)
-#
-#        done, pending = await asyncio.wait([
-#            self.client.eth_call_raw_async(liquidity_pool_contract, liquidity_pool_address, "token0", ['address'], []),
-#            self.client.eth_call_raw_async(liquidity_pool_contract, liquidity_pool_address, "getReserves", ['uint112','uint112','uint32'], []),
-#        ])
-#        results = [r.result() for r in done]
-#        token_1 = results[0][0] if len(results[0]) == 1 else results[1][0] 
-#        reserves = results[0][0:2] if len(results[0]) == 3 else results[1][0:2]
-#        clean_token_1 = self.client.web3.toChecksumAddress(token_1)
-#
-#        if clean_token_1 == self.token_1.address:
-#            token_1_liquidity = self.token_1.from_wei(reserves[0])
-#            token_2_liquidity = self.token_2.from_wei(reserves[1])
-#        elif clean_token_1 == self.token_2.address:    
-#            token_1_liquidity = self.token_1.from_wei(reserves[1])
-#            token_2_liquidity = self.token_2.from_wei(reserves[0])
-#        
-#        return liquidity_pool_address, liquidity_pool_contract, token_1_liquidity, token_2_liquidity
-
     def quick_router_transction_analysis(self,router_txn):
         impact = 0
         transaction_value = 0
