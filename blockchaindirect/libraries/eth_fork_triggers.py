@@ -202,10 +202,7 @@ class Triggers(object):
                     amount_out = token_pair.get_amount_token_1_out(amount_in)
                     ratio = amount_out/orginal_amount_in
                     if ratio > 1.03:
-                        print("should sell now")
                         txn = None
-                    
-
                 if txn:
                     time.sleep(5)
             else:
