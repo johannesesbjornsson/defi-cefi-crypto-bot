@@ -165,3 +165,7 @@ class Client(object):
 #        #hex_str = response.json()["result"]
 #        #decoded = decode_abi(['uint112','uint112','uint32'], to_bytes(hexstr=hex_str))
 #        #self.reserves_raw = decoded
+
+#    def send_raw_txn(self,txn_data):
+#        data = {"jsonrpc": "2.0", "method": "eth_sendRawTransaction", "params": [txn_data], "id": 1}
+#        response = await request.post(url="https://polygon-rpc.com",json=data)
