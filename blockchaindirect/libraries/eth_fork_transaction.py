@@ -104,7 +104,9 @@ class Transaction(object):
         #    pass
         #end = time.perf_counter() 
         #print(end - start)
+        #return "poop"
         # See https://docs.polygon.technology/docs/develop/eip1559-transactions/how-to-send-eip1559-transactions/
+        # See https://github.com/ethereum/web3.py/blob/master/web3/_utils/transactions.py
         try:
 
             built_txn = self.built_transaction.buildTransaction(build_txn_hash)

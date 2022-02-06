@@ -239,11 +239,11 @@ class Triggers(object):
                 if token_swap_info:
                     token_pair = token_swap_info[0]
                     amount_in = token_swap_info[1]
-                    orginal_amount_in = token_swap_info[1]
+                    orginal_amount_in = token_swap_info[2]
                     amount_out = token_pair.get_amount_token_1_out(amount_in)
                     print("Amount out", amount_out)
                     print("Amount I put in", orginal_amount_in)
-                    print(orginal_amount_in/amount_out)
+                    print("Ratio",orginal_amount_in/amount_out)
                     
 
                 if txn:
