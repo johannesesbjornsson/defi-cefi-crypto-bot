@@ -84,8 +84,8 @@ if __name__ == "__main__":
     while True:
         start = time.perf_counter() 
         #re_init_tokens(client)
-        #test(client)
-        test_txn_analysis(client)
+        test(client)
+        #test_txn_analysis(client)
 
 
 

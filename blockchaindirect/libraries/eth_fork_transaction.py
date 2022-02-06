@@ -85,7 +85,6 @@ class Transaction(object):
         self.built_transaction = transaction
 
     def sign_and_send_transaction(self):
-        #start = time.perf_counter() 
         build_txn_hash = {
             'from': self.from_address,
             'value': 0,
@@ -96,16 +95,11 @@ class Transaction(object):
             'chainId': self.client.chain_id,
             'nonce': self.nonce,
         }
-#        built_txn = self.built_transaction.buildTransaction(build_txn_hash)
-#        signed_txn = self.client.web3.eth.account.sign_transaction(built_txn, private_key=self.client.private_key)
-#        print(self.client.web3.toHex(signed_txn.rawTransaction))
-#        try:
-#            txn_hash = self.client.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
-#        except Exception as e:
-#            pass
-#        #end = time.perf_counter() 
-#        #print(end - start)
-#        return "poop"
+        built_txn = self.built_transaction.buildTransaction(build_txn_hash)
+        signed_txn = self.client.web3.eth.account.sign_transaction(built_txn, private_key=self.client.private_key)
+        
+        #signed_txn_raw = self.client.web3.toHex(signed_txn.rawTransaction)
+        #self.client.send_raw_txn(signed_txn_raw)
         # See https://docs.polygon.technology/docs/develop/eip1559-transactions/how-to-send-eip1559-transactions/
         # See https://github.com/ethereum/web3.py/blob/master/web3/_utils/transactions.py
         try:

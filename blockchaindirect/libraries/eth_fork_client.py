@@ -30,6 +30,7 @@ class Client(object):
             raise ValueError(blockchain + " is not a supported blockchain")
 
         self.web3_ws = provider.web3_ws
+        self.provider_url = provider.provider_url
         self.web3 = provider.web3
         self.web3_asybc = provider.web3_asybc
         self.router_swap_fee = provider.router_swap_fee  
@@ -167,6 +168,6 @@ class Client(object):
 #        #self.reserves_raw = decoded
 
     def send_raw_txn(self,txn_data):
-        data = {"jsonrpc": "2.0", "method": "eth_sendRawTransaction", "params": [txn_data], "id": 1}
-        response =request.post(url="https://polygon-rpc.com",data=data)
-        print(response)
+        data = {"jsonrpc": "2.0", "method": "eth_sendRawTransaction", "params": [ txn_data ], "id": 1}
+        response = requests.post(url=self.provider_url,headers={"Content-Type":"application/json"}, json=data)
+        print(response.content)
