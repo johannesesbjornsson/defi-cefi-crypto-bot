@@ -200,8 +200,11 @@ class Triggers(object):
                     amount_in = token_swap_info[1]
                     orginal_amount_in = token_swap_info[2]
                     amount_out = token_pair.get_amount_token_1_out(amount_in)
+                    ratio = amount_out/orginal_amount_in
                     print("Amount out", amount_out)
-                    print("Ratio",amount_out/orginal_amount_in)
+                    print("Ratio", ratio )
+                    if ratio > 1.02:
+                        print("should sell now")
                     
 
                 if txn:
