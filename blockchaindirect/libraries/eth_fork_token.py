@@ -9,7 +9,7 @@ import asyncio
 
 class Token(object):
 
-    def __init__(self, client, token, init_type="standard"):
+    def __init__(self, client, token, init_type="standard",):
         self.known_tokens = client.known_tokens
         self.client = client
 
@@ -35,14 +35,23 @@ class Token(object):
                 self.verified = token_info["verified"]
                 self.safe_code = token_info["safe_code"]
             else:
-                verified = self.is_token_verified()
+                self.verified = self.is_token_verified()
                 self.safe_code = self.has_safe_code()
                 self.decimals = self.token_contract.functions.decimals().call()
-                token_info = { "decimals" : self.decimals, "verified" : verified, "safe_code": self.safe_code}
+                token_info = { "decimals" : self.decimals, "verified" : self.verified, "safe_code": self.safe_code}
                 self.client.add_token_info(self.address, token_info)
-                self.verified = False # Setting to false so it doesn't buy first time
+        elif init_type == "live":
+            token_info = self.client.get_token_info(self.address)
+            if token_info:
+                self.decimals = token_info["decimals"]
+                self.verified = token_info["verified"]
+                self.safe_code = token_info["safe_code"]
+            else:
+                self.decimals = None
+                self.verified = False
+                self.safe_code = False
         else:
-            raise ValueError("'init_type' needs to be 'standard' or 'local'")
+            raise ValueError("'init_type' needs to be 'standard', 'live' or 'local'")
 
         self.token_symbol = None
         self.allowance = None
@@ -66,16 +75,18 @@ class Token(object):
         safe_code = True
         dodgy_code_statements = [
             "function transferFrom(address sender, address recipient, uint256 amount) public override returns (bool)",
+            "marketingFee",
             #"function _approve(address owner, address spender, uint256 amount) internal",
             #"mint"
         ]
         response_code, response_json = self.client.get_abi(self.address)
         if response_code == 200:
             if "SourceCode" in response_json["result"][0]:
+                #for line in response_json["result"][0]["SourceCode"].split("\n"):
+                #    print(line)
                 for code_statement in dodgy_code_statements:
                     if code_statement in response_json["result"][0]["SourceCode"]:
                         safe_code = False
-                        print(code_statement)
         else:
             raise LookupError("Not 200 reponse")
         return safe_code

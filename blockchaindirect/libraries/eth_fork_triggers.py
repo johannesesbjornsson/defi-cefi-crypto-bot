@@ -16,7 +16,7 @@ from eth_fork_account import Account
 
 class Triggers(object):
 
-    def __init__(self, client):
+    def __init__(self, client,  init_type):
         self.successful_requests = 0
         self.failed_requests = 0
         self.client = client
@@ -30,9 +30,13 @@ class Triggers(object):
         self.current_nonce = self.client.get_transaction_count()
         self.current_gas_price = 30
         self.set_tx_filter()
+        self.init_type = init_type
 
     def set_tx_filter(self):
-        self.tx_filter = self.client.web3_ws.eth.filter('pending')
+        try:
+            self.tx_filter = self.client.web3_ws.eth.filter('pending')
+        except ConnectionResetError as e:
+            print("up here")
 
     def handle_swap_transaction(self, router_txn):
         token_pair = None
@@ -46,13 +50,15 @@ class Triggers(object):
             input_token, out_token = router_txn.path[-2:]
             if input_token == self.token_to_scan_for:
                 token_start = time.perf_counter()
-                token_2 = Token(self.client, out_token, "local")
+                token_2 = Token(self.client, out_token, self.init_type)
                 if token_2.verified == False or token_2.safe_code == False:
-                    raise ValueError(f"{token_2.address} is not verified")
-                token_pair = TokenPair(self.client, self.token_1, token_2,"local")
+                    return my_router_transaction, liquidity_impact, token_pair
+
+                token_pair = TokenPair(self.client, self.token_1, token_2, self.init_type)
+
+                if token_pair.has_token_fees:
+                    return my_router_transaction, liquidity_impact, None
                 token_end = time.perf_counter()
-                
-                
             else:
                 token_pair = None
         except ValueError as e:
@@ -74,7 +80,7 @@ class Triggers(object):
                 my_gas_price = router_txn.transaction.gas_price + self.client.gas_price_frontrunning_increase
                 
                 time_elapsed = time.perf_counter() - function_start
-                if self.performing_transaction == False and amount_in is not None and  amount_out is not None and time_elapsed < 1:
+                if self.performing_transaction == False and amount_in is not None and  amount_out is not None and time_elapsed < 0.4:
                     self.performing_transaction = True
                     send_txn_start = time.perf_counter()
                     my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=my_gas_price, nonce=self.current_nonce)
@@ -83,7 +89,7 @@ class Triggers(object):
                     print("Sending txn time elapsed: ", send_txn_end - send_txn_start)
                     print("Token init time elapsed: ", token_end - token_start )
                     print("Function time elapsed: ", function_end - function_start,"\n-------")
-                #my_router_transaction = "dummy val"
+                    #my_router_transaction = "dummy val"
                 #function_end = time.perf_counter()
                 #print("Function time elapsed: ", function_end - function_start,"\n-------")
 
@@ -163,43 +169,45 @@ class Triggers(object):
         
         return pending_router_transactions
 
-    def watch_transactions(self,txns,look_for_next_txn=True):
+    def watch_transactions(self,txn,look_for_next_txn=True,token_swap_info=None):
         time_started = time.time()
-        txns_left = txns
-        while len(txns_left) > 0:
-            txns_not_yet_complete = []
-            for txn in txns_left:
-                if txn:
-                    try:
-                        transaction_info = self.client.web3.eth.get_transaction(txn.hash)
-                        txn = Transaction(self.client, transaction_info)
-                    except TransactionNotFound as e:
-                        if txn.from_address == "0x0000000000000000000000000000000000000000":
-                            continue
-                        account = Account(self.client,txn.from_address)
-                        txn = account.get_next_router_txn(txn)
-
-                    if txn.block_number:
-                        transaction_complete, transaction_successful = txn.get_transaction_receipt(wait=False)
-                        if transaction_complete and transaction_successful:
-                            pass
-                        elif transaction_complete and not transaction_successful and look_for_next_txn:
-                            account = Account(self.client,txn.from_address)
-                            latest_txn = account.get_next_txn(txn)
-                            txns_not_yet_complete.append(latest_txn)
-
-                    else:
-                        txns_not_yet_complete.append(txn)
+        while txn is not None:
+            try:
+                transaction_info = self.client.web3.eth.get_transaction(txn.hash)
+                txn = Transaction(self.client, transaction_info)
+            except TransactionNotFound as e:
+                if txn.from_address == "0x0000000000000000000000000000000000000000":
+                    continue
+                account = Account(self.client,txn.from_address)
+                txn = account.get_next_txn(txn)
+            
+            if txn.block_number:
+                transaction_complete, transaction_successful = txn.get_transaction_receipt(wait=False)
+                if transaction_complete and transaction_successful:
+                    time.sleep(1)
+                    txn = None
+                    pass
+                elif transaction_complete and not look_for_next_txn:
+                    txn = None
+                elif transaction_complete and not transaction_successful and look_for_next_txn:
+                    account = Account(self.client,txn.from_address)
+                    latest_txn = account.get_next_txn(txn)
+                    txn = latest_txn
                 
             if 360 > time.time() - time_started:
-                txns_left = txns_not_yet_complete
-                if txns_left:
+                if token_swap_info:
+                    token_pair = token_swap_info[0]
+                    amount_in = token_swap_info[1]
+                    orginal_amount_in = token_swap_info[2]
+                    amount_out = token_pair.get_amount_token_1_out(amount_in)
+                    ratio = amount_out/orginal_amount_in
+                    if ratio > 1.03:
+                        txn = None
+                if txn:
                     time.sleep(5)
             else:
-                txns_left = []
-            
-        
-        return txns_left
+                print("Giving up....txn not finishing")
+                txn = None
 
     def get_pending_txn(self):
         try:
@@ -208,6 +216,7 @@ class Triggers(object):
             self.set_tx_filter()
             pending_transactions = self.tx_filter.get_new_entries()
         except ConnectionResetError as e:
+            print("here1")
             pending_transactions = []
         except ConnectionClosedError as e:
             time.sleep(0.2)
@@ -237,24 +246,27 @@ class Triggers(object):
             token_pair = hande_tuple[2]
             liquidity_impact = hande_tuple[3]
    
-            print("Winning!!")
-            print("Txn hash", router_txn.transaction.hash)
-            print("Sender address", router_txn.transaction.from_address)
-            print("Liquidity impact", '{0:.20f}'.format(liquidity_impact))
+
             intercepted_transaction = True
 
-            self.watch_transactions([my_router_transaction.transaction ], False)
+            self.watch_transactions(my_router_transaction.transaction, False)
             transaction_complete, transaction_successful = my_router_transaction.transaction.get_transaction_receipt(wait=True)
+            print("Txn hash", router_txn.transaction.hash)
             print("Initial swap status", transaction_successful)
             print("My txn", my_router_transaction)
             if transaction_successful:
-                approve_token_txn = token_pair.token_2.approve_token()
-                #asyncio.run(self.watch_competing_transaction(router_txn.transaction))
-                self.watch_transactions([approve_token_txn, router_txn.transaction ])
+                print("Winning!!")
+                print("Liquidity impact", '{0:.20f}'.format(liquidity_impact))
                 amount_out_from_token_2 = my_router_transaction.get_transaction_amount_out()
+
+                approve_token_txn = token_pair.token_2.approve_token()
+                if approve_token_txn:
+                    self.watch_transactions(approve_token_txn, False)
+                self.watch_transactions(router_txn.transaction,True, [token_pair, amount_out_from_token_2, my_router_transaction.amount_in ])
+                
                 amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
                 my_router_return_transaction = token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
-                self.watch_transactions([my_router_return_transaction.transaction ], False)
+                self.watch_transactions(my_router_return_transaction.transaction, False)
                 transaction_complete, transaction_successful = my_router_return_transaction.transaction.get_transaction_receipt(wait=True)
                 if transaction_successful:
                     print("It all went swimmingly")
@@ -264,10 +276,10 @@ class Triggers(object):
                 else:
                     raise StopIteration(f"{my_router_return_transaction.transaction.hash} was not successful")
                 
-            print("--------")
-            print("Successsful requests", self.successful_requests)
-            print("Failed requests", self.failed_requests)
-            print("--------")
+            #print("--------")
+            #print("Successsful requests", self.successful_requests)
+            #print("Failed requests", self.failed_requests)
+            #print("--------")
         
         self.client.write_pair_info_to_file()  
         self.client.write_token_info_to_file()  

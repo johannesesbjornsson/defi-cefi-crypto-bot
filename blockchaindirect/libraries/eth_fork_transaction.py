@@ -95,7 +95,13 @@ class Transaction(object):
             'chainId': self.client.chain_id,
             'nonce': self.nonce,
         }
+        built_txn = self.built_transaction.buildTransaction(build_txn_hash)
+        signed_txn = self.client.web3.eth.account.sign_transaction(built_txn, private_key=self.client.private_key)
+        
+        #signed_txn_raw = self.client.web3.toHex(signed_txn.rawTransaction)
+        #self.client.send_raw_txn(signed_txn_raw)
         # See https://docs.polygon.technology/docs/develop/eip1559-transactions/how-to-send-eip1559-transactions/
+        # See https://github.com/ethereum/web3.py/blob/master/web3/_utils/transactions.py
         try:
 
             built_txn = self.built_transaction.buildTransaction(build_txn_hash)

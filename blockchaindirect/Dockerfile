@@ -17,4 +17,4 @@ RUN mkdir /libraries
 
 COPY libraries/ /libraries/
 
-CMD [ "python", "-u", "front_run.py", "polygon"]
+CMD [ "python", "-u", "front_run.py", "polygon", "live"]

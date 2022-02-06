@@ -10,8 +10,8 @@ from eth_fork_transaction import Transaction, RouterTransaction
 from eth_abi import decode_abi
 from eth_utils import to_bytes
 
-#import nest_asyncio
-#nest_asyncio.apply()
+import nest_asyncio
+nest_asyncio.apply()
 #__import__('IPython').embed()
 
 #import json
@@ -27,28 +27,41 @@ class TokenPair(object):
         
         if init_type == "standard":
             self.standard_init()
+            self.has_token_fees = self.token_pair_has_fees()
         elif init_type == "local":
             pair_info = self.client.get_pair_info([self.token_1.address, self.token_2.address])
             if pair_info:
                 self.raw_reserves_token_1 = pair_info["token0"]
+                self.has_token_fees = pair_info["has_token_fees"]
                 self.liquidity_pool_address = pair_info["liquidity_pool_address"]
                 self.liquidity_pool_contract = self.client.web3.eth.contract(address=self.liquidity_pool_address, abi=self.abi)
                 self.token_1_liquidity, self.token_2_liquidity = self.get_pair_liquidity()
             else:
                 self.standard_init()
+                self.has_token_fees = self.token_pair_has_fees()
                 pair = [self.token_1.address, self.token_2.address]
-                pair_info = { "token0" : self.raw_reserves_token_1, "liquidity_pool_address" : self.liquidity_pool_address }
+                pair_info = { "token0" : self.raw_reserves_token_1, "liquidity_pool_address" : self.liquidity_pool_address, "has_token_fees": self.has_token_fees }
                 self.client.add_pair_info(pair, pair_info)
-        elif init_type == "async":
-            loop = asyncio.get_event_loop()
-            results = loop.run_until_complete(self.asynchronous_object_init())
-            self.liquidity_pool_address = results[0]
-            self.liquidity_pool_contract = results[1]
-            self.token_1_liquidity = results[2]
-            self.token_2_liquidity = results[3] 
+        elif init_type == "live":
+            pair_info = self.client.get_pair_info([self.token_1.address, self.token_2.address])
+            if pair_info:
+                self.raw_reserves_token_1 = pair_info["token0"]
+                self.has_token_fees = pair_info["has_token_fees"]
+                self.liquidity_pool_address = pair_info["liquidity_pool_address"]
+                self.liquidity_pool_contract = self.client.web3.eth.contract(address=self.liquidity_pool_address, abi=self.abi)
+                self.token_1_liquidity, self.token_2_liquidity = self.get_pair_liquidity()
+            else:
+                self.raw_reserves_token_1 = None
+                self.has_token_fees = True
+                self.liquidity_pool_address = None
+                self.liquidity_pool_contract = None
+                self.token_1_liquidity = 0
+                self.token_2_liquidity = 0
         else:
-            raise ValueError("'init_type' needs to be 'standard', 'async' or 'local'")
-
+            raise ValueError("'init_type' needs to be 'standard', 'live' or 'local'")
+        
+        
+            
     def __str__(self):
         return f"{self.token_1.symbol}: {self.token_1.address},\n{self.token_2.symbol}: {self.token_2.address},\nLiquidity_address: {self.liquidity_pool_address}"
 
@@ -64,12 +77,65 @@ class TokenPair(object):
             self.token_1_liquidity = None
             self.token_2_liquidity = None
 
-    def approve_tokens(self):
-        if self.token_1.allowance_on_router == 0:
-            self.token_1.approve_token()
-        if self.token_2.allowance_on_router == 0:
-            self.token_2.approve_token()
-        return True
+
+    async def fetch_single_transaction(self, transaction_hash):
+        router_txn = None
+        try:
+            transaction_info = await self.client.web3_asybc.eth.get_transaction(transaction_hash)
+        except Exception as e:
+            return None
+        txn = Transaction(self.client, transaction_info)
+        if txn.to == self.client.router_contract_address:
+            router_txn = RouterTransaction(txn)
+        return router_txn
+
+    async def get_router_contract_interaction(self, txns):
+        functions_called = []
+        if len(txns) == 0:
+            return None
+        
+        done, pending = await asyncio.wait(
+            [self.fetch_single_transaction(arg,) for arg in txns]
+        )
+        for result in done:
+            router_txn = result.result()
+            if router_txn:
+                functions_called.append(router_txn.function_called)
+        return functions_called
+        
+
+    def token_pair_has_fees(self):
+        has_token_fees = False
+        response_code, response_json = self.client.get_address_logs(self.liquidity_pool_address, "swap")
+        hashes = {}
+        bad_hashes = []
+        bad_methods = [
+            "swapExactTokensForETHSupportingFeeOnTransferTokens",
+            "swapExactTokensForTokensSupportingFeeOnTransferTokens",
+            "swapExactETHForTokensSupportingFeeOnTransferTokens",
+        ]
+        if response_code == 200:
+            for log in response_json["result"]:
+                txn_hash = log["transactionHash"]
+                if txn_hash in hashes:
+                    hashes[txn_hash] += 1
+                    if hashes[txn_hash] > 2:
+                        has_token_fees = True 
+                        bad_hashes.append(txn_hash)
+
+                else:
+                    hashes[txn_hash] = 1
+                #decoded = decode_abi(['uint256','uint256','uint256','uint256'], to_bytes(hexstr=data))
+        else:
+            raise LookupError("Not 200 reponse")
+        bad_hashes = list(set(bad_hashes))
+        functions = asyncio.run(self.get_router_contract_interaction(bad_hashes))
+        if functions:
+            for method in bad_methods:
+                if method in functions:
+                    has_token_fees = True
+
+        return has_token_fees
 
     def get_amount_in_from_liquidity_impact_of_token_1_for_token_2(self,liquidity_impact):
         try:
@@ -98,33 +164,6 @@ class TokenPair(object):
         except ZeroDivisionError as e:
             liquidity_impact = 0        
         return liquidity_impact
-
-    async def asynchronous_object_init(self):
-        token_1_liquidity = None
-        token_2_liquidity = None
-        done, pending = await asyncio.wait([
-            self.client.eth_call_raw_async(self.client.factory_contract, self.client.factory_contract_address, "getPair", ['address'], [self.token_1.address, self.token_2.address])
-        ])
-        liquidity_pool_address = self.client.web3.toChecksumAddress(list(done)[0].result()[0])
-        liquidity_pool_contract = self.client.web3.eth.contract(address=liquidity_pool_address, abi=self.abi)
-
-        done, pending = await asyncio.wait([
-            self.client.eth_call_raw_async(liquidity_pool_contract, liquidity_pool_address, "token0", ['address'], []),
-            self.client.eth_call_raw_async(liquidity_pool_contract, liquidity_pool_address, "getReserves", ['uint112','uint112','uint32'], []),
-        ])
-        results = [r.result() for r in done]
-        token_1 = results[0][0] if len(results[0]) == 1 else results[1][0] 
-        reserves = results[0][0:2] if len(results[0]) == 3 else results[1][0:2]
-        clean_token_1 = self.client.web3.toChecksumAddress(token_1)
-
-        if clean_token_1 == self.token_1.address:
-            token_1_liquidity = self.token_1.from_wei(reserves[0])
-            token_2_liquidity = self.token_2.from_wei(reserves[1])
-        elif clean_token_1 == self.token_2.address:    
-            token_1_liquidity = self.token_1.from_wei(reserves[1])
-            token_2_liquidity = self.token_2.from_wei(reserves[0])
-        
-        return liquidity_pool_address, liquidity_pool_contract, token_1_liquidity, token_2_liquidity
 
     def quick_router_transction_analysis(self,router_txn):
         impact = 0

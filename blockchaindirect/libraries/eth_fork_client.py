@@ -30,6 +30,7 @@ class Client(object):
             raise ValueError(blockchain + " is not a supported blockchain")
 
         self.web3_ws = provider.web3_ws
+        self.provider_url = provider.provider_url
         self.web3 = provider.web3
         self.web3_asybc = provider.web3_asybc
         self.router_swap_fee = provider.router_swap_fee  
@@ -149,8 +150,12 @@ class Client(object):
         json_reponse = json.loads(response.content)
         return response.status_code, json_reponse
 
-    def get_address_logs(self, address):
-        url = "{}/api?module=logs&action=getLogs&address={}&page=1&offset=50&sort=desc&apikey={}".format(self.api_url,address, self.api_key)
+    def get_address_logs(self, address, topic=None):
+        if topic == "swap":
+            topic = "&topic0=0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822&topic1=0x000000000000000000000000a5e0829caced8ffdd4de3c43696c57f7d7a678ff"
+        else:
+            topic = ""
+        url = "{}/api?module=logs&action=getLogs&address={}&page=1&offset=150&sort=desc&apikey={}{}".format(self.api_url,address, self.api_key, topic)
         response = requests.get(url)
         json_reponse = json.loads(response.content)
         return response.status_code, json_reponse
@@ -161,3 +166,8 @@ class Client(object):
 #        #hex_str = response.json()["result"]
 #        #decoded = decode_abi(['uint112','uint112','uint32'], to_bytes(hexstr=hex_str))
 #        #self.reserves_raw = decoded
+
+    def send_raw_txn(self,txn_data):
+        data = {"jsonrpc": "2.0", "method": "eth_sendRawTransaction", "params": [ txn_data ], "id": 1}
+        response = requests.post(url=self.provider_url,headers={"Content-Type":"application/json"}, json=data)
+        print(response.content)
