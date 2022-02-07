@@ -124,24 +124,27 @@ class Triggers(object):
             txn = Transaction(self.client, transaction_info)
             matching_txn = self.filter_transaction(txn, compare_transaction)
 
-        except TransactionNotFound as e:
+        except Exception as e:
             self.failed_requests += 1
-            txn = None
-        except gaierror as e:
-            self.failed_requests += 1
-            txn = None
-        except ClientConnectorError as e:
-            self.failed_requests += 1
-            txn = None
-        except ClientResponseError as e:
-            self.failed_requests += 1
-            txn = None
-        except TimeoutError as e:
-            self.failed_requests += 1
-            txn = None
-        except ValueError as e:
-            self.failed_requests += 1
-            txn = None
+            txn = None        
+        #except TransactionNotFound as e:
+        #    self.failed_requests += 1
+        #    txn = None
+        #except gaierror as e:
+        #    self.failed_requests += 1
+        #    txn = None
+        #except ClientConnectorError as e:
+        #    self.failed_requests += 1
+        #    txn = None
+        #except ClientResponseError as e:
+        #    self.failed_requests += 1
+        #    txn = None
+        #except TimeoutError as e:
+        #    self.failed_requests += 1
+        #    txn = None
+        #except ValueError as e:
+        #    self.failed_requests += 1
+        #    txn = None
 
         if handle_transaction and matching_txn:
             my_txn, liquidity_impact, token_pair = self.handle_swap_transaction(matching_txn)
@@ -212,15 +215,18 @@ class Triggers(object):
     def get_pending_txn(self):
         try:
             pending_transactions = self.tx_filter.get_new_entries()
-        except ValueError as e:
-            self.set_tx_filter()
-            pending_transactions = self.tx_filter.get_new_entries()
-        except ConnectionResetError as e:
-            print("here1")
-            pending_transactions = []
-        except ConnectionClosedError as e:
-            time.sleep(0.2)
-            pending_transactions = []
+        except Exception as e:
+            time.sleep(0.1)
+            pending_transactions = []         
+        #except ValueError as e:
+        #    self.set_tx_filter()
+        #    pending_transactions = self.tx_filter.get_new_entries()
+        #except ConnectionResetError as e:
+        #    print("here1")
+        #    pending_transactions = []
+        #except ConnectionClosedError as e:
+        #    time.sleep(0.2)
+        #    pending_transactions = []
         return pending_transactions
 
 
