@@ -1,6 +1,7 @@
 
 Next steps
 * Fine tune slippage, sometimes txns go through when competing txn is already 
+* Look into running my own node
 * See if we can speed up the sending txn bit
 processed
 * Add unit tests for transactions (a few)
