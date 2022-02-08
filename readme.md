@@ -1,5 +1,6 @@
 
 Next steps
+* https://ethereum.stackexchange.com/questions/9043/insufficient-funds-for-gas-price-value/9044
 * Fine tune slippage, sometimes txns go through when competing txn is already 
 * Look into running my own node
 * See if we can speed up the sending txn bit
