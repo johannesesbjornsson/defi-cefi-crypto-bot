@@ -237,8 +237,8 @@ class Triggers(object):
         self.current_gas_price = self.client.web3.eth.gas_price 
         if self.current_gas_price > self.client.max_gas_price:
             print("Gas prices too high atm...")
-            pending_transactions = self.get_pending_txn()
             time.sleep(30)
+            self.set_tx_filter()
             return False
 
         self.current_nonce = self.client.get_transaction_count()
