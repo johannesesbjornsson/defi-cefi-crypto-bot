@@ -45,19 +45,23 @@ class Triggers(object):
         my_gas_price = None
         liquidity_impact = None
         my_router_transaction = None
+        slippage = None
+        attacking_txn_max_amount_in = None
+
         function_start = time.perf_counter()
+
         try:
             input_token, out_token = router_txn.path[-2:]
             if input_token == self.token_to_scan_for:
                 token_start = time.perf_counter()
                 token_2 = Token(self.client, out_token, self.init_type)
                 if token_2.verified == False or token_2.safe_code == False:
-                    return my_router_transaction, liquidity_impact, token_pair
+                    return my_router_transaction, liquidity_impact, token_pair, None, None
 
                 token_pair = TokenPair(self.client, self.token_1, token_2, self.init_type)
 
                 if token_pair.has_token_fees:
-                    return my_router_transaction, liquidity_impact, None
+                    return my_router_transaction, liquidity_impact, None, None, None
                 token_end = time.perf_counter()
             else:
                 token_pair = None
@@ -93,7 +97,7 @@ class Triggers(object):
                 #function_end = time.perf_counter()
                 #print("Function time elapsed: ", function_end - function_start,"\n-------")
 
-        return my_router_transaction, liquidity_impact, token_pair
+        return my_router_transaction, liquidity_impact, token_pair, slippage, attacking_txn_max_amount_in
 
 
     def filter_transaction(self, txn, compare_transaction=None):
@@ -118,20 +122,21 @@ class Triggers(object):
         else:
             transaction_hash = self.client.web3.toHex(transaction)
 
-        try:
-            transaction_info = await self.client.web3_asybc.eth.get_transaction(transaction_hash)
-            self.successful_requests += 1
-            txn = Transaction(self.client, transaction_info)
-            matching_txn = self.filter_transaction(txn, compare_transaction)
-
-        except Exception as e:
-            self.failed_requests += 1
-            txn = None        
+        for i in range(5):
+            try:
+                transaction_info = await self.client.web3_asybc.eth.get_transaction(transaction_hash)
+                self.successful_requests += 1
+                txn = Transaction(self.client, transaction_info)
+                matching_txn = self.filter_transaction(txn, compare_transaction)
+                break
+            except Exception as e:
+                txn = None
+                time.sleep(0.1)
 
         if handle_transaction and matching_txn:
-            my_txn, liquidity_impact, token_pair = self.handle_swap_transaction(matching_txn)
+            my_txn, liquidity_impact, token_pair, slippage, attacking_txn_max_amount_in = self.handle_swap_transaction(matching_txn)
             if my_txn and liquidity_impact and token_pair:
-                matching_txn = (matching_txn, my_txn, token_pair, liquidity_impact)
+                matching_txn = (matching_txn, my_txn, liquidity_impact, token_pair, slippage, attacking_txn_max_amount_in)
             else:
                 matching_txn = None
                 
@@ -198,6 +203,7 @@ class Triggers(object):
         try:
             pending_transactions = self.tx_filter.get_new_entries()
         except Exception as e:
+            print(e)
             time.sleep(0.1)
             pending_transactions = []
         return pending_transactions
@@ -223,10 +229,11 @@ class Triggers(object):
         for hande_tuple in pending_router_transactions:
             router_txn = hande_tuple[0]
             my_router_transaction = hande_tuple[1]
-            token_pair = hande_tuple[2]
-            liquidity_impact = hande_tuple[3]
-   
-
+            liquidity_impact = hande_tuple[2]
+            token_pair = hande_tuple[3]
+            slippage = hande_tuple[4]
+            attacking_txn_max_amount_in = hande_tuple[5]
+            
             intercepted_transaction = True
 
             self.watch_transactions(my_router_transaction.transaction, False)
@@ -237,6 +244,7 @@ class Triggers(object):
             if transaction_successful:
                 print("-------------------------------------------------")
                 print("Liquidity impact", '{0:.20f}'.format(liquidity_impact))
+                print("Max attacking txn value", '{0:.20f}'.format(attacking_txn_max_amount_in))
                 amount_out_from_token_2 = my_router_transaction.get_transaction_amount_out()
 
                 approve_token_txn = token_pair.token_2.approve_token()
