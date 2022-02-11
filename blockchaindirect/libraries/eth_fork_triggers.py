@@ -87,7 +87,8 @@ class Triggers(object):
                 if self.performing_transaction == False and amount_in is not None and  amount_out is not None and time_elapsed < 0.4:
                     self.performing_transaction = True
                     send_txn_start = time.perf_counter()
-                    my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=my_gas_price, nonce=self.current_nonce)
+                    if self.init_type == "live":
+                        my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=my_gas_price, nonce=self.current_nonce)
                     send_txn_end = time.perf_counter()
                     function_end = time.perf_counter()
                     print("Sending txn time elapsed: ", send_txn_end - send_txn_start)
