@@ -70,12 +70,6 @@ class Triggers(object):
 
         if token_pair:
             liquidity_impact, txn_value, slippage, attacking_txn_max_amount_in = token_pair.quick_router_transction_analysis(router_txn)
-            #print("impact", '{0:.20f}'.format(liquidity_impact))
-            #print("Value",txn_value)
-            #print("slippage",slippage)
-            #print("Max value",attacking_txn_max_amount_in)
-            #print(router_txn)
-            #print("------")
 
             #if liquidity_impact > self.minimum_liquidity_impact and txn_value > self.minimum_scanned_transaction and attacking_txn_max_amount_in > self.scan_token_value:
             if liquidity_impact > self.minimum_liquidity_impact and attacking_txn_max_amount_in > self.scan_token_value:
@@ -202,6 +196,9 @@ class Triggers(object):
 
     def get_pending_txn(self):
         try:
+            pending_transactions = self.tx_filter.get_new_entries()
+        except ValueError as e:
+            self.set_tx_filter()
             pending_transactions = self.tx_filter.get_new_entries()
         except Exception as e:
             print(e)
