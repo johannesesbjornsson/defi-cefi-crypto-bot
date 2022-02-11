@@ -276,7 +276,6 @@ class Triggers(object):
                 self.watch_transactions(my_router_return_transaction.transaction, False)
                 transaction_complete, transaction_successful = my_router_return_transaction.transaction.get_transaction_receipt(wait=True)
                 if transaction_successful:
-                    print("It all went swimmingly")
                     print("My return txn", my_router_return_transaction)
                     amount_out = my_router_return_transaction.get_transaction_amount_out()
                     print("Amount out", token_pair.token_1.from_wei(amount_out))
