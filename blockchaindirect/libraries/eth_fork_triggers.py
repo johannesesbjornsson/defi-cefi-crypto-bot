@@ -161,10 +161,9 @@ class Triggers(object):
                 transaction_info = self.client.web3.eth.get_transaction(txn.hash)
                 txn = Transaction(self.client, transaction_info)
             except TransactionNotFound as e:
-                if txn.from_address == "0x0000000000000000000000000000000000000000":
-                    continue
-                account = Account(self.client,txn.from_address)
-                txn = account.get_next_txn(txn)
+                if txn.from_address != "0x0000000000000000000000000000000000000000":
+                    account = Account(self.client,txn.from_address)
+                    txn = account.get_next_txn(txn)
             
             if txn.block_number:
                 transaction_complete, transaction_successful = txn.get_transaction_receipt(wait=False)
@@ -198,6 +197,7 @@ class Triggers(object):
         try:
             pending_transactions = self.tx_filter.get_new_entries()
         except ValueError as e:
+            print(e)
             self.set_tx_filter()
             pending_transactions = self.tx_filter.get_new_entries()
         except Exception as e:
