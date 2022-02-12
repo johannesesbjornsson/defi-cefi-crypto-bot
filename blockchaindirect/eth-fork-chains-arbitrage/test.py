@@ -53,6 +53,14 @@ def re_init_token_pairs(client):
             print("------------------------")
 
 
+def write_contract_code_to_file(client, address):
+        response_code, response_json = client.get_abi(address)
+        token = Token(client, address)
+        if response_code == 200:
+            if "SourceCode" in response_json["result"][0]:
+                with open(token.symbol+".sol", 'w') as f:
+                    f.write(response_json["result"][0]["SourceCode"])
+
 def test_txn_analysis(polygon_client):
     token_1 = Token(client, "WMATIC", "local")
     token_2 = Token(client, "0xc17b109e146934d36c33e55fade9cbda791b0366")
@@ -84,8 +92,9 @@ if __name__ == "__main__":
     while True:
         start = time.perf_counter() 
         #re_init_tokens(client)
-        test(client)
+        #test(client)
         #test_txn_analysis(client)
+        write_contract_code_to_file(client, "0x08e175a1eac9744a0f1ccaeb8f669af6a2bda3ce")
 
 
 

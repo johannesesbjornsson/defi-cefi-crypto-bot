@@ -1,4 +1,5 @@
 *.sh
 .terraform*
 __pycache__
+*.sol
 tests/historical_data/dataset.json
