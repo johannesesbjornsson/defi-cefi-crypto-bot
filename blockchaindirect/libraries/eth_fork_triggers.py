@@ -119,7 +119,7 @@ class Triggers(object):
         else:
             transaction_hash = self.client.web3.toHex(transaction)
 
-        for i in range(10):
+        for i in range(5):
             try:
                 transaction_info = await self.client.web3_asybc.eth.get_transaction(transaction_hash)
                 self.successful_requests += 1
@@ -158,11 +158,12 @@ class Triggers(object):
     def watch_transactions(self,txn,look_for_next_txn=True,token_swap_info=None):
         time_started = time.time()
         while txn is not None:
+            time_passed = time.time() - time_started
             try:
                 transaction_info = self.client.web3.eth.get_transaction(txn.hash)
                 txn = Transaction(self.client, transaction_info)
             except TransactionNotFound as e:
-                if txn.from_address != "0x0000000000000000000000000000000000000000":
+                if txn.from_address != "0x0000000000000000000000000000000000000000" and 10 > time_passed:
                     account = Account(self.client,txn.from_address)
                     txn = account.get_next_txn(txn)
             
@@ -179,7 +180,7 @@ class Triggers(object):
                     latest_txn = account.get_next_txn(txn)
                     txn = latest_txn
                 
-            if 360 > time.time() - time_started:
+            if 360 > time_passed:
                 if token_swap_info:
                     token_pair = token_swap_info[0]
                     amount_in = token_swap_info[1]
