@@ -1,6 +1,5 @@
 
 import cfg as cfg
-import itertools
 import sys
 import arbitrage
 import logic
@@ -16,12 +15,6 @@ import time
 
 def main(blockchain, init_type):
     client = Client(blockchain, cfg.my_address, cfg.private_key, cfg.api_key)
-
-    lists = list(itertools.combinations(client.tokens_to_check, 2))
-    lists = [
-        #["WETH", "WMATIC"],
-        #["QUICK", "LINK"]
-    ]
     
     triggers = Triggers(client,init_type)
 
@@ -32,9 +25,6 @@ def main(blockchain, init_type):
             print("-------------------------------------------------")
             print("--------------END TRANSACTION INFO---------------")
             print("-------------------------------------------------")
-        #print("Taking a wee break")
-        #time.sleep(2)
-        #break
 
 
 if __name__ == '__main__':
