@@ -199,11 +199,9 @@ class Triggers(object):
         try:
             pending_transactions = self.tx_filter.get_new_entries()
         except ValueError as e:
-            print(e)
             self.set_tx_filter()
             pending_transactions = self.tx_filter.get_new_entries()
         except Exception as e:
-            print(e)
             time.sleep(0.1)
             pending_transactions = []
         return pending_transactions
@@ -255,13 +253,20 @@ class Triggers(object):
                 my_router_return_transaction = token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
                 self.watch_transactions(my_router_return_transaction.transaction, False)
                 transaction_complete, transaction_successful = my_router_return_transaction.transaction.get_transaction_receipt(wait=True)
+                if not transaction_successful:
+                    print("Retrying sending return txn")
+                    amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
+                    my_router_return_transaction = token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
+                    self.watch_transactions(my_router_return_transaction.transaction, False)
+                    transaction_complete, transaction_successful = my_router_return_transaction.transaction.get_transaction_receipt(wait=True)
+
                 if transaction_successful:
                     print("My return txn", my_router_return_transaction)
                     amount_out = my_router_return_transaction.get_transaction_amount_out()
                     print("Amount out", token_pair.token_1.from_wei(amount_out))
                 else:
                     raise StopIteration(f"{my_router_return_transaction.transaction.hash} was not successful")
-                
+
             #print("--------")
             #print("Successsful requests", self.successful_requests)
             #print("Failed requests", self.failed_requests)
