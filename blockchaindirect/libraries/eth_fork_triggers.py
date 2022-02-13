@@ -21,6 +21,7 @@ class Triggers(object):
         self.failed_requests = 0
         self.client = client
         self.token_to_scan_for = self.client.token_to_scan_for
+        self.minimum_gas_price = self.client.minimum_gas_price
         self.minimum_liquidity_impact = self.client.minimum_liquidity_impact
         self.scan_token_value = self.client.scan_token_value
         self.token_1 = Token(self.client,self.token_to_scan_for)
@@ -98,6 +99,7 @@ class Triggers(object):
     def filter_transaction(self, txn, compare_transaction=None):
         matching_txn = None
         if not compare_transaction and txn.to == self.client.router_contract_address and txn.block_number is None and txn.gas_price >= self.current_gas_price:
+        #if not compare_transaction and txn.to == self.client.router_contract_address and txn.block_number is None and txn.gas_price >= self.minimum_gas_price:
         #if not compare_transaction and txn.to == self.client.router_contract_address and txn.block_number is not None and txn.gas_price >= self.current_gas_price:
             router_txn = RouterTransaction(txn)
             #if router_txn.function_called == "swapExactETHForTokens" or router_txn.function_called == "swapETHForExactTokens":
@@ -117,7 +119,7 @@ class Triggers(object):
         else:
             transaction_hash = self.client.web3.toHex(transaction)
 
-        for i in range(5):
+        for i in range(10):
             try:
                 transaction_info = await self.client.web3_asybc.eth.get_transaction(transaction_hash)
                 self.successful_requests += 1
@@ -126,7 +128,6 @@ class Triggers(object):
                 break
             except Exception as e:
                 txn = None
-                time.sleep(0.1)
 
         if handle_transaction and matching_txn:
             my_txn, liquidity_impact, token_pair, slippage, attacking_txn_max_amount_in = self.handle_swap_transaction(matching_txn)
@@ -221,7 +222,6 @@ class Triggers(object):
         self.current_nonce = self.client.get_transaction_count()
 
         pending_transactions = self.get_pending_txn()
-
         pending_router_transactions = asyncio.run(self.get_router_contract_interaction(pending_transactions))
 
         for hande_tuple in pending_router_transactions:

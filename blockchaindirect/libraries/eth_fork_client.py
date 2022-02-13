@@ -38,6 +38,7 @@ class Client(object):
         self.gas_price_frontrunning_increase = provider.gas_price_frontrunning_increase
         self.default_gas_price = provider.default_gas_price
         self.default_gas_limit = provider.default_gas_limit
+        self.minimum_gas_price = provider.minimum_gas_price
         self.slippage = provider.slippage
         self.token_to_scan_for = provider.token_to_scan_for
         self.scan_token_value = provider.scan_token_value

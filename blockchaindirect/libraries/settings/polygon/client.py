@@ -15,6 +15,7 @@ class Polygon:
         self.max_gas_price = self.web3.toWei('110','gwei')
         self.gas_price_frontrunning_increase = self.web3.toWei('2','gwei')
         self.default_gas_price = self.web3.toWei('35','gwei')
+        self.minimum_gas_price = self.web3.toWei('29','gwei')
         self.default_gas_limit = 400000 #TODO have this be not fixed
         self.slippage = 0.99
         self.scan_token_value = 0.4
