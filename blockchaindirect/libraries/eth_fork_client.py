@@ -32,6 +32,7 @@ class Client(object):
         self.web3_ws = provider.web3_ws
         self.provider_url = provider.provider_url
         self.web3 = provider.web3
+        self.web3_priority = provider.web3_priority
         self.web3_asybc = provider.web3_asybc
         self.router_swap_fee = provider.router_swap_fee  
         self.max_gas_price = provider.max_gas_price
