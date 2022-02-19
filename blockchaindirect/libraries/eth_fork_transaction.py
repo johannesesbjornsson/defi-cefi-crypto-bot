@@ -120,7 +120,7 @@ class Transaction(object):
                 raise ValueError(str(e))
 
         for i in range(20):
-            time.sleep(0.2)
+            time.sleep(0.5)
             try: 
                 transaction_info = self.client.web3.eth.get_transaction(txn_hash)
                 break
