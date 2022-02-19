@@ -119,7 +119,7 @@ class Transaction(object):
             else:
                 raise ValueError(str(e))
 
-        for i in range(10):
+        for i in range(20):
             time.sleep(0.2)
             try: 
                 transaction_info = self.client.web3.eth.get_transaction(txn_hash)
