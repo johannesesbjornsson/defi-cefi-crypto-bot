@@ -64,8 +64,6 @@ class Client(object):
         self.settings_dir = os.path.dirname(os.path.realpath(__file__)) + '/settings/'+self.blockchain
         self.load_token_json_from_file()
         self.load_pair_json_from_file()
-
-        self.account = Account(self, self.my_address)
         
 
     def get_abi(self,address):

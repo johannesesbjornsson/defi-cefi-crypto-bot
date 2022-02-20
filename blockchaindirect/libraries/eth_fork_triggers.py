@@ -32,6 +32,7 @@ class Triggers(object):
         self.current_gas_price = 30
         self.set_tx_filter()
         self.init_type = init_type
+        self.account = Account(self.client, self.client.my_address)
 
     def set_tx_filter(self):
         try:
@@ -41,10 +42,24 @@ class Triggers(object):
             print("up here")
 
     def get_attacking_txn_amount_in(self,token_pair,attacking_txn_max_amount_in):
-        print(token_pair.token_1.address)
-        print(self.client.account.token_balances)
-        print(attacking_txn_max_amount_in)
+        amount_in = None
+        attacking_txn_max_amount_in = attacking_txn_max_amount_in * 0.90
 
+        token_1_balance = self.account.token_balances[token_pair.token_1.address]
+        txn_value_cap = token_pair.token_1.to_wei(self.client.minimum_scanned_transaction)
+        min_value = token_pair.token_1.to_wei(self.scan_token_value)
+        max_value = token_pair.token_1.to_wei(attacking_txn_max_amount_in)
+        if min_value > token_1_balance:
+            raise RuntimeError(f"Not enough balance of {token_pair.token_1.symbol}, needs at least {self.scan_token_value}")
+
+        if max_value > token_1_balance:
+            max_value = token_1_balance
+        elif max_value > txn_value_cap:
+            max_value = txn_value_cap
+            
+        amount_in = max_value
+
+        return amount_in
 
     def get_safe_token_pair(self, router_txn):
         input_token = None
@@ -93,9 +108,6 @@ class Triggers(object):
             liquidity_impact, txn_value, slippage, attacking_txn_max_amount_in = token_pair.quick_router_transction_analysis(router_txn)
 
             if liquidity_impact > self.minimum_liquidity_impact and attacking_txn_max_amount_in > self.scan_token_value:
-                #amount_in = self.token_1.to_wei(self.scan_token_value)
-                print(router_txn.path)
-                print(router_txn)
                 amount_in = self.get_attacking_txn_amount_in(token_pair,attacking_txn_max_amount_in)
                 print("----------------")
 
@@ -287,6 +299,7 @@ class Triggers(object):
                 if transaction_successful:
                     print("My return txn", my_router_return_transaction)
                     amount_out = my_router_return_transaction.get_transaction_amount_out()
+                    print("Amount in", token_pair.token_1.from_wei(my_router_transaction.amount_in))
                     print("Amount out", token_pair.token_1.from_wei(amount_out))
                 else:
                     raise StopIteration(f"{my_router_return_transaction.transaction.hash} was not successful")
