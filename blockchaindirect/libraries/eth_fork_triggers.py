@@ -36,9 +36,43 @@ class Triggers(object):
     def set_tx_filter(self):
         try:
             self.tx_filter = self.client.web3_ws.eth.filter('pending')
-        except ConnectionResetError as e:
+        except Exception as e:
+            print(e)
             print("up here")
 
+    def get_attacking_txn_amount_in(self,token_pair,attacking_txn_max_amount_in):
+        print(token_pair.token_1.address)
+        print(self.client.account.token_balances)
+        print(attacking_txn_max_amount_in)
+
+
+    def get_safe_token_pair(self, router_txn):
+        input_token = None
+        out_token = None
+        try:
+            if self.token_to_scan_for in router_txn.path:
+                index = router_txn.path.index(self.token_to_scan_for)
+                if index == 0 or index == (len(router_txn.path) - 2):
+                    input_token = router_txn.path[index]
+                    out_token = router_txn.path[index+1]
+
+            if input_token == self.token_to_scan_for:
+                token_2 = Token(self.client, out_token, self.init_type)
+                if token_2.verified == False or token_2.safe_code == False:
+                    return None
+
+                token_pair = TokenPair(self.client, self.token_1, token_2, self.init_type)
+
+                if token_pair.has_token_fees:
+                    return None
+                
+            else:
+                token_pair = None
+        except ValueError as e:
+            token_pair = None
+    
+        return token_pair
+        
     def handle_swap_transaction(self, router_txn):
         token_pair = None
         amount_in = None
@@ -51,30 +85,20 @@ class Triggers(object):
 
         function_start = time.perf_counter()
 
-        try:
-            input_token, out_token = router_txn.path[-2:]
-            if input_token == self.token_to_scan_for:
-                token_start = time.perf_counter()
-                token_2 = Token(self.client, out_token, self.init_type)
-                if token_2.verified == False or token_2.safe_code == False:
-                    return my_router_transaction, liquidity_impact, token_pair, None, None
+        token_pair = self.get_safe_token_pair(router_txn)
 
-                token_pair = TokenPair(self.client, self.token_1, token_2, self.init_type)
-
-                if token_pair.has_token_fees:
-                    return my_router_transaction, liquidity_impact, None, None, None
-                token_end = time.perf_counter()
-            else:
-                token_pair = None
-        except ValueError as e:
-            token_pair = None
+        token_end = time.perf_counter()
 
         if token_pair:
             liquidity_impact, txn_value, slippage, attacking_txn_max_amount_in = token_pair.quick_router_transction_analysis(router_txn)
 
-            #if liquidity_impact > self.minimum_liquidity_impact and txn_value > self.minimum_scanned_transaction and attacking_txn_max_amount_in > self.scan_token_value:
             if liquidity_impact > self.minimum_liquidity_impact and attacking_txn_max_amount_in > self.scan_token_value:
-                amount_in = self.token_1.to_wei(self.scan_token_value)
+                #amount_in = self.token_1.to_wei(self.scan_token_value)
+                print(router_txn.path)
+                print(router_txn)
+                amount_in = self.get_attacking_txn_amount_in(token_pair,attacking_txn_max_amount_in)
+                print("----------------")
+
                 amount_out = token_pair.get_amount_token_2_out(amount_in, offline_calculation=True)
                 my_gas_price = router_txn.transaction.gas_price + self.client.gas_price_frontrunning_increase
                 
