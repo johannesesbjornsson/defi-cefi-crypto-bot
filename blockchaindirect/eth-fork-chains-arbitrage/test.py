@@ -92,7 +92,7 @@ if __name__ == "__main__":
     while True:
         start = time.perf_counter() 
         #re_init_tokens(client)
-        test(client)
+        #test(client)
         #test_txn_analysis(client)
         #write_contract_code_to_file(client, "0x08e175a1eac9744a0f1ccaeb8f669af6a2bda3ce")
 

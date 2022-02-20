@@ -1,7 +1,7 @@
 import requests
 import json
 import contract_libarary
-#from web3 import Web3
+from eth_fork_account import Account
 import time
 import os
 from web3.logs import STRICT, IGNORE, DISCARD, WARN
@@ -48,6 +48,7 @@ class Client(object):
         self.swap_log_location_index = provider.swap_log_location_index
         self.tokens_to_check = provider.tokens_to_check
         self.known_tokens = provider.known_tokens
+        self.base_tokens = provider.base_tokens
         self.router_contract_address = provider.router_contract_address
         self.router_contract = provider.router_contract
         self.factory_contract = provider.factory_contract
@@ -63,6 +64,8 @@ class Client(object):
         self.settings_dir = os.path.dirname(os.path.realpath(__file__)) + '/settings/'+self.blockchain
         self.load_token_json_from_file()
         self.load_pair_json_from_file()
+
+        self.account = Account(self, self.my_address)
         
 
     def get_abi(self,address):

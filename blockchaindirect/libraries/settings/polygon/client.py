@@ -47,6 +47,7 @@ class Polygon:
             "UNI": "0xb33eaad8d922b1083446dc23f610c2567fb5180f",
             "MANA": "0xa1c57f48f0deb89f569dfbe6e2b7f46d33606fd4",
             "SAND": "0xBbba073C31bF03b8ACf7c28EF0738DeCF3695683",
+            "DAI": "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063",
             # Random shitcoins
             "COLLAR" : "0xd5fa77a860fea9cff31da91bbf9e0faea9538290",
             "DBD" : "0x72b9f88e822cf08b031c2206612b025a82fb303c",
@@ -83,7 +84,7 @@ class Polygon:
             "USDC": "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
             "USDT": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
             "WMATIC": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
-            "DAI": "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063"
+            
         }
         all_tokens = self.tokens_to_check.copy()
         all_tokens.update(self.base_tokens)
