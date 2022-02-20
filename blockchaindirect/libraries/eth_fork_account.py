@@ -18,12 +18,18 @@ class Account(object):
         token_balances = {}
         for base_token in self.client.base_tokens:
             token = Token(self.client, base_token, "live")
-            token_balances[token.address] = token.get_token_balance()
-        
+            try:
+                token_balances[token.address] = token.get_token_balance()
+            except ValueError as e:
+                token_balances[token.address] = token.get_token_balance()
+
         self.token_balances = token_balances
 
     def get_transaction_count(self):
-        transaction_count = self.client.web3.eth.get_transaction_count(self.address)
+        try:
+            transaction_count = self.client.web3.eth.get_transaction_count(self.address)
+        except ValueError as e:
+            transaction_count = self.client.web3.eth.get_transaction_count(self.address)
         return transaction_count
 
     def get_latest_txns(self):
