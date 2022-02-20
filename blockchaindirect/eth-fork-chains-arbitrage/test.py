@@ -86,11 +86,12 @@ def test(client):
 if __name__ == "__main__":
     #client = Client("polygon",cfg.my_polygon_address, cfg.private_key)
     client = Client("polygon",cfg.my_address, cfg.private_key,cfg.api_key)
-    triggers = Triggers(client, "local")
+    #triggers = Triggers(client, "local")
+    triggers = Triggers(client, "live")
     #test_req()
     print("------- START ----------")
     while True:
-        start = time.perf_counter() 
+        #start = time.perf_counter() 
         #re_init_tokens(client)
         #test(client)
         #test_txn_analysis(client)
@@ -98,10 +99,11 @@ if __name__ == "__main__":
 
 
 
-        #transaction_info = client.web3.eth.get_transaction("0x29e3beec594d6ed92bec7975f4b576111d90de69566d4e9b1afa56bac761019f")
-        #txn = Transaction(client, transaction_info)
-        #r_txn = RouterTransaction(txn)
-        #triggers.watch_transactions(r_txn.transaction, False)
+        transaction_info = client.web3.eth.get_transaction("0x5f2d5d271ed68e6e4c36648c6bf5be3520d386a580c717f6530b193403543fe3")
+        txn = Transaction(client, transaction_info)
+        r_txn = RouterTransaction(txn)
+         
+        token_pair = triggers.get_safe_token_pair(r_txn)
         print("---")
 
         #token_1 = Token(client, "0x08e175a1eac9744a0f1ccaeb8f669af6a2bda3ce")
@@ -113,8 +115,8 @@ if __name__ == "__main__":
         #print(client.web3.fromWei(maxPriorityFeePerGas,'gwei'))
         #maxFeePerGas = client.web3.eth.max_priority_fee + (2 * client.web3.eth.get_block('latest')['baseFeePerGas'])
         #print(client.web3.fromWei(maxFeePerGas,'gwei'))
-        #end = time.perf_counter()
         
+        #end = time.perf_counter()
         #print("Time elapsed", end-start)
 
 #33768815600 gasPrice

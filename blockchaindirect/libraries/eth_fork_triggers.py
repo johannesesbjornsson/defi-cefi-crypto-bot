@@ -38,6 +38,7 @@ class Triggers(object):
         try:
             self.tx_filter = self.client.web3_ws.eth.filter('pending')
         except Exception as e:
+            self.tx_filter = self.client.web3_ws.eth.filter('pending')
             print(e)
             print("up here")
 
