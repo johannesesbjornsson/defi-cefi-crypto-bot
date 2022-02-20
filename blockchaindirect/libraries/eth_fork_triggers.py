@@ -28,11 +28,11 @@ class Triggers(object):
         self.client.web3.middleware_onion.inject(geth_poa_middleware, layer=0)
         #eth_newPendingTransactionFilter
         self.performing_transaction = False
-        self.current_nonce = self.client.get_transaction_count()
+        self.current_nonce = self.client.account.get_transaction_count()
         self.current_gas_price = 30
         self.set_tx_filter()
         self.init_type = init_type
-        self.account = Account(self.client, self.client.my_address)
+        #self.account = Account(self.client, self.client.my_address)
 
     def set_tx_filter(self):
         try:
@@ -45,7 +45,7 @@ class Triggers(object):
         amount_in = None
         attacking_txn_max_amount_in = attacking_txn_max_amount_in * 0.90
 
-        token_1_balance = self.account.token_balances[token_pair.token_1.address]
+        token_1_balance = self.client.account.token_balances[token_pair.token_1.address]
         txn_value_cap = token_pair.token_1.to_wei(self.client.minimum_scanned_transaction)
         min_value = token_pair.token_1.to_wei(self.scan_token_value)
         max_value = token_pair.token_1.to_wei(attacking_txn_max_amount_in)
@@ -255,7 +255,7 @@ class Triggers(object):
             self.set_tx_filter()
             return False
 
-        self.current_nonce = self.client.get_transaction_count()
+        self.current_nonce = self.client.account.get_transaction_count()
 
         pending_transactions = self.get_pending_txn()
         pending_router_transactions = asyncio.run(self.get_router_contract_interaction(pending_transactions))
@@ -312,6 +312,6 @@ class Triggers(object):
         
         self.client.write_pair_info_to_file()  
         self.client.write_token_info_to_file()  
-        self.account.set_token_balances()
+        self.client.account.set_token_balances()
 
         return intercepted_transaction

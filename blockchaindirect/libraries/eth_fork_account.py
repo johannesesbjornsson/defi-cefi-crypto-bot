@@ -22,6 +22,10 @@ class Account(object):
         
         self.token_balances = token_balances
 
+    def get_transaction_count(self):
+        transaction_count = self.client.web3.eth.get_transaction_count(self.address)
+        return transaction_count
+
     def get_latest_txns(self):
         txn_list = []
         router_txn_list = []

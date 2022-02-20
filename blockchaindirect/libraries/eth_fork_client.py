@@ -64,6 +64,8 @@ class Client(object):
         self.settings_dir = os.path.dirname(os.path.realpath(__file__)) + '/settings/'+self.blockchain
         self.load_token_json_from_file()
         self.load_pair_json_from_file()
+
+        self.account = Account(self, self.my_address)
         
 
     def get_abi(self,address):
@@ -72,10 +74,6 @@ class Client(object):
         json_reponse = json.loads(response.content)
 
         return response.status_code, json_reponse
-
-    def get_transaction_count(self):
-        transaction_count = self.web3.eth.get_transaction_count(self.my_address)
-        return transaction_count
 
     async def eth_call_raw_async(self, contract, contract_address, fn_name, fn_arguments_format, args):
         params = contract.encodeABI(fn_name=fn_name, args=args)
