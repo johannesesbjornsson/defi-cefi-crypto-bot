@@ -8,18 +8,19 @@ class Account(object):
             raise ValueError("Address cannot be '0x0000000000000000000000000000000000000000'")
         self.client = client
         self.address = self.client.web3.toChecksumAddress(address)
-        self.token_balances = self.get_token_balances()
+        self.set_token_balances()
         self.txn_list, self.router_txn_list =  self.get_latest_txns()
 
     def __str__(self):
         return self.address
 
-    def get_token_balances(self):
+    def set_token_balances(self):
         token_balances = {}
         for base_token in self.client.base_tokens:
             token = Token(self.client, base_token, "live")
             token_balances[token.address] = token.get_token_balance()
-        return token_balances
+        
+        self.token_balances = token_balances
 
     def get_latest_txns(self):
         txn_list = []

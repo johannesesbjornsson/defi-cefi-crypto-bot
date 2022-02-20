@@ -311,5 +311,6 @@ class Triggers(object):
         
         self.client.write_pair_info_to_file()  
         self.client.write_token_info_to_file()  
+        self.account.set_token_balances()
 
         return intercepted_transaction
