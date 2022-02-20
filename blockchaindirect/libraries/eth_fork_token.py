@@ -59,6 +59,10 @@ class Token(object):
     def __str__(self):
         return self.address
 
+    def get_token_balance(self):
+        balance = self.token_contract.functions.balanceOf(self.client.my_address).call()
+        return balance
+
     @property 
     def symbol(self):
         if not self.token_symbol:

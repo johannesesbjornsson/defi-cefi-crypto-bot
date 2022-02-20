@@ -171,9 +171,11 @@ class TokenPair(object):
         slippage = 0
         attacking_txn_max_amount_in = 0
         
+        # Checks if input token is token 1 and input is defined
         if router_txn.amount_in is not None and router_txn.path[0] == self.token_1.address and router_txn.path[1] == self.token_2.address:
             impact = self.get_liquidity_impact_of_token_1_for_token_2(self.token_1.from_wei(router_txn.amount_in))
             transaction_value = self.token_1.from_wei(router_txn.amount_in)
+        # checks if output token is token 2 and second to last token is token 1
         elif router_txn.amount_out is not None and router_txn.path[-1] == self.token_2.address and router_txn.path[-2] == self.token_1.address:
             impact = self.get_liquidity_impact_of_token_2_for_token_1(self.token_2.from_wei(router_txn.amount_out))
             transaction_value = (self.token_1_liquidity/self.token_2_liquidity) * self.token_2.from_wei(router_txn.amount_out)

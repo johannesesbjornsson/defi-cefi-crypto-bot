@@ -10,8 +10,8 @@ from web3.logs import STRICT, IGNORE, DISCARD, WARN
 from eth_abi import decode_abi
 from eth_utils import to_bytes
 import asyncio
-import nest_asyncio
-nest_asyncio.apply()
+#import nest_asyncio
+#nest_asyncio.apply()
 
 from settings.polygon.client import Polygon
 from settings.bsc.client import Bsc
@@ -30,11 +30,11 @@ class Client(object):
             raise ValueError(blockchain + " is not a supported blockchain")
 
         self.web3_ws = provider.web3_ws
+        self.provider_url = provider.provider_url
         self.web3 = provider.web3
         self.web3_asybc = provider.web3_asybc
         self.router_swap_fee = provider.router_swap_fee  
         self.max_gas_price = provider.max_gas_price
-        self.min_gas_price_of_scanned_txn = provider.min_gas_price_of_scanned_txn
         self.gas_price_frontrunning_increase = provider.gas_price_frontrunning_increase
         self.default_gas_price = provider.default_gas_price
         self.default_gas_limit = provider.default_gas_limit
@@ -54,6 +54,9 @@ class Client(object):
         self.blockchain = blockchain
         self.my_address = self.web3.toChecksumAddress(my_address)
         self.private_key = private_key
+        self.api_url = provider.api_url
+
+        self.chain_id = self.web3.eth.chain_id
 
         self.settings_dir = os.path.dirname(os.path.realpath(__file__)) + '/settings/'+self.blockchain
         self.load_token_json_from_file()
@@ -61,16 +64,11 @@ class Client(object):
         
 
     def get_abi(self,address):
-        if self.blockchain == "bsc":
-            url = "https://api.bscscan.com/api?module=contract&action=getabi&address={}&apikey={}".format(address, self.api_key)
-            response = requests.get(url)
-            json_reponse = json.loads(response.content)
-        elif self.blockchain == "polygon":
-            url = "https://api.polygonscan.com/api?module=contract&action=getabi&address={}&apikey={}".format(address, self.api_key)
-            response = requests.get(url)
-            json_reponse = json.loads(response.content)
-      
-        return json_reponse["result"]
+        url = "{}/api?module=contract&action=getsourcecode&address={}&apikey={}".format(self.api_url,address, self.api_key)
+        response = requests.get(url)
+        json_reponse = json.loads(response.content)
+
+        return response.status_code, json_reponse
 
     def get_transaction_count(self):
         transaction_count = self.web3.eth.get_transaction_count(self.my_address)
@@ -133,9 +131,43 @@ class Client(object):
             json.dump(self.pair_info, f)
         return True
 
+    def get_contract_source_code(self, address):
+        url = "{}/api?module=contract&action=getsourcecode&address={}&apikey={}".format(self.api_url,address, self.api_key)
+        response = requests.get(url)
+        json_reponse = json.loads(response.content)
+        return response.status_code, json_reponse
+
+    def get_account_transaction(self, address):
+        url = "{}/api?module=account&action=txlist&address={}&page=1&offset=50&sort=desc&apikey={}".format(self.api_url,address, self.api_key)
+        response = requests.get(url)
+        json_reponse = json.loads(response.content)
+        return response.status_code, json_reponse
+
+
+    def get_token_transfers(self, address):
+        url = "{}/api?module=account&action=txlistinternal&address={}&page=1&offset=50&sort=desc&apikey={}".format(self.api_url,address, self.api_key)
+        response = requests.get(url)
+        json_reponse = json.loads(response.content)
+        return response.status_code, json_reponse
+
+    def get_address_logs(self, address, topic=None):
+        if topic == "swap":
+            topic = "&topic0=0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822&topic1=0x000000000000000000000000a5e0829caced8ffdd4de3c43696c57f7d7a678ff"
+        else:
+            topic = ""
+        url = "{}/api?module=logs&action=getLogs&address={}&page=1&offset=150&sort=desc&apikey={}{}".format(self.api_url,address, self.api_key, topic)
+        response = requests.get(url)
+        json_reponse = json.loads(response.content)
+        return response.status_code, json_reponse
+
 #        #params = liquidity_pool_contract.encodeABI(fn_name="getReserves",args=[])
 #        #data = {"jsonrpc": "2.0", "method": "eth_call", "params": [{"to": self.liquidity_pool_address, "data": params}, "latest"], "id": 1}
 #        #response = await client.post(url="https://polygon-rpc.com",headers={"Content-Type":"application/json"},json=data)
 #        #hex_str = response.json()["result"]
 #        #decoded = decode_abi(['uint112','uint112','uint32'], to_bytes(hexstr=hex_str))
 #        #self.reserves_raw = decoded
+
+    def send_raw_txn(self,txn_data):
+        data = {"jsonrpc": "2.0", "method": "eth_sendRawTransaction", "params": [ txn_data ], "id": 1}
+        response = requests.post(url=self.provider_url,headers={"Content-Type":"application/json"}, json=data)
+        print(response.content)

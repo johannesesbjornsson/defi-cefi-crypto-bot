@@ -21,6 +21,7 @@ class Triggers(object):
         self.failed_requests = 0
         self.client = client
         self.token_to_scan_for = self.client.token_to_scan_for
+        self.minimum_gas_price = self.client.minimum_gas_price
         self.minimum_liquidity_impact = self.client.minimum_liquidity_impact
         self.scan_token_value = self.client.scan_token_value
         self.token_1 = Token(self.client,self.token_to_scan_for)
@@ -31,13 +32,62 @@ class Triggers(object):
         self.current_gas_price = 30
         self.set_tx_filter()
         self.init_type = init_type
+        self.account = Account(self.client, self.client.my_address)
 
     def set_tx_filter(self):
         try:
             self.tx_filter = self.client.web3_ws.eth.filter('pending')
-        except ConnectionResetError as e:
+        except Exception as e:
+            print(e)
             print("up here")
 
+    def get_attacking_txn_amount_in(self,token_pair,attacking_txn_max_amount_in):
+        amount_in = None
+        attacking_txn_max_amount_in = attacking_txn_max_amount_in * 0.90
+
+        token_1_balance = self.account.token_balances[token_pair.token_1.address]
+        txn_value_cap = token_pair.token_1.to_wei(self.client.minimum_scanned_transaction)
+        min_value = token_pair.token_1.to_wei(self.scan_token_value)
+        max_value = token_pair.token_1.to_wei(attacking_txn_max_amount_in)
+        if min_value > token_1_balance:
+            raise RuntimeError(f"Not enough balance of {token_pair.token_1.symbol}, needs at least {self.scan_token_value}")
+
+        if max_value > token_1_balance:
+            max_value = token_1_balance
+        elif max_value > txn_value_cap:
+            max_value = txn_value_cap
+            
+        amount_in = max_value
+
+        return amount_in
+
+    def get_safe_token_pair(self, router_txn):
+        input_token = None
+        out_token = None
+        try:
+            if self.token_to_scan_for in router_txn.path:
+                index = router_txn.path.index(self.token_to_scan_for)
+                if index == 0 or index == (len(router_txn.path) - 2):
+                    input_token = router_txn.path[index]
+                    out_token = router_txn.path[index+1]
+
+            if input_token == self.token_to_scan_for:
+                token_2 = Token(self.client, out_token, self.init_type)
+                if token_2.verified == False or token_2.safe_code == False:
+                    return None
+
+                token_pair = TokenPair(self.client, self.token_1, token_2, self.init_type)
+
+                if token_pair.has_token_fees:
+                    return None
+                
+            else:
+                token_pair = None
+        except ValueError as e:
+            token_pair = None
+    
+        return token_pair
+        
     def handle_swap_transaction(self, router_txn):
         token_pair = None
         amount_in = None
@@ -45,37 +95,22 @@ class Triggers(object):
         my_gas_price = None
         liquidity_impact = None
         my_router_transaction = None
+        slippage = None
+        attacking_txn_max_amount_in = None
+
         function_start = time.perf_counter()
-        try:
-            input_token, out_token = router_txn.path[-2:]
-            if input_token == self.token_to_scan_for:
-                token_start = time.perf_counter()
-                token_2 = Token(self.client, out_token, self.init_type)
-                if token_2.verified == False or token_2.safe_code == False:
-                    return my_router_transaction, liquidity_impact, token_pair
 
-                token_pair = TokenPair(self.client, self.token_1, token_2, self.init_type)
+        token_pair = self.get_safe_token_pair(router_txn)
 
-                if token_pair.has_token_fees:
-                    return my_router_transaction, liquidity_impact, None
-                token_end = time.perf_counter()
-            else:
-                token_pair = None
-        except ValueError as e:
-            token_pair = None
+        token_end = time.perf_counter()
 
         if token_pair:
             liquidity_impact, txn_value, slippage, attacking_txn_max_amount_in = token_pair.quick_router_transction_analysis(router_txn)
-            #print("impact", '{0:.20f}'.format(liquidity_impact))
-            #print("Value",txn_value)
-            #print("slippage",slippage)
-            #print("Max value",attacking_txn_max_amount_in)
-            #print(router_txn)
-            #print("------")
 
-            #if liquidity_impact > self.minimum_liquidity_impact and txn_value > self.minimum_scanned_transaction and attacking_txn_max_amount_in > self.scan_token_value:
             if liquidity_impact > self.minimum_liquidity_impact and attacking_txn_max_amount_in > self.scan_token_value:
-                amount_in = self.token_1.to_wei(self.scan_token_value)
+                amount_in = self.get_attacking_txn_amount_in(token_pair,attacking_txn_max_amount_in)
+                print("----------------")
+
                 amount_out = token_pair.get_amount_token_2_out(amount_in, offline_calculation=True)
                 my_gas_price = router_txn.transaction.gas_price + self.client.gas_price_frontrunning_increase
                 
@@ -83,22 +118,24 @@ class Triggers(object):
                 if self.performing_transaction == False and amount_in is not None and  amount_out is not None and time_elapsed < 0.4:
                     self.performing_transaction = True
                     send_txn_start = time.perf_counter()
-                    my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=my_gas_price, nonce=self.current_nonce)
-                    send_txn_end = time.perf_counter()
-                    function_end = time.perf_counter()
-                    print("Sending txn time elapsed: ", send_txn_end - send_txn_start)
-                    print("Token init time elapsed: ", token_end - token_start )
-                    print("Function time elapsed: ", function_end - function_start,"\n-------")
+                    if self.init_type == "live":
+                        my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=my_gas_price, nonce=self.current_nonce)
+                    #send_txn_end = time.perf_counter()
+                    #function_end = time.perf_counter()
+                    #print("Sending txn time elapsed: ", send_txn_end - send_txn_start)
+                    #print("Token init time elapsed: ", token_end - token_start )
+                    #print("Function time elapsed: ", function_end - function_start,"\n-------")
                     #my_router_transaction = "dummy val"
                 #function_end = time.perf_counter()
                 #print("Function time elapsed: ", function_end - function_start,"\n-------")
 
-        return my_router_transaction, liquidity_impact, token_pair
+        return my_router_transaction, liquidity_impact, token_pair, slippage, attacking_txn_max_amount_in
 
 
     def filter_transaction(self, txn, compare_transaction=None):
         matching_txn = None
         if not compare_transaction and txn.to == self.client.router_contract_address and txn.block_number is None and txn.gas_price >= self.current_gas_price:
+        #if not compare_transaction and txn.to == self.client.router_contract_address and txn.block_number is None and txn.gas_price >= self.minimum_gas_price:
         #if not compare_transaction and txn.to == self.client.router_contract_address and txn.block_number is not None and txn.gas_price >= self.current_gas_price:
             router_txn = RouterTransaction(txn)
             #if router_txn.function_called == "swapExactETHForTokens" or router_txn.function_called == "swapETHForExactTokens":
@@ -118,35 +155,20 @@ class Triggers(object):
         else:
             transaction_hash = self.client.web3.toHex(transaction)
 
-        try:
-            transaction_info = await self.client.web3_asybc.eth.get_transaction(transaction_hash)
-            self.successful_requests += 1
-            txn = Transaction(self.client, transaction_info)
-            matching_txn = self.filter_transaction(txn, compare_transaction)
-
-        except TransactionNotFound as e:
-            self.failed_requests += 1
-            txn = None
-        except gaierror as e:
-            self.failed_requests += 1
-            txn = None
-        except ClientConnectorError as e:
-            self.failed_requests += 1
-            txn = None
-        except ClientResponseError as e:
-            self.failed_requests += 1
-            txn = None
-        except TimeoutError as e:
-            self.failed_requests += 1
-            txn = None
-        except ValueError as e:
-            self.failed_requests += 1
-            txn = None
+        for i in range(5):
+            try:
+                transaction_info = await self.client.web3_asybc.eth.get_transaction(transaction_hash)
+                self.successful_requests += 1
+                txn = Transaction(self.client, transaction_info)
+                matching_txn = self.filter_transaction(txn, compare_transaction)
+                break
+            except Exception as e:
+                txn = None
 
         if handle_transaction and matching_txn:
-            my_txn, liquidity_impact, token_pair = self.handle_swap_transaction(matching_txn)
+            my_txn, liquidity_impact, token_pair, slippage, attacking_txn_max_amount_in = self.handle_swap_transaction(matching_txn)
             if my_txn and liquidity_impact and token_pair:
-                matching_txn = (matching_txn, my_txn, token_pair, liquidity_impact)
+                matching_txn = (matching_txn, my_txn, liquidity_impact, token_pair, slippage, attacking_txn_max_amount_in)
             else:
                 matching_txn = None
                 
@@ -172,14 +194,14 @@ class Triggers(object):
     def watch_transactions(self,txn,look_for_next_txn=True,token_swap_info=None):
         time_started = time.time()
         while txn is not None:
+            time_passed = time.time() - time_started
             try:
                 transaction_info = self.client.web3.eth.get_transaction(txn.hash)
                 txn = Transaction(self.client, transaction_info)
             except TransactionNotFound as e:
-                if txn.from_address == "0x0000000000000000000000000000000000000000":
-                    continue
-                account = Account(self.client,txn.from_address)
-                txn = account.get_next_txn(txn)
+                if txn.from_address != "0x0000000000000000000000000000000000000000" and 10 > time_passed:
+                    account = Account(self.client,txn.from_address)
+                    txn = account.get_next_txn(txn)
             
             if txn.block_number:
                 transaction_complete, transaction_successful = txn.get_transaction_receipt(wait=False)
@@ -194,7 +216,7 @@ class Triggers(object):
                     latest_txn = account.get_next_txn(txn)
                     txn = latest_txn
                 
-            if 360 > time.time() - time_started:
+            if 360 > time_passed:
                 if token_swap_info:
                     token_pair = token_swap_info[0]
                     amount_in = token_swap_info[1]
@@ -215,11 +237,8 @@ class Triggers(object):
         except ValueError as e:
             self.set_tx_filter()
             pending_transactions = self.tx_filter.get_new_entries()
-        except ConnectionResetError as e:
-            print("here1")
-            pending_transactions = []
-        except ConnectionClosedError as e:
-            time.sleep(0.2)
+        except Exception as e:
+            time.sleep(0.1)
             pending_transactions = []
         return pending_transactions
 
@@ -231,22 +250,23 @@ class Triggers(object):
         self.current_gas_price = self.client.web3.eth.gas_price 
         if self.current_gas_price > self.client.max_gas_price:
             print("Gas prices too high atm...")
-            time.sleep(60)
+            time.sleep(30)
+            self.set_tx_filter()
             return False
 
         self.current_nonce = self.client.get_transaction_count()
 
         pending_transactions = self.get_pending_txn()
-
         pending_router_transactions = asyncio.run(self.get_router_contract_interaction(pending_transactions))
 
         for hande_tuple in pending_router_transactions:
             router_txn = hande_tuple[0]
             my_router_transaction = hande_tuple[1]
-            token_pair = hande_tuple[2]
-            liquidity_impact = hande_tuple[3]
-   
-
+            liquidity_impact = hande_tuple[2]
+            token_pair = hande_tuple[3]
+            slippage = hande_tuple[4]
+            attacking_txn_max_amount_in = hande_tuple[5]
+            
             intercepted_transaction = True
 
             self.watch_transactions(my_router_transaction.transaction, False)
@@ -255,8 +275,9 @@ class Triggers(object):
             print("Initial swap status", transaction_successful)
             print("My txn", my_router_transaction)
             if transaction_successful:
-                print("Winning!!")
+                print("-------------------------------------------------")
                 print("Liquidity impact", '{0:.20f}'.format(liquidity_impact))
+                print("Max attacking txn value", '{0:.20f}'.format(attacking_txn_max_amount_in))
                 amount_out_from_token_2 = my_router_transaction.get_transaction_amount_out()
 
                 approve_token_txn = token_pair.token_2.approve_token()
@@ -268,14 +289,21 @@ class Triggers(object):
                 my_router_return_transaction = token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
                 self.watch_transactions(my_router_return_transaction.transaction, False)
                 transaction_complete, transaction_successful = my_router_return_transaction.transaction.get_transaction_receipt(wait=True)
+                if not transaction_successful:
+                    print("Retrying sending return txn")
+                    amount_out_from_token_1 = token_pair.get_amount_token_1_out(amount_out_from_token_2)
+                    my_router_return_transaction = token_pair.swap_token_2_for_token_1(amount_out_from_token_2, amount_out_from_token_1)
+                    self.watch_transactions(my_router_return_transaction.transaction, False)
+                    transaction_complete, transaction_successful = my_router_return_transaction.transaction.get_transaction_receipt(wait=True)
+
                 if transaction_successful:
-                    print("It all went swimmingly")
                     print("My return txn", my_router_return_transaction)
                     amount_out = my_router_return_transaction.get_transaction_amount_out()
+                    print("Amount in", token_pair.token_1.from_wei(my_router_transaction.amount_in))
                     print("Amount out", token_pair.token_1.from_wei(amount_out))
                 else:
                     raise StopIteration(f"{my_router_return_transaction.transaction.hash} was not successful")
-                
+
             #print("--------")
             #print("Successsful requests", self.successful_requests)
             #print("Failed requests", self.failed_requests)

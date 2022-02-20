@@ -1,7 +1,7 @@
 import requests
 import json
 import contract_libarary
-#from web3 import Web3
+from eth_fork_account import Account
 import time
 import os
 from web3.logs import STRICT, IGNORE, DISCARD, WARN
@@ -32,12 +32,14 @@ class Client(object):
         self.web3_ws = provider.web3_ws
         self.provider_url = provider.provider_url
         self.web3 = provider.web3
+        self.web3_priority = provider.web3_priority
         self.web3_asybc = provider.web3_asybc
         self.router_swap_fee = provider.router_swap_fee  
         self.max_gas_price = provider.max_gas_price
         self.gas_price_frontrunning_increase = provider.gas_price_frontrunning_increase
         self.default_gas_price = provider.default_gas_price
         self.default_gas_limit = provider.default_gas_limit
+        self.minimum_gas_price = provider.minimum_gas_price
         self.slippage = provider.slippage
         self.token_to_scan_for = provider.token_to_scan_for
         self.scan_token_value = provider.scan_token_value
@@ -46,6 +48,7 @@ class Client(object):
         self.swap_log_location_index = provider.swap_log_location_index
         self.tokens_to_check = provider.tokens_to_check
         self.known_tokens = provider.known_tokens
+        self.base_tokens = provider.base_tokens
         self.router_contract_address = provider.router_contract_address
         self.router_contract = provider.router_contract
         self.factory_contract = provider.factory_contract

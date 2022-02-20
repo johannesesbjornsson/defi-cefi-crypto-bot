@@ -5,22 +5,19 @@ import json
 class Polygon:
     def __init__(self):
         provider_url = "https://polygon-rpc.com"
-        priority_provider_url = "https://polygon-mainnet.g.alchemy.com/v2/E-Fn73T8fK2iTa_Iv6LPsJhOFC-MZIri"
         provider_ws = "wss://speedy-nodes-nyc.moralis.io/0279106ed82b874b3e1b195d/polygon/mainnet/ws"
         self.api_url = "https://api.polygonscan.com"
         self.web3_ws = Web3(Web3.WebsocketProvider(provider_ws))
         self.web3 = Web3(Web3.HTTPProvider(provider_url))
-        self.web3_priority = Web3(Web3.HTTPProvider(priority_provider_url))
         self.provider_url = provider_url
         self.web3_asybc = Web3(Web3.AsyncHTTPProvider(provider_url),modules={'eth': (AsyncEth,)}, middlewares=[])
         self.router_swap_fee = 0.003  
         self.max_gas_price = self.web3.toWei('110','gwei')
         self.gas_price_frontrunning_increase = self.web3.toWei('2','gwei')
         self.default_gas_price = self.web3.toWei('35','gwei')
-        self.minimum_gas_price = self.web3.toWei('29','gwei')
         self.default_gas_limit = 400000 #TODO have this be not fixed
         self.slippage = 0.99
-        self.scan_token_value = 0.5
+        self.scan_token_value = 0.4
         self.minimum_scanned_transaction = 5
         self.minimum_liquidity_impact = 0.015
         self.swap_log_location_index = -2
@@ -47,7 +44,6 @@ class Polygon:
             "UNI": "0xb33eaad8d922b1083446dc23f610c2567fb5180f",
             "MANA": "0xa1c57f48f0deb89f569dfbe6e2b7f46d33606fd4",
             "SAND": "0xBbba073C31bF03b8ACf7c28EF0738DeCF3695683",
-            "DAI": "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063",
             # Random shitcoins
             "COLLAR" : "0xd5fa77a860fea9cff31da91bbf9e0faea9538290",
             "DBD" : "0x72b9f88e822cf08b031c2206612b025a82fb303c",
@@ -84,7 +80,7 @@ class Polygon:
             "USDC": "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
             "USDT": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
             "WMATIC": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
-            
+            "DAI": "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063"
         }
         all_tokens = self.tokens_to_check.copy()
         all_tokens.update(self.base_tokens)
