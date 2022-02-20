@@ -41,10 +41,9 @@ class Triggers(object):
             print(e)
             print("up here")
 
-    def get_attacking_txn_amount_in(self,token_pair, txn_value, attacking_txn_max_amount_in):
+    def get_attacking_txn_amount_in(self,token_pair, attacking_txn_max_amount_in):
         amount_in = None
         attacking_txn_max_amount_in = attacking_txn_max_amount_in * 0.90
-        print(txn_value)
 
         token_1_balance = self.account.token_balances[token_pair.token_1.address]
         txn_value_cap = token_pair.token_1.to_wei(self.client.minimum_scanned_transaction)
@@ -57,7 +56,7 @@ class Triggers(object):
             max_value = token_1_balance
         elif max_value > txn_value_cap:
             max_value = txn_value_cap
-            
+
         amount_in = max_value
 
         return amount_in
@@ -108,14 +107,15 @@ class Triggers(object):
         if token_pair:
             liquidity_impact, txn_value, slippage, attacking_txn_max_amount_in = token_pair.quick_router_transction_analysis(router_txn)
 
-            if liquidity_impact > self.minimum_liquidity_impact and attacking_txn_max_amount_in > self.scan_token_value:
-                amount_in = self.get_attacking_txn_amount_in(token_pair, txn_value, attacking_txn_max_amount_in)
-                print("----------------")
+            if liquidity_impact > self.minimum_liquidity_impact and attacking_txn_max_amount_in > self.scan_token_value and txn_value > self.client.minimum_scanned_transaction:
+                amount_in = self.get_attacking_txn_amount_in(token_pair, attacking_txn_max_amount_in)
+                
 
                 amount_out = token_pair.get_amount_token_2_out(amount_in, offline_calculation=True)
                 my_gas_price = router_txn.transaction.gas_price + self.client.gas_price_frontrunning_increase
                 
                 time_elapsed = time.perf_counter() - function_start
+                print("----------------",time_elapsed)
                 if self.performing_transaction == False and amount_in is not None and  amount_out is not None and time_elapsed < 0.4:
                     self.performing_transaction = True
                     send_txn_start = time.perf_counter()
