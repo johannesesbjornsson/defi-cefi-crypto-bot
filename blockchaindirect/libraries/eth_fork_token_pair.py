@@ -190,6 +190,7 @@ class TokenPair(object):
             attacking_txn_max_amount_in = transaction_value
             slippage = 1
         elif impact > 0.01 and transaction_value > self.client.minimum_scanned_transaction:
+            print("Am I ever here?")
             slippage = 0.02
             attacking_txn_max_amount_in = transaction_value/10
 
