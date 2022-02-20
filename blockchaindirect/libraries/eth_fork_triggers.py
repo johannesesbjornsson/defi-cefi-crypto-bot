@@ -41,9 +41,10 @@ class Triggers(object):
             print(e)
             print("up here")
 
-    def get_attacking_txn_amount_in(self,token_pair,attacking_txn_max_amount_in):
+    def get_attacking_txn_amount_in(self,token_pair, txn_value, attacking_txn_max_amount_in):
         amount_in = None
         attacking_txn_max_amount_in = attacking_txn_max_amount_in * 0.90
+        print(txn_value)
 
         token_1_balance = self.account.token_balances[token_pair.token_1.address]
         txn_value_cap = token_pair.token_1.to_wei(self.client.minimum_scanned_transaction)
@@ -108,7 +109,7 @@ class Triggers(object):
             liquidity_impact, txn_value, slippage, attacking_txn_max_amount_in = token_pair.quick_router_transction_analysis(router_txn)
 
             if liquidity_impact > self.minimum_liquidity_impact and attacking_txn_max_amount_in > self.scan_token_value:
-                amount_in = self.get_attacking_txn_amount_in(token_pair,attacking_txn_max_amount_in)
+                amount_in = self.get_attacking_txn_amount_in(token_pair, txn_value, attacking_txn_max_amount_in)
                 print("----------------")
 
                 amount_out = token_pair.get_amount_token_2_out(amount_in, offline_calculation=True)
