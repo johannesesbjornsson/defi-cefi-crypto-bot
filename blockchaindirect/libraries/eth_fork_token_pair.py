@@ -5,7 +5,7 @@ import asyncio
 from web3.logs import STRICT, IGNORE, DISCARD, WARN
 from web3.exceptions import ContractLogicError
 from eth_fork_token import Token
-from eth_fork_transaction import Transaction, RouterTransaction
+from eth_fork_transaction import Transaction, TransactionBuilder, RouterTransaction
 
 from eth_abi import decode_abi
 from eth_utils import to_bytes
@@ -256,9 +256,10 @@ class TokenPair(object):
         from_token_amount = amount_in
         to_token_amount = int(amount_out * self.client.slippage)
         txn  = self.build_transaction(from_token, to_token, from_token_amount, to_token_amount)
-        transaction = Transaction(self.client, None)
-        transaction.create_transaction(txn,gas_price,nonce)
-        transaction.sign_and_send_transaction()
+        transaction_builder = TransactionBuilder(self.client, None)
+        transaction_builder.create_transaction(txn)
+        transaction = transaction_builder.sign_and_send_transaction()
+        
         router_transaction = RouterTransaction(transaction)
 
         return router_transaction
@@ -269,9 +270,9 @@ class TokenPair(object):
         from_token_amount = amount_in
         to_token_amount = int(amount_out * self.client.slippage)
         txn  = self.build_transaction(from_token, to_token, from_token_amount, to_token_amount)
-        transaction = Transaction(self.client, None)
-        transaction.create_transaction(txn,gas_price,nonce)
-        transaction.sign_and_send_transaction()
+        transaction_builder = TransactionBuilder(self.client, None)
+        transaction_builder.create_transaction(txn)
+        transaction = transaction_builder.sign_and_send_transaction()
 
         router_transaction = RouterTransaction(transaction)
         

@@ -1,7 +1,7 @@
 import contract_libarary
 
 import asyncio
-from eth_fork_transaction import Transaction
+from eth_fork_transaction import Transaction, TransactionBuilder
 
 import asyncio
 #import nest_asyncio
@@ -126,9 +126,9 @@ class Token(object):
         if self.allowance_on_router == 0:
             value = self.client.web3.toWei(2**64-1,'ether')
             txn = self.token_contract.functions.approve(self.client.router_contract_address,value)
-            transaction = Transaction(self.client, None)
-            transaction.create_transaction(txn)
-            transaction.sign_and_send_transaction()
+            transaction_builder = TransactionBuilder(self.client, None)
+            transaction_builder.create_transaction(txn)
+            transaction = transaction_builder.sign_and_send_transaction()
 
             transaction_complete, transaction_successful = transaction.get_transaction_receipt(wait=True)
             if not transaction_successful:
