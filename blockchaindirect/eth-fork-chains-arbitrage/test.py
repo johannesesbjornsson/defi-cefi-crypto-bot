@@ -93,18 +93,18 @@ if __name__ == "__main__":
     while True:
         #start = time.perf_counter() 
         #re_init_tokens(client)
-        #test(client)
+        test(client)
         #test_txn_analysis(client)
         #write_contract_code_to_file(client, "0x08e175a1eac9744a0f1ccaeb8f669af6a2bda3ce")
+        break
 
 
 
-        transaction_info = client.web3.eth.get_transaction("0x5f2d5d271ed68e6e4c36648c6bf5be3520d386a580c717f6530b193403543fe3")
-        txn = Transaction(client, transaction_info)
-        r_txn = RouterTransaction(txn)
-         
-        token_pair = triggers.get_safe_token_pair(r_txn)
-        print("---")
+        #transaction_info = client.web3.eth.get_transaction("0x5f2d5d271ed68e6e4c36648c6bf5be3520d386a580c717f6530b193403543fe3")
+        #txn = Transaction(client, transaction_info)
+        #r_txn = RouterTransaction(txn) 
+        #token_pair = triggers.get_safe_token_pair(r_txn)
+        #print("---")
 
         #token_1 = Token(client, "0x08e175a1eac9744a0f1ccaeb8f669af6a2bda3ce")
         #print(token_1.safe_code)

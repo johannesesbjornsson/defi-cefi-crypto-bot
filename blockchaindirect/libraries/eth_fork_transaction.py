@@ -5,6 +5,9 @@ from web3.exceptions import ContractLogicError, TransactionNotFound, TimeExhaust
 import re
 import time
 
+class TransactionBuilder(object):
+
+
 class Transaction(object):
     def __init__(self, client, transaction_info=None):
         self.client = client
