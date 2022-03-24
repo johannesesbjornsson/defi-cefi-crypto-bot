@@ -5,6 +5,9 @@ from web3.exceptions import ContractLogicError, TransactionNotFound, TimeExhaust
 import re
 import time
 
+class TransactionBuilder(object):
+
+
 class Transaction(object):
     def __init__(self, client, transaction_info=None):
         self.client = client
@@ -73,7 +76,7 @@ class Transaction(object):
                 raise ValueError(f"Gas prices are currently to expensive: {gas_price}")
         
         if nonce is None:
-            nonce =  self.client.get_transaction_count()
+            nonce =  self.client.account.get_transaction_count()
 
         if gas_price < self.client.default_gas_price:
             gas_price = self.client.default_gas_price

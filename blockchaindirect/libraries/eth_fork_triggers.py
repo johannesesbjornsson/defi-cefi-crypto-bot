@@ -28,24 +28,25 @@ class Triggers(object):
         self.client.web3.middleware_onion.inject(geth_poa_middleware, layer=0)
         #eth_newPendingTransactionFilter
         self.performing_transaction = False
-        self.current_nonce = self.client.get_transaction_count()
+        self.current_nonce = self.client.account.get_transaction_count()
         self.current_gas_price = 30
         self.set_tx_filter()
         self.init_type = init_type
-        self.account = Account(self.client, self.client.my_address)
+        #self.account = Account(self.client, self.client.my_address)
 
     def set_tx_filter(self):
         try:
             self.tx_filter = self.client.web3_ws.eth.filter('pending')
         except Exception as e:
+            self.tx_filter = self.client.web3_ws.eth.filter('pending')
             print(e)
             print("up here")
 
-    def get_attacking_txn_amount_in(self,token_pair,attacking_txn_max_amount_in):
+    def get_attacking_txn_amount_in(self,token_pair, attacking_txn_max_amount_in):
         amount_in = None
         attacking_txn_max_amount_in = attacking_txn_max_amount_in * 0.90
 
-        token_1_balance = self.account.token_balances[token_pair.token_1.address]
+        token_1_balance = self.client.account.token_balances[token_pair.token_1.address]
         txn_value_cap = token_pair.token_1.to_wei(self.client.minimum_scanned_transaction)
         min_value = token_pair.token_1.to_wei(self.scan_token_value)
         max_value = token_pair.token_1.to_wei(attacking_txn_max_amount_in)
@@ -56,7 +57,7 @@ class Triggers(object):
             max_value = token_1_balance
         elif max_value > txn_value_cap:
             max_value = txn_value_cap
-            
+
         amount_in = max_value
 
         return amount_in
@@ -107,14 +108,15 @@ class Triggers(object):
         if token_pair:
             liquidity_impact, txn_value, slippage, attacking_txn_max_amount_in = token_pair.quick_router_transction_analysis(router_txn)
 
-            if liquidity_impact > self.minimum_liquidity_impact and attacking_txn_max_amount_in > self.scan_token_value:
-                amount_in = self.get_attacking_txn_amount_in(token_pair,attacking_txn_max_amount_in)
-                print("----------------")
+            if liquidity_impact > self.minimum_liquidity_impact and attacking_txn_max_amount_in > self.scan_token_value and txn_value > self.client.minimum_scanned_transaction:
+                amount_in = self.get_attacking_txn_amount_in(token_pair, attacking_txn_max_amount_in)
+                
 
                 amount_out = token_pair.get_amount_token_2_out(amount_in, offline_calculation=True)
                 my_gas_price = router_txn.transaction.gas_price + self.client.gas_price_frontrunning_increase
                 
                 time_elapsed = time.perf_counter() - function_start
+                print("----------------",time_elapsed)
                 if self.performing_transaction == False and amount_in is not None and  amount_out is not None and time_elapsed < 0.4:
                     self.performing_transaction = True
                     send_txn_start = time.perf_counter()
@@ -254,7 +256,7 @@ class Triggers(object):
             self.set_tx_filter()
             return False
 
-        self.current_nonce = self.client.get_transaction_count()
+        self.current_nonce = self.client.account.get_transaction_count()
 
         pending_transactions = self.get_pending_txn()
         pending_router_transactions = asyncio.run(self.get_router_contract_interaction(pending_transactions))
@@ -311,5 +313,6 @@ class Triggers(object):
         
         self.client.write_pair_info_to_file()  
         self.client.write_token_info_to_file()  
+        self.client.account.set_token_balances()
 
         return intercepted_transaction
