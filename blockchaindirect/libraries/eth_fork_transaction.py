@@ -7,26 +7,91 @@ import time
 
 class TransactionBuilder(object):
 
+    def __init__(self, client, transaction_info):
+        self.client = client
+    
+    def create_transaction(self, transaction, gas_price=None, nonce=None):
+        if gas_price is None:
+            gas_price = self.client.web3.eth.gas_price
+            if gas_price > self.client.max_gas_price:
+                raise ValueError(f"Gas prices are currently to expensive: {gas_price}")
+        
+        if nonce is None:
+            nonce =  self.client.account.get_transaction_count()
+
+        if gas_price < self.client.default_gas_price:
+            gas_price = self.client.default_gas_price
+    
+        self.nonce = nonce
+        self.gas_limit = self.client.default_gas_limit
+        self.gas_price = gas_price
+        self.from_address = self.client.my_address
+        self.built_transaction = transaction
+
+    def sign_and_send_transaction(self):
+        build_txn_hash = {
+            'from': self.from_address,
+            'value': 0,
+            'gas': self.gas_limit, 
+            'gasPrice': self.gas_price,
+            #'maxFeePerGas': self.gas_price,
+            #'maxPriorityFeePerGas' : self.gas_price,
+            'chainId': self.client.chain_id,
+            'nonce': self.nonce,
+        }
+
+        #built_txn = self.built_transaction.buildTransaction(build_txn_hash)
+        #signed_txn = self.client.web3.eth.account.sign_transaction(built_txn, private_key=self.client.private_key)
+        #signed_txn_raw = self.client.web3.toHex(signed_txn.rawTransaction)
+        #self.client.send_raw_txn(signed_txn_raw)
+        # See https://docs.polygon.technology/docs/develop/eip1559-transactions/how-to-send-eip1559-transactions/
+        # See https://github.com/ethereum/web3.py/blob/master/web3/_utils/transactions.py
+        try:
+            built_txn = self.built_transaction.buildTransaction(build_txn_hash)
+            signed_txn = self.client.web3.eth.account.sign_transaction(built_txn, private_key=self.client.private_key)
+            function_start = time.perf_counter()
+            txn_hash = self.client.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
+            #txn_hash = self.client.web3_priority.eth.send_raw_transaction(signed_txn.rawTransaction)
+            time_elapsed = time.perf_counter() - function_start
+            print("Sending txn time elapsed: ", time_elapsed)
+        except ValueError as e:
+            if str(e) == "{'code': -32000, 'message': 'nonce too low'}":
+                build_txn_hash["nonce"] = self.nonce + 1
+                built_txn = self.built_transaction.buildTransaction(build_txn_hash)
+                signed_txn = self.client.web3.eth.account.sign_transaction(built_txn, private_key=self.client.private_key)
+                txn_hash = self.client.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
+            else:
+                raise ValueError(str(e))
+
+        for i in range(20):
+            time.sleep(0.5)
+            try: 
+                transaction_info = self.client.web3.eth.get_transaction(txn_hash)
+                break
+            except TransactionNotFound as e:
+                transaction_info = None
+            Transaction
+        
+        
+        transaction = Transaction(self.client,transaction_info)
+        return transaction
 
 class Transaction(object):
-    def __init__(self, client, transaction_info=None):
+    def __init__(self, client, transaction_info):
         self.client = client
         self.receipt = None
-        if transaction_info:
-            try:
-                self.hash = self.client.web3.toHex(transaction_info["hash"])
-            except TypeError as e:
-                self.hash = transaction_info["hash"]
+        try:
+            self.hash = self.client.web3.toHex(transaction_info["hash"])
+        except TypeError as e:
+            self.hash = transaction_info["hash"]
 
-            self.block_number = transaction_info["blockNumber"]
-            self.gas_limit = transaction_info["gas"]
-            self.gas_price = transaction_info["gasPrice"]
-            self.input = transaction_info["input"]
-            self.nonce = int(transaction_info["nonce"])
-            self.to = transaction_info["to"]
-            self.from_address = transaction_info["from"]
-        else:
-            self.hash = ""
+        self.block_number = transaction_info["blockNumber"]
+        self.gas_limit = transaction_info["gas"]
+        self.gas_price = transaction_info["gasPrice"]
+        self.input = transaction_info["input"]
+        self.nonce = int(transaction_info["nonce"])
+        self.to = transaction_info["to"]
+        self.from_address = transaction_info["from"]
 
 
     def __str__(self):
@@ -67,75 +132,6 @@ class Transaction(object):
         self.receipt = transaction_receipt
 
         return transaction_complete, transaction_successful
-
-    def create_transaction(self, transaction, gas_price=None, nonce=None):
-        if gas_price is None:
-            #gas_price = self.client.default_gas_price
-            gas_price = self.client.web3.eth.gas_price
-            if gas_price > self.client.max_gas_price:
-                raise ValueError(f"Gas prices are currently to expensive: {gas_price}")
-        
-        if nonce is None:
-            nonce =  self.client.account.get_transaction_count()
-
-        if gas_price < self.client.default_gas_price:
-            gas_price = self.client.default_gas_price
-    
-        self.nonce = nonce
-        self.gas_limit = self.client.default_gas_limit
-        self.gas_price = gas_price
-        self.from_address = self.client.my_address
-        self.built_transaction = transaction
-
-    def sign_and_send_transaction(self):
-        build_txn_hash = {
-            'from': self.from_address,
-            'value': 0,
-            'gas': self.gas_limit, 
-            'gasPrice': self.gas_price,
-            #'maxFeePerGas': self.gas_price,
-            #'maxPriorityFeePerGas' : self.gas_price,
-            'chainId': self.client.chain_id,
-            'nonce': self.nonce,
-        }
-
-        #built_txn = self.built_transaction.buildTransaction(build_txn_hash)
-        #signed_txn = self.client.web3.eth.account.sign_transaction(built_txn, private_key=self.client.private_key)
-        #signed_txn_raw = self.client.web3.toHex(signed_txn.rawTransaction)
-        #self.client.send_raw_txn(signed_txn_raw)
-        # See https://docs.polygon.technology/docs/develop/eip1559-transactions/how-to-send-eip1559-transactions/
-        # See https://github.com/ethereum/web3.py/blob/master/web3/_utils/transactions.py
-        try:
-            built_txn = self.built_transaction.buildTransaction(build_txn_hash)
-            signed_txn = self.client.web3.eth.account.sign_transaction(built_txn, private_key=self.client.private_key)
-            function_start = time.perf_counter()
-            #txn_hash = self.client.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
-            txn_hash = self.client.web3_priority.eth.send_raw_transaction(signed_txn.rawTransaction)
-            time_elapsed = time.perf_counter() - function_start
-            print("Sending txn time elapsed: ", time_elapsed)
-        except ValueError as e:
-            if str(e) == "{'code': -32000, 'message': 'nonce too low'}":
-                build_txn_hash["nonce"] = self.nonce + 1
-                built_txn = self.built_transaction.buildTransaction(build_txn_hash)
-                signed_txn = self.client.web3.eth.account.sign_transaction(built_txn, private_key=self.client.private_key)
-                txn_hash = self.client.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
-            else:
-                raise ValueError(str(e))
-
-        for i in range(20):
-            time.sleep(0.5)
-            try: 
-                transaction_info = self.client.web3.eth.get_transaction(txn_hash)
-                break
-            except TransactionNotFound as e:
-                transaction_info = None
-
-        self.hash = self.client.web3.toHex(txn_hash) 
-        self.block_number = transaction_info["blockNumber"]
-        self.to = transaction_info["to"]
-        self.input = transaction_info["input"]
-
-        return transaction_info
 
 class RouterTransaction(Transaction):
     def __init__(self, transaction):

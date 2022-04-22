@@ -39,8 +39,6 @@ class Triggers(object):
             self.tx_filter = self.client.web3_ws.eth.filter('pending')
         except Exception as e:
             self.tx_filter = self.client.web3_ws.eth.filter('pending')
-            print(e)
-            print("up here")
 
     def get_attacking_txn_amount_in(self,token_pair, attacking_txn_max_amount_in):
         amount_in = None
@@ -116,7 +114,7 @@ class Triggers(object):
                 my_gas_price = router_txn.transaction.gas_price + self.client.gas_price_frontrunning_increase
                 
                 time_elapsed = time.perf_counter() - function_start
-                print("----------------",time_elapsed)
+                print("Txn analysis time:",time_elapsed)
                 if self.performing_transaction == False and amount_in is not None and  amount_out is not None and time_elapsed < 0.4:
                     self.performing_transaction = True
                     send_txn_start = time.perf_counter()
