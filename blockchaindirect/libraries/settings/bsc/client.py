@@ -5,9 +5,7 @@ import json
 class Bsc:
     def __init__(self):
         provider_url = "https://bsc-dataseed.binance.org/"
-        #provider_url = "https://bsc-dataseed1.defibit.io/"
-        #provider_url = "https://speedy-nodes-nyc.moralis.io0279106ed82b874b3e1b195d/bsc/mainnet"
-        provider_ws = "wss://speedy-nodes-nyc.moralis.io/0279106ed82b874b3e1b195d/bsc/mainnet/ws"
+        provider_ws = "wss://speedy-nodes-nyc.moralis.io/xxx/bsc/mainnet/ws"
         self.api_url = "https://api.bscscan.com"
         self.web3_ws = Web3(Web3.WebsocketProvider(provider_ws))
         self.web3 = Web3(Web3.HTTPProvider(provider_url))    
