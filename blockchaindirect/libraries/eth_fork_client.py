@@ -19,13 +19,11 @@ from settings.fantom.client import Fantom
 
 class Client(object):
 
-    def __init__(self, blockchain, my_address, private_key, api_key=None):
+    def __init__(self, blockchain, my_address, private_key, node_key, api_key=None):
         if blockchain == "polygon":
-            provider = Polygon()
-        elif blockchain == "bsc":
-            provider = Bsc()
-        elif blockchain == "fantom":
-            provider = Fantom()
+            ws_url = "wss://speedy-nodes-nyc.moralis.io/{}/polygon/mainnet/ws".format(node_key)
+            priority_url = "https://speedy-nodes-nyc.moralis.io/{}/polygon/mainnet".format(node_key)
+            provider = Polygon(ws_url, priority_url)
         else:
             raise ValueError(blockchain + " is not a supported blockchain")
 

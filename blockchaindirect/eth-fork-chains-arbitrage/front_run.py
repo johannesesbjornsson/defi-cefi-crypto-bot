@@ -14,7 +14,7 @@ from eth_fork_triggers import Triggers
 import time
 
 def main(blockchain, init_type):
-    client = Client(blockchain, cfg.my_address, cfg.private_key, cfg.api_key)
+    client = Client(blockchain, cfg.my_address, cfg.private_key, cfg,node_key cfg.api_key)
     
     triggers = Triggers(client,init_type)
 

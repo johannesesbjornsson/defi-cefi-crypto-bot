@@ -3,10 +3,10 @@ from web3.eth import AsyncEth
 import json
 
 class Polygon:
-    def __init__(self):
+    def __init__(self, ws_url, priority_url):
         provider_url = "https://polygon-rpc.com"
-        priority_provider_url = "https://polygon-mainnet.g.alchemy.com/v2/E-Fn73T8fK2iTa_Iv6LPsJhOFC-MZIri"
-        provider_ws = "wss://speedy-nodes-nyc.moralis.io/xxx/polygon/mainnet/ws"
+        priority_provider_url = priority_url
+        provider_ws = ws_url
         self.api_url = "https://api.polygonscan.com"
         self.web3_ws = Web3(Web3.WebsocketProvider(provider_ws))
         self.web3 = Web3(Web3.HTTPProvider(provider_url))
