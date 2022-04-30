@@ -10,6 +10,7 @@ from transaction import Transaction, RouterTransaction
 from triggers import Triggers
 from token_pair import TokenPair
 from account import Account
+from transaction_scanner import TransactionScanner
 import cfg as cfg
 
 
@@ -82,25 +83,24 @@ def test(client):
     token_pair.swap_token_1_for_token_2(amount_in,amount_out,38576412146,1)
 
 
+def handler(txn):
+    return txn
+    
 
 if __name__ == "__main__":
     #client = Client("polygon",cfg.my_polygon_address, cfg.private_key)
-    client = Client("polygon",cfg.my_address, cfg.private_key,cfg.api_key)
+    client = Client("polygon", cfg.my_address, cfg.private_key, cfg.node_key, cfg.api_key)
+    txn_scanner = TransactionScanner(client)
     #triggers = Triggers(client, "local")
-    triggers = Triggers(client, "live")
+    #triggers = Triggers(client, "live")
     #test_req()
     print("------- START ----------")
     while True:
         #start = time.perf_counter() 
         #re_init_tokens(client)
-        test(client)
+        #test(client)
         #test_txn_analysis(client)
         #write_contract_code_to_file(client, "0x08e175a1eac9744a0f1ccaeb8f669af6a2bda3ce")
-        break
-
-
-
-        
-        print("-----------------------")
-        break
-        time.sleep(2)
+        asyncio.run(txn_scanner.scan_for_txns(handler))
+        #print("-----")
+        #break
