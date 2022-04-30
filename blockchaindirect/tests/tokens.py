@@ -3,11 +3,11 @@ import unittest
 import copy
 import random
 sys.path.append('../libraries')
-from eth_fork_client import Client
-from eth_fork_token import Token
-from eth_fork_transaction import Transaction, RouterTransaction
-from eth_fork_triggers import Triggers
-from eth_fork_token_pair import TokenPair
+from blockchain_client import Client
+from tokens import Token
+from transaction import Transaction, RouterTransaction
+from triggers import Triggers
+from token_pair import TokenPair
 
 
 class TokenTest(unittest.TestCase):

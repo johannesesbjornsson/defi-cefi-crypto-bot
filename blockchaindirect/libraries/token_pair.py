@@ -4,8 +4,8 @@ import time
 import asyncio
 from web3.logs import STRICT, IGNORE, DISCARD, WARN
 from web3.exceptions import ContractLogicError
-from eth_fork_token import Token
-from eth_fork_transaction import Transaction, RouterTransaction
+from tokens import Token
+from transaction import Transaction, TransactionBuilder, RouterTransaction
 
 from eth_abi import decode_abi
 from eth_utils import to_bytes
@@ -171,9 +171,11 @@ class TokenPair(object):
         slippage = 0
         attacking_txn_max_amount_in = 0
         
+        # Checks if input token is token 1 and input is defined
         if router_txn.amount_in is not None and router_txn.path[0] == self.token_1.address and router_txn.path[1] == self.token_2.address:
             impact = self.get_liquidity_impact_of_token_1_for_token_2(self.token_1.from_wei(router_txn.amount_in))
             transaction_value = self.token_1.from_wei(router_txn.amount_in)
+        # checks if output token is token 2 and second to last token is token 1
         elif router_txn.amount_out is not None and router_txn.path[-1] == self.token_2.address and router_txn.path[-2] == self.token_1.address:
             impact = self.get_liquidity_impact_of_token_2_for_token_1(self.token_2.from_wei(router_txn.amount_out))
             transaction_value = (self.token_1_liquidity/self.token_2_liquidity) * self.token_2.from_wei(router_txn.amount_out)
@@ -187,7 +189,7 @@ class TokenPair(object):
         elif (router_txn.amount_in and not router_txn.amount_out) or (not router_txn.amount_in and router_txn.amount_out):
             attacking_txn_max_amount_in = transaction_value
             slippage = 1
-        elif impact > 0.01 and transaction_value > self.client.minimum_scanned_transaction:
+        elif impact > 0.01 and transaction_value > 0:
             slippage = 0.02
             attacking_txn_max_amount_in = transaction_value/10
 
@@ -254,9 +256,10 @@ class TokenPair(object):
         from_token_amount = amount_in
         to_token_amount = int(amount_out * self.client.slippage)
         txn  = self.build_transaction(from_token, to_token, from_token_amount, to_token_amount)
-        transaction = Transaction(self.client, None)
-        transaction.create_transaction(txn,gas_price,nonce)
-        transaction.sign_and_send_transaction()
+        transaction_builder = TransactionBuilder(self.client, None)
+        transaction_builder.create_transaction(txn)
+        transaction = transaction_builder.sign_and_send_transaction()
+        
         router_transaction = RouterTransaction(transaction)
 
         return router_transaction
@@ -267,9 +270,9 @@ class TokenPair(object):
         from_token_amount = amount_in
         to_token_amount = int(amount_out * self.client.slippage)
         txn  = self.build_transaction(from_token, to_token, from_token_amount, to_token_amount)
-        transaction = Transaction(self.client, None)
-        transaction.create_transaction(txn,gas_price,nonce)
-        transaction.sign_and_send_transaction()
+        transaction_builder = TransactionBuilder(self.client, None)
+        transaction_builder.create_transaction(txn)
+        transaction = transaction_builder.sign_and_send_transaction()
 
         router_transaction = RouterTransaction(transaction)
         

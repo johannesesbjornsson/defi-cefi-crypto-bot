@@ -5,11 +5,11 @@ import arbitrage
 import logic
 import traceback
 sys.path.insert(0,'../libraries')
-from eth_fork_client import Client
-from eth_fork_token import Token
-from eth_fork_transaction import Transaction
-from eth_fork_token_pair import TokenPair
-from eth_fork_triggers import Triggers
+from blockchain_client import Client
+from tokens import Token
+from transaction import Transaction
+from token_pair import TokenPair
+from triggers import Triggers
 
 import time
 

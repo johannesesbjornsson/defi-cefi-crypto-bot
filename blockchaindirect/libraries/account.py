@@ -1,5 +1,5 @@
-from eth_fork_transaction import Transaction, RouterTransaction
-from eth_fork_token import Token
+from transaction import Transaction, RouterTransaction
+from tokens import Token
 
 class Account(object):
 
