@@ -19,7 +19,8 @@ class TokenTest(unittest.TestCase):
     def setUpClient(self):
         my_address=os.environ['my_address']
         api_key=os.environ['api_key']
-        self.polygon_client = Client("polygon", my_address, "dummy_private_key", api_key)
+        node_key = os.environ['moralis_node_key']
+        self.polygon_client = Client("polygon", my_address, "dummy_private_key", node_key, api_key)
         self.token_1 = Token(self.polygon_client, "USDC")
         self.token_2 = Token(self.polygon_client, "WMATIC")
         self.token_pair = TokenPair(self.polygon_client, self.token_1, self.token_2)
@@ -62,7 +63,7 @@ class TokenTest(unittest.TestCase):
     
     # Tests random locally stored token infro matches blockchain stored info
     def test_z_file_init(self):
-        pair_list = random.sample(self.polygon_client.pair_info.keys() , 5)
+        pair_list = random.sample(self.polygon_client.pair_info.keys() , 3)
         for pair in pair_list:
             token_address_1, token_address_2 = pair.split("_")
             
