@@ -11,7 +11,7 @@ from web3.exceptions import TransactionNotFound
 from web3.middleware import geth_poa_middleware
 from tokens import Token
 from transaction import Transaction, RouterTransaction
-from transaction_scanner import TransactionScanner
+from transaction_scanner import TransactionScanner, TransactionFilter
 from token_pair import TokenPair
 from account import Account
 
@@ -27,7 +27,9 @@ class Triggers(object):
         self.performing_transaction = False
         self.current_nonce = self.client.account.get_transaction_count()
         self.current_gas_price = 30
-        self.txn_scanner = TransactionScanner(client)
+        self.txn_filter = TransactionFilter(client)
+        self.txn_filter.create_router_filter(function_matcher_method="startswith",function_name="swap",block_number=None,minimum_gas_price=client.minimum_gas_price, token_hash=client.token_to_scan_for)
+        self.txn_scanner = TransactionScanner(client, self.txn_filter)
         self.init_type = init_type
 
     def get_attacking_txn_amount_in(self,token_pair, attacking_txn_max_amount_in):

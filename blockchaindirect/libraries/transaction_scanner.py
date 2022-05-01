@@ -14,9 +14,10 @@ from transaction import Transaction, RouterTransaction
 
 class TransactionScanner(object):
 
-    def __init__(self, client):
+    def __init__(self, client, txn_filter):
         self.client = client
         self.client.web3.middleware_onion.inject(geth_poa_middleware, layer=0)
+        self.txn_filter = txn_filter
         self.set_tx_filter()
 
 
@@ -39,20 +40,6 @@ class TransactionScanner(object):
         return pending_transactions
 
 
-    def filter_transaction(self, txn, compare_transaction=None):
-        matching_txn = None
-        #if not compare_transaction and txn.to == self.client.router_contract_address and txn.block_number is None and txn.gas_price >= self.current_gas_price:
-        if not compare_transaction and txn.to == self.client.router_contract_address and txn.block_number is None and txn.gas_price >= self.client.minimum_gas_price:
-            router_txn = RouterTransaction(txn)
-            if router_txn.function_called.startswith('swap'):
-                matching_txn = router_txn
-            
-        elif compare_transaction and compare_transaction == txn:
-            matching_txn = txn
-    
-        return matching_txn
-
-
     async def fetch_single_transaction(self, transaction, handler=None):
         matching_txn = None
         handler_response = None
@@ -65,7 +52,7 @@ class TransactionScanner(object):
             try:
                 transaction_info = await self.client.web3_asybc.eth.get_transaction(transaction_hash)
                 txn = Transaction(self.client, transaction_info)
-                matching_txn = self.filter_transaction(txn)
+                matching_txn = self.txn_filter.get_single_matching_transaction(txn)
                 if matching_txn is not None and handler is not None:
                     handler_response = handler(matching_txn)
                 else:
@@ -73,6 +60,8 @@ class TransactionScanner(object):
                 break
             except TransactionNotFound as e:
                 txn = None
+            except TimeoutError as e:
+                break
             except Exception as e:
                 #print(e.__class__.__name__)
                 txn = None
@@ -96,3 +85,46 @@ class TransactionScanner(object):
                 scan_result.append(res)
         
         return scan_result
+
+
+class TransactionFilter(object):
+    def __init__(self, client):
+        self.client = client
+        self.filter = None
+
+    def match_function(self, txn_function):
+        if self.function_matcher_method == "is":
+            return self.function_name.__eq__(txn_function)
+        elif self.function_matcher_method == "startswith":
+            return txn_function.startswith(self.function_name)
+        elif self.function_matcher_method == "contains":
+            return self.function_name in txn_function
+        else:
+            raise ValueError(f"function_matcher_method '{self.function_matcher_method}' not supported")
+
+    def create_router_filter(self, block_number=None, minimum_gas_price=None, contract_address=None, function_matcher_method="is", function_name=None, token_hash=None):
+        self.block_number = block_number
+        self.minimum_gas_price = minimum_gas_price
+        self.contract_address = contract_address 
+        self.filter = RouterTransactionFilter(function_matcher_method, function_name, token_hash)
+  
+
+    def get_single_matching_transaction(self,txn):
+        matching_txn = None
+        if txn.to == self.client.router_contract_address and txn.block_number == self.block_number and txn.gas_price >= self.minimum_gas_price:
+            matching_txn = self.filter.get_single_matching_transaction(txn)
+        return matching_txn
+
+class RouterTransactionFilter(TransactionFilter):
+    def __init__(self,function_matcher_method, function_name, token_hash):
+        self.function_matcher_method = function_matcher_method
+        self.function_name = function_name
+        self.token_hash = token_hash
+
+    def get_single_matching_transaction(self,txn):
+        matching_txn = None
+        router_txn = RouterTransaction(txn)
+        if self.match_function(router_txn.function_called) and self.token_hash in router_txn.path:
+            matching_txn = router_txn
+
+        return matching_txn

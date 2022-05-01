@@ -1,8 +1,8 @@
 import unittest
-import tokens
-import txn_analysis
+import tokens_tests
+import txn_analysis_tests
 if __name__ == '__main__':
     suite = unittest.TestSuite()
-    suite.addTest(unittest.TestLoader().loadTestsFromModule(tokens))
-    suite.addTest(unittest.TestLoader().loadTestsFromModule(txn_analysis))
+    suite.addTest(unittest.TestLoader().loadTestsFromModule(tokens_tests))
+    suite.addTest(unittest.TestLoader().loadTestsFromModule(txn_analysis_tests))
     unittest.TextTestRunner().run(suite)
