@@ -71,11 +71,13 @@ class TransactionScanner(object):
                 else:
                     handler_response = matching_txn
                 break
-
+            except TransactionNotFound as e:
+                txn = None
             except Exception as e:
+                print(e.__class__.__name__)
                 txn = None
 
-        return matching_txn
+        return handler_response
 
 
     async def scan_for_txns(self, handler, filter=None):

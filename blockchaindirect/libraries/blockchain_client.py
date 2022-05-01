@@ -19,7 +19,7 @@ from settings.fantom.client import Fantom
 
 class Client(object):
 
-    def __init__(self, blockchain, my_address, private_key, node_key, api_key=None, slippage=0.993):
+    def __init__(self, blockchain, my_address, private_key, node_key, api_key=None, slippage=0.993,minimum_liquidity_impact=0.015):
         if blockchain == "polygon":
             ws_url = "wss://speedy-nodes-nyc.moralis.io/{}/polygon/mainnet/ws".format(node_key)
             priority_url = "https://speedy-nodes-nyc.moralis.io/{}/polygon/mainnet".format(node_key)
@@ -42,7 +42,7 @@ class Client(object):
         self.token_to_scan_for = provider.token_to_scan_for
         self.scan_token_value = provider.scan_token_value
         self.minimum_scanned_transaction = provider.minimum_scanned_transaction
-        self.minimum_liquidity_impact = provider.minimum_liquidity_impact
+        self.minimum_liquidity_impact = minimum_liquidity_impact
         self.swap_log_location_index = provider.swap_log_location_index
         self.tokens_to_check = provider.tokens_to_check
         self.known_tokens = provider.known_tokens

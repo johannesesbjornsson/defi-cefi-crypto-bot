@@ -11,34 +11,24 @@ from web3.exceptions import TransactionNotFound
 from web3.middleware import geth_poa_middleware
 from tokens import Token
 from transaction import Transaction, RouterTransaction
+from transaction_scanner import TransactionScanner
 from token_pair import TokenPair
 from account import Account
 
 class Triggers(object):
 
     def __init__(self, client,  init_type):
-        self.successful_requests = 0
-        self.failed_requests = 0
         self.client = client
         self.token_to_scan_for = self.client.token_to_scan_for
         self.minimum_gas_price = self.client.minimum_gas_price
         self.minimum_liquidity_impact = self.client.minimum_liquidity_impact
         self.scan_token_value = self.client.scan_token_value
         self.token_1 = Token(self.client,self.token_to_scan_for)
-        self.client.web3.middleware_onion.inject(geth_poa_middleware, layer=0)
-        #eth_newPendingTransactionFilter
         self.performing_transaction = False
         self.current_nonce = self.client.account.get_transaction_count()
         self.current_gas_price = 30
-        self.set_tx_filter()
+        self.txn_scanner = TransactionScanner(client)
         self.init_type = init_type
-        #self.account = Account(self.client, self.client.my_address)
-
-    def set_tx_filter(self):
-        try:
-            self.tx_filter = self.client.web3_ws.eth.filter('pending')
-        except Exception as e:
-            self.tx_filter = self.client.web3_ws.eth.filter('pending')
 
     def get_attacking_txn_amount_in(self,token_pair, attacking_txn_max_amount_in):
         amount_in = None
@@ -88,14 +78,7 @@ class Triggers(object):
         return token_pair
         
     def handle_swap_transaction(self, router_txn):
-        token_pair = None
-        amount_in = None
-        amount_out = None
-        my_gas_price = None
-        liquidity_impact = None
-        my_router_transaction = None
-        slippage = None
-        attacking_txn_max_amount_in = None
+        return_value = None
 
         function_start = time.perf_counter()
 
@@ -120,74 +103,10 @@ class Triggers(object):
                     send_txn_start = time.perf_counter()
                     if self.init_type == "live":
                         my_router_transaction = token_pair.swap_token_1_for_token_2(amount_in, amount_out, gas_price=my_gas_price, nonce=self.current_nonce)
-                    else:
-                        print(router_txn)
-                    #send_txn_end = time.perf_counter()
-                    #function_end = time.perf_counter()
-                    #print("Sending txn time elapsed: ", send_txn_end - send_txn_start)
-                    #print("Token init time elapsed: ", token_end - token_start )
-                    #print("Function time elapsed: ", function_end - function_start,"\n-------")
-                    #my_router_transaction = "dummy val"
-                #function_end = time.perf_counter()
-                #print("Function time elapsed: ", function_end - function_start,"\n-------")
+                        return_value = (router_txn, my_router_transaction, liquidity_impact, token_pair, slippage, attacking_txn_max_amount_in)
 
-        return my_router_transaction, liquidity_impact, token_pair, slippage, attacking_txn_max_amount_in
+        return return_value
 
-
-    def filter_transaction(self, txn, compare_transaction=None):
-        matching_txn = None
-        if not compare_transaction and txn.to == self.client.router_contract_address and txn.block_number is None and txn.gas_price >= self.current_gas_price:
-            router_txn = RouterTransaction(txn)
-            if router_txn.function_called.startswith('swap'):
-                matching_txn = router_txn
-            
-        elif compare_transaction and compare_transaction == txn:
-            matching_txn = txn
-    
-        return matching_txn
-
-    async def fetch_single_transaction(self, transaction, compare_transaction=None, handle_transaction=False):
-        matching_txn = None
-        if isinstance(transaction, str):
-            transaction_hash = transaction
-        else:
-            transaction_hash = self.client.web3.toHex(transaction)
-
-        for i in range(5):
-            try:
-                transaction_info = await self.client.web3_asybc.eth.get_transaction(transaction_hash)
-                self.successful_requests += 1
-                txn = Transaction(self.client, transaction_info)
-                matching_txn = self.filter_transaction(txn, compare_transaction)
-                break
-            except Exception as e:
-                txn = None
-
-        if handle_transaction and matching_txn:
-            my_txn, liquidity_impact, token_pair, slippage, attacking_txn_max_amount_in = self.handle_swap_transaction(matching_txn)
-            if my_txn and liquidity_impact and token_pair:
-                matching_txn = (matching_txn, my_txn, liquidity_impact, token_pair, slippage, attacking_txn_max_amount_in)
-            else:
-                matching_txn = None
-                
-        return matching_txn
-        
-    async def get_router_contract_interaction(self, pending_transactions):
-        pending_router_transactions = []
-        
-        if len(pending_transactions) == 0:
-            return []
-
-        done, pending = await asyncio.wait(
-            [self.fetch_single_transaction(arg,compare_transaction=None,handle_transaction=True) for arg in pending_transactions]
-        )
-        for result in done:
-            router_txn = result.result()
-            if router_txn:
-                pending_router_transactions.append(router_txn)
-                break
-        
-        return pending_router_transactions
 
     def watch_transactions(self,txn,look_for_next_txn=True,token_swap_info=None):
         time_started = time.time()
@@ -229,17 +148,6 @@ class Triggers(object):
                 print("Giving up....txn not finishing")
                 txn = None
 
-    def get_pending_txn(self):
-        try:
-            pending_transactions = self.tx_filter.get_new_entries()
-        except ValueError as e:
-            self.set_tx_filter()
-            pending_transactions = self.tx_filter.get_new_entries()
-        except Exception as e:
-            time.sleep(0.1)
-            pending_transactions = []
-        return pending_transactions
-
 
     def intercept_transactions(self):
         intercepted_transaction = False
@@ -249,13 +157,12 @@ class Triggers(object):
         if self.current_gas_price > self.client.max_gas_price:
             print("Gas prices too high atm...")
             time.sleep(30)
-            self.set_tx_filter()
+            self.txn_scanner.set_tx_filter()
             return False
 
         self.current_nonce = self.client.account.get_transaction_count()
 
-        pending_transactions = self.get_pending_txn()
-        pending_router_transactions = asyncio.run(self.get_router_contract_interaction(pending_transactions))
+        pending_router_transactions = asyncio.run(self.txn_scanner.scan_for_txns(self.handle_swap_transaction))
 
         for hande_tuple in pending_router_transactions:
             router_txn = hande_tuple[0]
@@ -301,11 +208,6 @@ class Triggers(object):
                     print("Amount out", token_pair.token_1.from_wei(amount_out))
                 else:
                     raise StopIteration(f"{my_router_return_transaction.transaction.hash} was not successful")
-
-            #print("--------")
-            #print("Successsful requests", self.successful_requests)
-            #print("Failed requests", self.failed_requests)
-            #print("--------")
         
         self.client.write_pair_info_to_file()  
         self.client.write_token_info_to_file()  
