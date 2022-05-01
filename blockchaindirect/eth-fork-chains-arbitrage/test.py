@@ -4,12 +4,13 @@ import sys
 import json
 import logic
 sys.path.insert(0,'../libraries')
-from eth_fork_client import Client
-from eth_fork_token import Token
-from eth_fork_transaction import Transaction, RouterTransaction
-from eth_fork_triggers import Triggers
-from eth_fork_token_pair import TokenPair
-from eth_fork_account import Account
+from blockchain_client import Client
+from tokens import Token
+from transaction import Transaction, RouterTransaction
+from triggers import Triggers
+from token_pair import TokenPair
+from account import Account
+from transaction_scanner import TransactionScanner
 import cfg as cfg
 
 
@@ -82,49 +83,24 @@ def test(client):
     token_pair.swap_token_1_for_token_2(amount_in,amount_out,38576412146,1)
 
 
+def handler(txn):
+    return txn
+    
 
 if __name__ == "__main__":
     #client = Client("polygon",cfg.my_polygon_address, cfg.private_key)
-    client = Client("polygon",cfg.my_address, cfg.private_key,cfg.api_key)
+    client = Client("polygon", cfg.my_address, cfg.private_key, cfg.node_key, cfg.api_key)
+    txn_scanner = TransactionScanner(client)
     #triggers = Triggers(client, "local")
-    triggers = Triggers(client, "live")
+    #triggers = Triggers(client, "live")
     #test_req()
     print("------- START ----------")
     while True:
         #start = time.perf_counter() 
         #re_init_tokens(client)
-        test(client)
+        #test(client)
         #test_txn_analysis(client)
         #write_contract_code_to_file(client, "0x08e175a1eac9744a0f1ccaeb8f669af6a2bda3ce")
-        break
-
-
-
-        #transaction_info = client.web3.eth.get_transaction("0x5f2d5d271ed68e6e4c36648c6bf5be3520d386a580c717f6530b193403543fe3")
-        #txn = Transaction(client, transaction_info)
-        #r_txn = RouterTransaction(txn) 
-        #token_pair = triggers.get_safe_token_pair(r_txn)
-        #print("---")
-
-        #token_1 = Token(client, "0x08e175a1eac9744a0f1ccaeb8f669af6a2bda3ce")
-        #print(token_1.safe_code)
-
-        #transaction_info = client.web3.eth.get_transaction("0x81b7be2d290c0a26b8b5ede5350e3d123d32c6959e9983b9f4cc36e07cc40ace")
-        #print(transaction_info)
-        #maxPriorityFeePerGas = client.web3.eth.max_priority_fee
-        #print(client.web3.fromWei(maxPriorityFeePerGas,'gwei'))
-        #maxFeePerGas = client.web3.eth.max_priority_fee + (2 * client.web3.eth.get_block('latest')['baseFeePerGas'])
-        #print(client.web3.fromWei(maxFeePerGas,'gwei'))
-        
-        #end = time.perf_counter()
-        #print("Time elapsed", end-start)
-
-#33768815600 gasPrice
-#33777116648 maxFeePerGas
-#33758912335 maxPriorityFeePerGas
-
-
-        
-        print("-----------------------")
-        break
-        time.sleep(2)
+        asyncio.run(txn_scanner.scan_for_txns(handler))
+        #print("-----")
+        #break

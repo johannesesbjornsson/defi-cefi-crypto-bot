@@ -9,3 +9,5 @@ variable "services" {
     "containerregistry.googleapis.com"
   ]
 }
+
+variable "my_ip" {}

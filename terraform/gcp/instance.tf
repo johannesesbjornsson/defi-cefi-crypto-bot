@@ -62,7 +62,7 @@ resource "google_compute_firewall" "allow_me" {
   network = "default"
 
   source_ranges = [
-      "217.155.28.165/32"
+      "${var.my_ip}/32"
   ]
   allow {
     ports = ["22"]

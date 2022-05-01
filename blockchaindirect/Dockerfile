@@ -5,7 +5,6 @@ FROM python:3.8
 
 WORKDIR /app
 
-
 COPY eth-fork-chains-arbitrage/requirements.txt requirements.txt
 
 RUN python -m pip install --upgrade pip

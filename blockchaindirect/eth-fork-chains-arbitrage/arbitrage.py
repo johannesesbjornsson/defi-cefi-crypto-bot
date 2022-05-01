@@ -1,6 +1,6 @@
 import sys
 sys.path.insert(0,'../libraries')
-from eth_fork_client import Client
+from blockchain_client import Client
 
 class Arbitrage(object):
 

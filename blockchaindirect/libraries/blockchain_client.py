@@ -1,7 +1,7 @@
 import requests
 import json
 import contract_libarary
-#from web3 import Web3
+from account import Account
 import time
 import os
 from web3.logs import STRICT, IGNORE, DISCARD, WARN
@@ -19,33 +19,34 @@ from settings.fantom.client import Fantom
 
 class Client(object):
 
-    def __init__(self, blockchain, my_address, private_key, api_key=None):
+    def __init__(self, blockchain, my_address, private_key, node_key, api_key=None, slippage=0.993,minimum_liquidity_impact=0.015):
         if blockchain == "polygon":
-            provider = Polygon()
-        elif blockchain == "bsc":
-            provider = Bsc()
-        elif blockchain == "fantom":
-            provider = Fantom()
+            ws_url = "wss://speedy-nodes-nyc.moralis.io/{}/polygon/mainnet/ws".format(node_key)
+            priority_url = "https://speedy-nodes-nyc.moralis.io/{}/polygon/mainnet".format(node_key)
+            provider = Polygon(ws_url, priority_url)
         else:
             raise ValueError(blockchain + " is not a supported blockchain")
 
         self.web3_ws = provider.web3_ws
         self.provider_url = provider.provider_url
         self.web3 = provider.web3
+        self.web3_priority = provider.web3_priority
         self.web3_asybc = provider.web3_asybc
         self.router_swap_fee = provider.router_swap_fee  
         self.max_gas_price = provider.max_gas_price
         self.gas_price_frontrunning_increase = provider.gas_price_frontrunning_increase
         self.default_gas_price = provider.default_gas_price
         self.default_gas_limit = provider.default_gas_limit
-        self.slippage = provider.slippage
+        self.minimum_gas_price = provider.minimum_gas_price
+        self.slippage = slippage
         self.token_to_scan_for = provider.token_to_scan_for
         self.scan_token_value = provider.scan_token_value
         self.minimum_scanned_transaction = provider.minimum_scanned_transaction
-        self.minimum_liquidity_impact = provider.minimum_liquidity_impact
+        self.minimum_liquidity_impact = minimum_liquidity_impact
         self.swap_log_location_index = provider.swap_log_location_index
         self.tokens_to_check = provider.tokens_to_check
         self.known_tokens = provider.known_tokens
+        self.base_tokens = provider.base_tokens
         self.router_contract_address = provider.router_contract_address
         self.router_contract = provider.router_contract
         self.factory_contract = provider.factory_contract
@@ -61,6 +62,8 @@ class Client(object):
         self.settings_dir = os.path.dirname(os.path.realpath(__file__)) + '/settings/'+self.blockchain
         self.load_token_json_from_file()
         self.load_pair_json_from_file()
+
+        self.account = Account(self, self.my_address)
         
 
     def get_abi(self,address):
@@ -69,10 +72,6 @@ class Client(object):
         json_reponse = json.loads(response.content)
 
         return response.status_code, json_reponse
-
-    def get_transaction_count(self):
-        transaction_count = self.web3.eth.get_transaction_count(self.my_address)
-        return transaction_count
 
     async def eth_call_raw_async(self, contract, contract_address, fn_name, fn_arguments_format, args):
         params = contract.encodeABI(fn_name=fn_name, args=args)

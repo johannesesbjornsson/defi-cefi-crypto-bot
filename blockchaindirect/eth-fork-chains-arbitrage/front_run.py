@@ -5,23 +5,23 @@ import arbitrage
 import logic
 import traceback
 sys.path.insert(0,'../libraries')
-from eth_fork_client import Client
-from eth_fork_token import Token
-from eth_fork_transaction import Transaction
-from eth_fork_token_pair import TokenPair
-from eth_fork_triggers import Triggers
+from blockchain_client import Client
+from tokens import Token
+from transaction import Transaction
+from token_pair import TokenPair
+from triggers import Triggers
 
 import time
 
 def main(blockchain, init_type):
-    client = Client(blockchain, cfg.my_address, cfg.private_key, cfg.api_key)
+    client = Client(blockchain, cfg.my_address, cfg.private_key, cfg.node_key, cfg.api_key)
     
     triggers = Triggers(client,init_type)
 
     while True:
         intercepted_transaction = triggers.intercept_transactions()
         if intercepted_transaction:
-            triggers.set_tx_filter()
+            triggers.txn_scanner.set_tx_filter()
             print("-------------------------------------------------")
             print("--------------END TRANSACTION INFO---------------")
             print("-------------------------------------------------")
