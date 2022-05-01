@@ -89,6 +89,7 @@ class Triggers(object):
 
         if token_pair:
             liquidity_impact, txn_value, slippage, attacking_txn_max_amount_in = token_pair.quick_router_transction_analysis(router_txn)
+            #print('{0:.15f}'.format(liquidity_impact), router_txn)
 
             if liquidity_impact > self.minimum_liquidity_impact and attacking_txn_max_amount_in > self.scan_token_value and txn_value > self.client.minimum_scanned_transaction:
                 amount_in = self.get_attacking_txn_amount_in(token_pair, attacking_txn_max_amount_in)
