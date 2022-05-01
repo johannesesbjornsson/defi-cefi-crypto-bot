@@ -2,7 +2,6 @@ import contract_libarary
 import time
 
 import asyncio
-from asyncio.exceptions import TimeoutError
 from socket import gaierror
 from aiohttp.client_exceptions import ClientConnectorError, ClientResponseError
 from websockets.exceptions import ConnectionClosedError
