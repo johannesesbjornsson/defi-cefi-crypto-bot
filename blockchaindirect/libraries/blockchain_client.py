@@ -19,7 +19,7 @@ from settings.fantom.client import Fantom
 
 class Client(object):
 
-    def __init__(self, blockchain, my_address, private_key, node_key, api_key=None, slippage=0.993,minimum_liquidity_impact=0.015):
+    def __init__(self, blockchain, my_address, private_key, node_key, logger, api_key=None, slippage=0.993, minimum_liquidity_impact=0.015):
         if blockchain == "polygon":
             ws_url = "wss://speedy-nodes-nyc.moralis.io/{}/polygon/mainnet/ws".format(node_key)
             priority_url = "https://speedy-nodes-nyc.moralis.io/{}/polygon/mainnet".format(node_key)
@@ -27,6 +27,7 @@ class Client(object):
         else:
             raise ValueError(blockchain + " is not a supported blockchain")
 
+        self.logger = logger
         self.web3_ws = provider.web3_ws
         self.provider_url = provider.provider_url
         self.web3 = provider.web3
@@ -169,4 +170,3 @@ class Client(object):
     def send_raw_txn(self,txn_data):
         data = {"jsonrpc": "2.0", "method": "eth_sendRawTransaction", "params": [ txn_data ], "id": 1}
         response = requests.post(url=self.provider_url,headers={"Content-Type":"application/json"}, json=data)
-        print(response.content)

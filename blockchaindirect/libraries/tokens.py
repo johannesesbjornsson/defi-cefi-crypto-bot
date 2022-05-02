@@ -86,8 +86,6 @@ class Token(object):
         response_code, response_json = self.client.get_abi(self.address)
         if response_code == 200:
             if "SourceCode" in response_json["result"][0]:
-                #for line in response_json["result"][0]["SourceCode"].split("\n"):
-                #    print(line)
                 for code_statement in dodgy_code_statements:
                     if code_statement in response_json["result"][0]["SourceCode"]:
                         safe_code = False

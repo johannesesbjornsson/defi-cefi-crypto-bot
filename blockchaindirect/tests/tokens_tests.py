@@ -2,6 +2,7 @@ import sys, os, json
 import unittest
 import copy
 import random
+import logging
 sys.path.append('../libraries')
 from blockchain_client import Client
 from tokens import Token
@@ -20,7 +21,9 @@ class TokenTest(unittest.TestCase):
         my_address=os.environ['my_address']
         api_key=os.environ['api_key']
         node_key = os.environ['moralis_node_key']
-        self.polygon_client = Client("polygon", my_address, "dummy_private_key", node_key, api_key)
+        logger = logging.getLogger("unittests")
+        logger.setLevel(logging.INFO)
+        self.polygon_client = Client("polygon", my_address, "dummy_private_key", node_key, logger, api_key )
         self.token_1 = Token(self.polygon_client, "USDC")
         self.token_2 = Token(self.polygon_client, "WMATIC")
         self.token_pair = TokenPair(self.polygon_client, self.token_1, self.token_2)

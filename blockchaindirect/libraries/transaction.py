@@ -53,7 +53,7 @@ class TransactionBuilder(object):
             txn_hash = self.client.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
             #txn_hash = self.client.web3_priority.eth.send_raw_transaction(signed_txn.rawTransaction)
             time_elapsed = time.perf_counter() - function_start
-            print("Sending txn time elapsed: ", time_elapsed)
+            self.client.logger.info(f"Sending txn time elapsed:  {time_elapsed}")
         except ValueError as e:
             if str(e) == "{'code': -32000, 'message': 'nonce too low'}":
                 build_txn_hash["nonce"] = self.nonce + 1
