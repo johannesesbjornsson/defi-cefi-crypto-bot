@@ -167,6 +167,12 @@ class Client(object):
 #        #decoded = decode_abi(['uint112','uint112','uint32'], to_bytes(hexstr=hex_str))
 #        #self.reserves_raw = decoded
 
+    def async_contract_function_call(self, contract_address, contract):
+        params = contract.encodeABI(fn_name="getReserves",args=[])
+        response = self.web3.eth.call({"to": contract_address, "data": params})
+        decoded_response = decode_abi(['uint112','uint112','uint32'], response)
+        print(decoded_response)
+
     def send_raw_txn(self,txn_data):
         data = {"jsonrpc": "2.0", "method": "eth_sendRawTransaction", "params": [ txn_data ], "id": 1}
         response = requests.post(url=self.provider_url,headers={"Content-Type":"application/json"}, json=data)
