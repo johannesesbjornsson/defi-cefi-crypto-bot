@@ -20,9 +20,6 @@ def main(blockchain, init_type):
     logger = logging.getLogger("front_runner")
     logger.setLevel(logging.INFO)
 
-    print("Starting application")
-    print("Blockchain: ",blockchain)
-    print("Init type: ",init_type)
     logger.info("Starting application")
     logger.info(f"Blockchain: {blockchain}")
     logger.info(f"Init type: {init_type}")
@@ -37,10 +34,10 @@ def main(blockchain, init_type):
         intercepted_transaction = triggers.intercept_transactions()
         if intercepted_transaction:
             triggers.txn_scanner.set_tx_filter()
-            print("-------------------------------------------------")
-            print("--------------END TRANSACTION INFO---------------")
-            print("-------------------------------------------------")
-            print("--------------------------------------------------------------------------------------------------")
+            logger.info("-------------------------------------------------")
+            logger.info("--------------END TRANSACTION INFO---------------")
+            logger.info("-------------------------------------------------")
+            logger.info("--------------------------------------------------------------------------------------------------")
 
 
 if __name__ == '__main__':
