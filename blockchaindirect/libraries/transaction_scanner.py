@@ -61,10 +61,10 @@ class TransactionScanner(object):
             except TransactionNotFound as e:
                 txn = None
             except TimeoutError as e:
-                #print(e.__class__.__name__)
+                self.client.logger.debug(e.__class__.__name__)
                 break
             except Exception as e:
-                #print(e.__class__.__name__)
+                self.client.logger.debug(e.__class__.__name__)
                 txn = None
 
         return handler_response

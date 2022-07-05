@@ -1,6 +1,7 @@
 import asyncio
 import time
 import sys
+import logging
 import json
 import logic
 sys.path.insert(0,'../libraries')
@@ -73,6 +74,22 @@ def test_txn_analysis(polygon_client):
     liquidity_impact, txn_value, slippage, attacking_txn_max_amount_in = token_pair.quick_router_transction_analysis(router_txn)
 
 
+async def test_handle_swap_txn(polygon_client, triggers):
+    if triggers.init_type != "live":
+        print(wrong)
+    txn_hash = "0xc40c4206fea214137434ee429ee8959301c0f25983271e56eb4cbd002966315a"
+    transaction_info = await polygon_client.web3_asybc.eth.get_transaction(txn_hash)
+    txn = Transaction(polygon_client, transaction_info)
+    router_txn = RouterTransaction(txn)
+    triggers.handle_swap_transaction(router_txn)
+
+async def trigger_handle_swp(polygon_client, triggers):
+    done, pending = await asyncio.wait(
+            [test_handle_swap_txn(polygon_client, triggers) for number in range(100)]
+        )
+    for result in done:
+        res = result.result()
+
 def test(client):
     token_1 = Token(client, "WMATIC", "local")
     #token_2 = Token(client, "USDC")
@@ -80,27 +97,24 @@ def test(client):
     token_pair = TokenPair(client,token_1, token_2)
     amount_in = token_pair.token_1.to_wei(1)
     amount_out = token_pair.get_amount_token_2_out(amount_in,offline_calculation=True)
-    token_pair.swap_token_1_for_token_2(amount_in,amount_out,38576412146,1)
-
-
-def handler(txn):
-    return txn
-    
+    #client.async_contract_function_call(token_pair.liquidity_pool_address, token_pair.liquidity_pool_contract)
+    #token_pair.swap_token_1_for_token_2(amount_in,amount_out,38576412146,1)
 
 if __name__ == "__main__":
-    #client = Client("polygon",cfg.my_polygon_address, cfg.private_key)
-    client = Client("polygon", cfg.my_address, cfg.private_key, cfg.node_key, cfg.api_key)
-    txn_scanner = TransactionScanner(client)
+    logger = logging.getLogger("unittests")
+    logger.setLevel(logging.INFO)
+    client = Client("polygon", cfg.my_address, cfg.private_key, cfg.node_key, logger, cfg.api_key)
+    #txn_scanner = TransactionScanner(client)
     #triggers = Triggers(client, "local")
-    #triggers = Triggers(client, "live")
-    #test_req()
+    triggers = Triggers(client, "live")
     print("------- START ----------")
     while True:
         #start = time.perf_counter() 
         #re_init_tokens(client)
-        #test(client)
+        test(client)
         #test_txn_analysis(client)
         #write_contract_code_to_file(client, "0x08e175a1eac9744a0f1ccaeb8f669af6a2bda3ce")
-        asyncio.run(txn_scanner.scan_for_txns(handler))
-        #print("-----")
-        #break
+        
+        #asyncio.run(trigger_handle_swp(client, triggers))
+        
+        print("-----")
